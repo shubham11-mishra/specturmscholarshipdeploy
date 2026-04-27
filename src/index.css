@@ -1,0 +1,141 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 230 25% 14%;
+    --card: 0 0% 100%;
+    --card-foreground: 230 25% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 230 25% 14%;
+    --primary: 260 75% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 230 20% 96%;
+    --secondary-foreground: 230 25% 20%;
+    --muted: 230 20% 96%;
+    --muted-foreground: 230 12% 45%;
+    --accent: 170 70% 42%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 52%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 230 20% 90%;
+    --input: 230 20% 90%;
+    --ring: 260 75% 58%;
+    --radius: 0.75rem;
+
+    /* Spectrum custom tokens */
+    --ink: 230 25% 14%;
+    --canvas: 230 30% 98%;
+    --cream: 36 40% 96%;
+    --gold: 42 92% 50%;
+    --gold-light: 42 95% 92%;
+    --teal: 260 75% 58%;
+    --teal-light: 260 80% 95%;
+    --coral: 0 72% 58%;
+    --coral-light: 0 80% 95%;
+    --slate: 230 12% 45%;
+
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+
+    --shadow-sm: 0 1px 3px rgba(15,23,42,0.06);
+    --shadow-md: 0 4px 20px rgba(15,23,42,0.08);
+    --shadow-lg: 0 12px 50px rgba(15,23,42,0.12);
+
+    --glow-primary: 0 0 30px hsl(260 75% 58% / 0.18);
+    --glow-accent: 0 0 30px hsl(170 70% 42% / 0.18);
+    --glow-gold: 0 0 30px hsl(42 92% 50% / 0.18);
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 230 25% 14%;
+    --sidebar-primary: 260 75% 58%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 230 20% 96%;
+    --sidebar-accent-foreground: 230 25% 20%;
+    --sidebar-border: 230 20% 90%;
+    --sidebar-ring: 260 75% 58%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+  .glow-primary {
+    box-shadow: var(--glow-primary);
+  }
+  .glow-accent {
+    box-shadow: var(--glow-accent);
+  }
+  .glow-gold {
+    box-shadow: var(--glow-gold);
+  }
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(260 80% 70%), hsl(170 70% 55%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .glass {
+    background: hsl(0 0% 100% / 0.75);
+    backdrop-filter: blur(24px);
+    border: 1px solid hsl(230 20% 90%);
+  }
+  .card-shine {
+    position: relative;
+    overflow: hidden;
+  }
+  .card-shine::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -75%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, hsl(260 80% 65% / 0.06), transparent);
+    transform: skewX(-20deg);
+    transition: left 0.6s ease;
+  }
+  .card-shine:hover::before {
+    left: 125%;
+  }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
