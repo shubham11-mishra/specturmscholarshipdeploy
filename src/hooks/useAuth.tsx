@@ -117,6 +117,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setInterests([]);
           setLocation({ state: null, postcode: null, suburb: null });
           setYearLevel(null);
+          setFullName(null);
         }
         setLoading(false);
       }
@@ -140,10 +141,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setInterests([]);
     setLocation({ state: null, postcode: null, suburb: null });
     setYearLevel(null);
+    setFullName(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, interests, location, yearLevel, signOut, refreshInterests }}>
+    <AuthContext.Provider value={{ user, session, loading, interests, location, yearLevel, fullName, signOut, refreshInterests }}>
       {children}
     </AuthContext.Provider>
   );
