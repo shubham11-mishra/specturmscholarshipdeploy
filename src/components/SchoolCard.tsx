@@ -1,5 +1,5 @@
-import { ExternalLink, MapPin, School, ShieldCheck, GraduationCap, Calendar, DollarSign, Clock, Heart } from "lucide-react";
-import { SchoolScholarship, getConfidenceBadge, getCategoryColor } from "@/data/csvScholarships";
+import { ExternalLink, MapPin, ShieldCheck, GraduationCap, Calendar, DollarSign, Heart } from "lucide-react";
+import { SchoolScholarship, getConfidenceBadge } from "@/data/csvScholarships";
 import { useShortlist } from "@/hooks/useShortlist";
 
 interface SchoolCardProps {
@@ -8,139 +8,154 @@ interface SchoolCardProps {
   onOpenDetail?: (s: SchoolScholarship) => void;
 }
 
+/** Map closing-soon urgency to color tokens (approx: green / amber / red). */
+const urgencyForDays = (days: number | null) => {
+  if (days == null) return { label: "Open", text: "text-emerald-700", bg: "bg-emerald-50", chipBg: "bg-emerald-600" };
+  if (days <= 9)  return { label: `${days} days left`, text: "text-rose-700",   bg: "bg-rose-50",    chipBg: "bg-rose-600" };
+  if (days <= 30) return { label: "Closing Soon",      text: "text-amber-700",  bg: "bg-amber-50",   chipBg: "bg-amber-600" };
+  return            { label: "Open",                   text: "text-emerald-700", bg: "bg-emerald-50", chipBg: "bg-emerald-600" };
+};
+
 const SchoolCard = ({ school, index, onOpenDetail }: SchoolCardProps) => {
   const badge = getConfidenceBadge(school.scholarship_confidence);
-  const catColor = getCategoryColor(school.category);
   const hasLink = !!(school.scholarship_url || school.website_url);
-  const closingSoon = school.days_left && parseInt(school.days_left) > 0 && parseInt(school.days_left) <= 30;
   const cardId = `${school.acara_id}-${school.row}`;
   const { toggle, isShortlisted } = useShortlist();
   const liked = isShortlisted(cardId);
+  const dl = school.days_left ? parseInt(school.days_left) : null;
+  const days = dl != null && !isNaN(dl) && dl > 0 ? dl : null;
+  const urgency = urgencyForDays(days);
+  const initial = (school.school_name || "?").charAt(0).toUpperCase();
 
   return (
     <div
-      className="card-shine glass rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:glow-primary relative animate-fade-up group flex flex-col cursor-pointer"
+      className="card-shine bg-card rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-brand relative animate-fade-up group flex flex-col border border-primary/10 hover:border-primary/30"
       style={{ animationDelay: `${index * 0.03}s` }}
       onClick={() => onOpenDetail?.(school)}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpenDetail?.(school); } }}
     >
-      <div className="h-0.5 bg-gradient-to-r from-primary to-accent" />
-      <div className="p-4 flex flex-col flex-1">
+      {/* Top gradient accent line */}
+      <div className="h-1 gradient-brand" />
+
+      <div className="p-5 flex flex-col flex-1">
         {/* Header */}
-        <div className="flex items-start justify-between mb-2 gap-2">
-          <div className="flex-1 min-w-0">
-            <div className="text-[14px] font-semibold text-foreground leading-tight mb-0.5 truncate">
-              {school.school_name}
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div
+              className="w-11 h-11 rounded-xl flex items-center justify-center text-[14px] font-bold shrink-0 text-primary"
+              style={{ background: "linear-gradient(135deg,#f3e8ff,#e6faf9)" }}
+            >
+              {initial}
             </div>
-            <div className="text-[11px] text-muted-foreground flex items-center gap-1">
-              <MapPin className="w-[10px] h-[10px] shrink-0" />
-              <span className="truncate">{school.suburb}, {school.state} {school.postcode}</span>
+            <div className="min-w-0 flex-1">
+              <div className="text-[14px] font-bold text-foreground leading-tight mb-0.5 truncate">
+                {school.school_name}
+              </div>
+              <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                <MapPin className="w-[10px] h-[10px] shrink-0" />
+                <span className="truncate">{school.suburb}, {school.state} {school.postcode}</span>
+              </div>
             </div>
           </div>
           <button
             onClick={(e) => { e.stopPropagation(); toggle(cardId); }}
-            className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 cursor-pointer transition-all bg-transparent ${
-              liked ? "border-primary/50 bg-primary/10" : "border-border bg-secondary hover:border-primary/30"
+            className={`w-8 h-8 rounded-lg border-[1.5px] flex items-center justify-center shrink-0 cursor-pointer transition-all ${
+              liked
+                ? "border-rose-200 bg-rose-50 text-rose-600"
+                : "border-border bg-secondary text-muted-foreground hover:border-primary/40 hover:text-primary"
             }`}
             title={liked ? "Remove from shortlist" : "Add to shortlist"}
+            aria-label={liked ? "Remove from shortlist" : "Add to shortlist"}
           >
-            <Heart className={`w-4 h-4 transition-all ${liked ? "text-primary fill-primary" : "text-muted-foreground"}`} />
+            <Heart className={`w-3.5 h-3.5 ${liked ? "fill-rose-600" : ""}`} />
           </button>
         </div>
 
         {/* Program name */}
         {school.program_name && (
-          <div className="flex items-center gap-1.5 mb-2">
-            <GraduationCap className="w-3 h-3 text-primary shrink-0" />
-            <span className="text-[12px] font-medium text-foreground truncate">{school.program_name}</span>
+          <div className="flex items-center gap-1.5 mb-3">
+            <GraduationCap className="w-3.5 h-3.5 text-primary shrink-0" />
+            <span className="text-[12.5px] font-semibold text-foreground truncate">{school.program_name}</span>
           </div>
         )}
 
-        {/* Badges row */}
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          <span className="text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-lg uppercase bg-secondary text-muted-foreground">
-            {school.sector}
-          </span>
+        {/* Badges */}
+        <div className="flex flex-wrap gap-1.5 mb-3">
           {school.category && (
-            <span className={`text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-lg uppercase ${catColor}`}>
+            <span className="text-[9.5px] font-bold tracking-[0.05em] px-2 py-1 rounded-md uppercase bg-primary/10 text-primary">
               {school.category}
             </span>
           )}
-          <span className={`text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-lg uppercase flex items-center gap-1 ${badge.color}`}>
-            <ShieldCheck className="w-[10px] h-[10px]" />
-            {badge.label}
+          <span className="text-[9.5px] font-bold tracking-[0.05em] px-2 py-1 rounded-md uppercase bg-secondary text-muted-foreground">
+            {school.sector}
           </span>
           {school.gender && school.gender !== "Co-ed" && (
-            <span className="text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-lg uppercase bg-secondary text-muted-foreground">
+            <span className="text-[9.5px] font-bold tracking-[0.05em] px-2 py-1 rounded-md uppercase bg-secondary text-muted-foreground">
               {school.gender}
             </span>
           )}
+          <span className={`text-[9.5px] font-bold tracking-[0.05em] px-2 py-1 rounded-md uppercase flex items-center gap-1 ${badge.color}`}>
+            <ShieldCheck className="w-[10px] h-[10px]" />
+            {badge.label}
+          </span>
         </div>
 
-        {/* Info row: value + year levels */}
-        <div className="flex flex-wrap gap-x-4 gap-y-1 mb-2 text-[11px] text-muted-foreground">
-          {school.value_type && (
-            <div className="flex items-center gap-1">
-              <DollarSign className="w-3 h-3 text-gold" />
-              <span className="text-foreground font-medium">{school.value_type}</span>
-              {school.value_aud && <span className="text-[10px]">({school.value_aud})</span>}
-            </div>
-          )}
-          {school.year_levels && (
-            <div className="flex items-center gap-1">
-              <Calendar className="w-3 h-3 text-accent" />
-              <span className="truncate max-w-[140px]">{school.year_levels}</span>
-            </div>
-          )}
-        </div>
+        {/* Info row */}
+        {(school.value_type || school.year_levels) && (
+          <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3 text-[11.5px] text-muted-foreground">
+            {school.value_type && (
+              <div className="flex items-center gap-1">
+                <DollarSign className="w-3.5 h-3.5 text-amber-600" />
+                <span className="text-foreground font-semibold">{school.value_type}</span>
+                {school.value_aud && <span className="text-[10.5px] opacity-70">({school.value_aud})</span>}
+              </div>
+            )}
+            {school.year_levels && (
+              <div className="flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-accent" />
+                <span className="truncate max-w-[160px]">{school.year_levels}</span>
+              </div>
+            )}
+          </div>
+        )}
 
-        {/* Closing soon badge */}
-        {closingSoon && (
-          <div className="flex items-center gap-1 mb-2">
-            <Clock className="w-3 h-3 text-destructive" />
-            <span className="text-[11px] font-semibold text-destructive">
-              Closing in {school.days_left} days
+        {/* Deadline urgency band */}
+        {(school.closing_date || days != null) && (
+          <div className={`flex items-center justify-between rounded-xl px-3 py-2 mb-3 ${urgency.bg}`}>
+            <div className="min-w-0">
+              <div className={`text-[9px] font-bold uppercase tracking-[0.08em] ${urgency.text}`}>Deadline</div>
+              <div className={`text-[12.5px] font-bold truncate ${urgency.text}`}>
+                {school.closing_date || "TBA"}
+              </div>
+            </div>
+            <span className={`text-[9.5px] font-bold uppercase tracking-[0.05em] text-white px-2.5 py-1 rounded-md whitespace-nowrap ${urgency.chipBg}`}>
+              {urgency.label}
             </span>
           </div>
         )}
 
         {/* Overview */}
         {school.overview && (
-          <div className="mb-3 flex-1">
-            <p className="text-[12px] text-muted-foreground leading-relaxed line-clamp-2">
+          <div className="mb-4 flex-1">
+            <p className="text-[12.5px] text-muted-foreground leading-relaxed line-clamp-2">
               {school.overview}
             </p>
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onOpenDetail?.(school); }}
-              className="text-[11px] font-semibold text-primary hover:underline mt-1 bg-transparent border-none cursor-pointer p-0"
-            >
-              Read more →
-            </button>
-          </div>
-        )}
-
-        {/* Test provider */}
-        {school.test_provider && (
-          <div className="text-[10px] text-muted-foreground mb-2">
-            Test: <span className="text-foreground font-medium">{school.test_provider}</span>
-            {school.test_month && <> · {school.test_month}</>}
           </div>
         )}
 
         {/* Actions */}
-        <div className="flex gap-2 pt-3 border-t border-border/50 mt-auto">
+        <div className="flex gap-2 pt-3 border-t border-border/60 mt-auto">
           {school.scholarship_url && (
             <a
               href={school.scholarship_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-primary to-accent text-primary-foreground border-none rounded-xl px-3.5 py-2 text-xs font-semibold cursor-pointer hover:opacity-90 transition-all"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 gradient-brand text-primary-foreground rounded-xl px-3.5 py-2.5 text-[11.5px] font-bold uppercase tracking-[0.06em] cursor-pointer hover:opacity-95 transition-all border-none no-underline"
               onClick={(e) => e.stopPropagation()}
             >
-              Scholarship Page <ExternalLink className="w-[11px] h-[11px]" />
+              View Scholarship <ExternalLink className="w-3 h-3" />
             </a>
           )}
           {school.website_url && (
@@ -148,12 +163,12 @@ const SchoolCard = ({ school, index, onOpenDetail }: SchoolCardProps) => {
               href={school.website_url}
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex items-center justify-center gap-1.5 bg-secondary text-muted-foreground border border-border rounded-xl px-3.5 py-2 text-xs font-medium cursor-pointer hover:border-primary hover:text-foreground transition-all ${
+              className={`inline-flex items-center justify-center gap-1.5 bg-secondary text-muted-foreground border border-border rounded-xl px-3.5 py-2.5 text-[11.5px] font-semibold uppercase tracking-[0.06em] cursor-pointer hover:border-primary/50 hover:text-primary transition-all no-underline ${
                 !school.scholarship_url ? "flex-1" : ""
               }`}
               onClick={(e) => e.stopPropagation()}
             >
-              School Site <ExternalLink className="w-[11px] h-[11px]" />
+              School Site <ExternalLink className="w-3 h-3" />
             </a>
           )}
           {!hasLink && (
