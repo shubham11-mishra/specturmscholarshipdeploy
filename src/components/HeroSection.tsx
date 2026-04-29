@@ -5,6 +5,7 @@ interface HeroSectionProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onSearch: () => void;
+  onStartMatching?: () => void;
 }
 
 const QUICK_FILTERS = ["Academic", "STEM", "Music", "Leadership", "Boarding"];
@@ -16,7 +17,7 @@ const TRUST_PILLS = [
   { Icon: Lock, text: "Privacy Protected" },
 ];
 
-const HeroSection = ({ searchQuery, onSearchChange, onSearch }: HeroSectionProps) => (
+const HeroSection = ({ searchQuery, onSearchChange, onSearch, onStartMatching }: HeroSectionProps) => (
   <section className="relative overflow-hidden px-4 md:px-8 pt-24 md:pt-28 pb-20 md:pb-28">
     {/* Background layers */}
     <div className="absolute inset-0 hero-radial pointer-events-none" />
@@ -90,7 +91,7 @@ const HeroSection = ({ searchQuery, onSearchChange, onSearch }: HeroSectionProps
       {/* CTAs */}
       <div className="flex flex-wrap justify-center gap-3 mb-12">
         <button
-          onClick={onSearch}
+          onClick={() => (onStartMatching ? onStartMatching() : onSearch())}
           className="gradient-brand text-primary-foreground rounded-xl px-8 py-3.5 text-[13px] font-bold uppercase tracking-[0.1em] cursor-pointer border-none shadow-brand inline-flex items-center gap-2 transition-all hover:-translate-y-0.5"
         >
           <Sparkles className="w-3.5 h-3.5" /> Start Matching
