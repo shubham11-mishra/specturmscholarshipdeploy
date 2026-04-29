@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import logoHorizontal from "@/assets/logo-horizontal.svg";
 
 const Navbar = () => {
-  const { user, signOut } = useAuth();
+  const { user, fullName, signOut } = useAuth();
   const { count } = useShortlist();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
@@ -20,7 +20,7 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 h-16 px-4 md:px-8 flex items-center justify-between transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 h-20 px-4 md:px-8 flex items-center justify-between transition-all duration-300 ${
         scrolled
           ? "bg-card/95 backdrop-blur-xl border-b border-primary/10 shadow-sm"
           : "bg-transparent border-b border-transparent"
@@ -34,7 +34,7 @@ const Navbar = () => {
         <img
           src={logoHorizontal}
           alt="Spectrum"
-          className="h-9 md:h-10 w-auto"
+          className="h-14 md:h-16 w-auto"
           draggable={false}
         />
       </a>
@@ -63,7 +63,7 @@ const Navbar = () => {
           <div className="flex items-center gap-2 ml-1">
             <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-[12px] text-muted-foreground">
               <User className="w-3.5 h-3.5" />
-              <span className="max-w-[140px] truncate">{user.email}</span>
+              <span className="max-w-[160px] truncate">{fullName || user.user_metadata?.full_name || user.email?.split("@")[0]}</span>
             </div>
             <button
               onClick={() => signOut()}
