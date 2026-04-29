@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Space Grotesk", "sans-serif"],
-        body: ["Inter", "sans-serif"],
+        display: ["Playfair Display", "Georgia", "serif"],
+        body: ["Josefin Sans", "Century Gothic", "Trebuchet MS", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

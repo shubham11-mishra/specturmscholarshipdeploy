@@ -6,6 +6,8 @@ import SchoolCard from "@/components/SchoolCard";
 import SchoolDetailModal from "@/components/SchoolDetailModal";
 import CategoryQuickLinks from "@/components/CategoryQuickLinks";
 import NearbySchoolsSection from "@/components/NearbySchoolsSection";
+import CompassMark from "@/components/CompassMark";
+import { useNavigate } from "react-router-dom";
 import {
   SchoolScholarship,
   fetchScholarshipsPage,
@@ -62,6 +64,7 @@ const expandInterests = (interests: string[]): string[] => {
 
 const Index = () => {
   const { user, interests, yearLevel } = useAuth();
+  const navigate = useNavigate();
   const [rows, setRows] = useState<SchoolScholarship[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -325,6 +328,49 @@ const Index = () => {
           </div>
         </div>
       </div>
+
+      {/* CTA band */}
+      {!user && (
+        <section className="gradient-brand text-primary-foreground text-center py-20 px-6 mt-8">
+          <div className="flex justify-center mb-4">
+            <CompassMark size={64} id="cta-band" />
+          </div>
+          <h2 className="font-display font-extrabold text-[32px] md:text-[40px] mb-3">
+            Ready to Find Your Match?
+          </h2>
+          <p className="text-primary-foreground/80 text-[15px] font-light tracking-wide mb-8 max-w-[480px] mx-auto">
+            Create a free account and start discovering scholarships in minutes.
+          </p>
+          <button
+            onClick={() => navigate("/auth")}
+            className="bg-card text-primary rounded-xl px-10 py-4 text-[13px] font-bold uppercase tracking-[0.1em] cursor-pointer border-none shadow-lg hover:-translate-y-0.5 transition-all"
+          >
+            Create Free Account
+          </button>
+        </section>
+      )}
+
+      {/* Footer */}
+      <footer className="border-t border-primary/10 py-8 px-4 md:px-8 flex flex-wrap items-center justify-between gap-4 bg-card/40">
+        <div className="flex items-center gap-2.5">
+          <CompassMark size={24} id="footer" />
+          <span className="text-[11px] tracking-[0.12em] text-foreground/40 uppercase">
+            Spectrum · Every School. Every Opportunity.
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-6">
+          {["Privacy", "Terms", "Contact", "Schools"].map((l) => (
+            <a
+              key={l}
+              href="#"
+              className="text-[11px] text-foreground/40 tracking-[0.08em] uppercase no-underline hover:text-primary transition-colors"
+            >
+              {l}
+            </a>
+          ))}
+        </div>
+      </footer>
+
       <SchoolDetailModal school={selected} onClose={() => setSelected(null)} />
     </div>
   );
