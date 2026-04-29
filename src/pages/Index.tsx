@@ -6,6 +6,8 @@ import SchoolCard from "@/components/SchoolCard";
 import SchoolDetailModal from "@/components/SchoolDetailModal";
 import CategoryQuickLinks from "@/components/CategoryQuickLinks";
 import NearbySchoolsSection from "@/components/NearbySchoolsSection";
+import CompassMark from "@/components/CompassMark";
+import { useNavigate } from "react-router-dom";
 import {
   SchoolScholarship,
   fetchScholarshipsPage,
@@ -62,6 +64,7 @@ const expandInterests = (interests: string[]): string[] => {
 
 const Index = () => {
   const { user, interests, yearLevel } = useAuth();
+  const navigate = useNavigate();
   const [rows, setRows] = useState<SchoolScholarship[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
