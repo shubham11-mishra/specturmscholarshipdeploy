@@ -17,7 +17,7 @@ const TRUST_PILLS = [
   { Icon: Lock, text: "Privacy Protected" },
 ];
 
-const HeroSection = ({ searchQuery, onSearchChange, onSearch }: HeroSectionProps) => (
+const HeroSection = ({ searchQuery, onSearchChange, onSearch, onStartMatching }: HeroSectionProps) => (
   <section className="relative overflow-hidden px-4 md:px-8 pt-24 md:pt-28 pb-20 md:pb-28">
     {/* Background layers */}
     <div className="absolute inset-0 hero-radial pointer-events-none" />
