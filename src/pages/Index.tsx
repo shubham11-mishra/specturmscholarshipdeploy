@@ -187,9 +187,33 @@ const Index = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <HeroSection searchQuery={searchInput} onSearchChange={setSearchInput} onSearch={handleSearch} />
+      <HeroSection
+        searchQuery={searchInput}
+        onSearchChange={setSearchInput}
+        onSearch={handleSearch}
+        onStartMatching={() => {
+          if (!user) {
+            navigate("/auth");
+            return;
+          }
+          if (interests.length === 0) {
+            requestAnimationFrame(() => {
+              const el = document.getElementById("interest-setup");
+              el?.scrollIntoView({ behavior: "smooth", block: "center" });
+              el?.classList.add("ring-2", "ring-primary/60", "rounded-2xl");
+              setTimeout(() => el?.classList.remove("ring-2", "ring-primary/60", "rounded-2xl"), 2200);
+            });
+            return;
+          }
+          document.getElementById("results-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }}
+      />
 
-      {user && interests.length === 0 && <InterestSetupBanner />}
+      {user && interests.length === 0 && (
+        <div id="interest-setup" className="transition-all">
+          <InterestSetupBanner />
+        </div>
+      )}
 
       <NearbySchoolsSection />
 
