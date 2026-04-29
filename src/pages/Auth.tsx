@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Eye, EyeOff, Sparkles, CheckCircle2, MapPin, GraduationCap, Heart } from "lucide-react";
+import logoHorizontal from "@/assets/logo-horizontal.svg";
 
 const CATEGORIES = ["Academic", "Music", "Sport", "General"];
 const AU_STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"];
@@ -107,11 +108,8 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         {/* Logo */}
-        <a href="/" className="flex items-center gap-2.5 justify-center mb-8">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground text-lg font-display font-bold shadow-md">
-            S
-          </div>
-          <span className="gradient-text font-display font-bold text-xl">Spectrum</span>
+        <a href="/" className="flex items-center justify-center mb-8" aria-label="Spectrum — Every school. Every opportunity.">
+          <img src={logoHorizontal} alt="Spectrum" className="h-16 md:h-20 w-auto" draggable={false} />
         </a>
 
         <div className="glass rounded-2xl p-6 md:p-8">
