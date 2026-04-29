@@ -5,6 +5,7 @@ interface HeroSectionProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onSearch: () => void;
+  onStartMatching?: () => void;
 }
 
 const QUICK_FILTERS = ["Academic", "STEM", "Music", "Leadership", "Boarding"];
