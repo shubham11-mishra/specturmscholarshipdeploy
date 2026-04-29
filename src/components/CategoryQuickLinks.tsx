@@ -1,17 +1,18 @@
-import { GraduationCap, Palette, Trophy, Globe, HandCoins, FlaskConical, School } from "lucide-react";
+import { GraduationCap, Palette, Trophy, Globe, HandCoins, FlaskConical, School, ChevronRight } from "lucide-react";
 
 const QUICK_LINKS: {
   label: string;
   Icon: typeof GraduationCap;
-  gradient: string;
+  iconBg: string;
+  iconColor: string;
 }[] = [
-  { label: "Academic",        Icon: GraduationCap, gradient: "from-primary/30 to-primary/5" },
-  { label: "Arts",            Icon: Palette,       gradient: "from-accent/30 to-accent/5" },
-  { label: "Sports",          Icon: Trophy,        gradient: "from-gold/30 to-gold/5" },
-  { label: "Cultural",        Icon: Globe,         gradient: "from-fuchsia-500/30 to-fuchsia-500/5" },
-  { label: "Financial Need",  Icon: HandCoins,     gradient: "from-emerald-500/30 to-emerald-500/5" },
-  { label: "STEM",            Icon: FlaskConical,  gradient: "from-sky-500/30 to-sky-500/5" },
-  { label: "School-Specific", Icon: School,        gradient: "from-violet-500/30 to-violet-500/5" },
+  { label: "Academic",        Icon: GraduationCap, iconBg: "bg-[#f3e8ff]", iconColor: "text-[#7B2D8E]" },
+  { label: "Arts",            Icon: Palette,       iconBg: "bg-[#fce7f3]", iconColor: "text-[#be185d]" },
+  { label: "Sports",          Icon: Trophy,        iconBg: "bg-[#dcfce7]", iconColor: "text-[#15803d]" },
+  { label: "Cultural",        Icon: Globe,         iconBg: "bg-[#ffe4e6]", iconColor: "text-[#9f1239]" },
+  { label: "Financial Need",  Icon: HandCoins,     iconBg: "bg-[#fef3c7]", iconColor: "text-[#b45309]" },
+  { label: "STEM",            Icon: FlaskConical,  iconBg: "bg-[#e0f7fa]", iconColor: "text-[#0e7490]" },
+  { label: "School-Specific", Icon: School,        iconBg: "bg-[#ede9fe]", iconColor: "text-[#4f46e5]" },
 ];
 
 interface Props {
@@ -21,38 +22,48 @@ interface Props {
 }
 
 const CategoryQuickLinks = ({ active, counts, onSelect }: Props) => (
-  <section className="max-w-[1280px] mx-auto px-4 md:px-8 pt-2 pb-8 animate-fade-up" style={{ animationDelay: "0.05s" }}>
-    <div className="flex items-baseline justify-between mb-4">
-      <h2 className="text-base md:text-lg font-bold text-foreground tracking-tight">
-        Browse by Category
-      </h2>
-      <span className="text-[11px] font-medium text-muted-foreground">Click a tile to filter</span>
+  <section className="max-w-[1200px] mx-auto px-4 md:px-8 pt-4 pb-10 animate-fade-up" style={{ animationDelay: "0.05s" }}>
+    <div className="flex items-end justify-between mb-7">
+      <div>
+        <div className="text-[10px] font-bold tracking-[0.2em] text-accent uppercase mb-2">Browse</div>
+        <h2 className="font-display font-extrabold text-foreground text-[28px] md:text-[34px] leading-tight">
+          Explore by Category
+        </h2>
+      </div>
+      <span className="hidden md:block text-[11px] font-medium text-muted-foreground">Click a tile to filter</span>
     </div>
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
-      {QUICK_LINKS.map(({ label, Icon, gradient }) => {
+
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4">
+      {QUICK_LINKS.map(({ label, Icon, iconBg, iconColor }) => {
         const isActive = active.includes(label);
         return (
           <button
             key={label}
             onClick={() => onSelect(label)}
-            className={`group relative overflow-hidden rounded-xl p-3.5 text-left transition-all border-2 shadow-sm hover:shadow-md ${
+            className={`group flex items-center gap-4 rounded-2xl p-5 text-left bg-card border transition-all cursor-pointer ${
               isActive
-                ? "border-primary glow-primary"
-                : "border-border hover:border-primary/50 hover:-translate-y-0.5"
-            } glass`}
+                ? "border-primary/50 bg-primary/8 shadow-brand"
+                : "border-primary/10 hover:border-primary/40 hover:-translate-y-[3px] hover:shadow-md"
+            }`}
           >
-            <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-90 pointer-events-none`} />
-            <div className="relative flex flex-col gap-2">
-              <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                isActive ? "bg-primary/25 text-primary" : "bg-background/40 text-foreground"
-              }`}>
-                <Icon className="w-4 h-4" />
+            <div
+              className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${iconBg} ${iconColor}`}
+            >
+              <Icon className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px] font-bold text-foreground tracking-[0.06em] uppercase mb-0.5 truncate">
+                {label}
               </div>
-              <div className="text-[13px] font-semibold text-foreground leading-tight">{label}</div>
-              <div className="text-[11px] text-muted-foreground">
-                {counts[label] ?? 0} scholarships
+              <div className="text-[12px] text-foreground/45 tracking-[0.04em]">
+                {(counts[label] ?? 0).toLocaleString()} scholarships
               </div>
             </div>
+            <ChevronRight
+              className={`w-5 h-5 shrink-0 transition-all ${
+                isActive ? "text-primary" : "text-foreground/25 group-hover:text-primary group-hover:translate-x-0.5"
+              }`}
+            />
           </button>
         );
       })}
