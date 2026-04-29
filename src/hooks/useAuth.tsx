@@ -15,6 +15,7 @@ interface AuthContextType {
   interests: string[];
   location: UserLocation;
   yearLevel: string | null;
+  fullName: string | null;
   signOut: () => Promise<void>;
   refreshInterests: () => Promise<void>;
 }
@@ -26,6 +27,7 @@ const AuthContext = createContext<AuthContextType>({
   interests: [],
   location: { state: null, postcode: null, suburb: null },
   yearLevel: null,
+  fullName: null,
   signOut: async () => {},
   refreshInterests: async () => {},
 });
@@ -39,11 +41,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [interests, setInterests] = useState<string[]>([]);
   const [location, setLocation] = useState<UserLocation>({ state: null, postcode: null, suburb: null });
   const [yearLevel, setYearLevel] = useState<string | null>(null);
+  const [fullName, setFullName] = useState<string | null>(null);
 
   const fetchLocation = async (userId: string) => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("state, postcode, suburb, year_level")
+      .select("state, postcode, suburb, year_level, full_name")
       .eq("id", userId)
       .maybeSingle();
     if (error) {
@@ -56,6 +59,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       suburb: data?.suburb ?? null,
     });
     setYearLevel(data?.year_level ?? null);
+    setFullName(data?.full_name ?? null);
   };
 
   const fetchInterests = async (userId: string) => {
