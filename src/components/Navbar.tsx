@@ -3,7 +3,7 @@ import { Sparkles, LogOut, User, Heart } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useShortlist } from "@/hooks/useShortlist";
 import { useNavigate } from "react-router-dom";
-import CompassMark from "./CompassMark";
+import logoHorizontal from "@/assets/logo-horizontal.svg";
 
 const Navbar = () => {
   const { user, signOut } = useAuth();
@@ -28,13 +28,15 @@ const Navbar = () => {
     >
       <a
         href="/"
-        className="flex items-center gap-2.5 no-underline"
-        aria-label="Spectrum home"
+        className="flex items-center no-underline"
+        aria-label="Spectrum — Every school. Every opportunity."
       >
-        <CompassMark size={32} id="nav" />
-        <span className="font-bold text-[17px] tracking-[0.18em] uppercase text-foreground">
-          Spectrum
-        </span>
+        <img
+          src={logoHorizontal}
+          alt="Spectrum"
+          className="h-9 md:h-10 w-auto"
+          draggable={false}
+        />
       </a>
 
       <div className="flex items-center gap-1.5">
