@@ -91,7 +91,7 @@ const HeroSection = ({ searchQuery, onSearchChange, onSearch, onStartMatching }:
       {/* CTAs */}
       <div className="flex flex-wrap justify-center gap-3 mb-12">
         <button
-          onClick={onSearch}
+          onClick={() => (onStartMatching ? onStartMatching() : onSearch())}
           className="gradient-brand text-primary-foreground rounded-xl px-8 py-3.5 text-[13px] font-bold uppercase tracking-[0.1em] cursor-pointer border-none shadow-brand inline-flex items-center gap-2 transition-all hover:-translate-y-0.5"
         >
           <Sparkles className="w-3.5 h-3.5" /> Start Matching
