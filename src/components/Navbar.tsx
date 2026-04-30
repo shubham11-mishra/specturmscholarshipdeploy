@@ -40,24 +40,35 @@ const Navbar = () => {
       </a>
 
       <div className="flex items-center gap-1.5">
-        <a
-          href="/"
-          className="hidden md:inline-block px-3 py-1.5 rounded-lg text-[12px] font-semibold uppercase tracking-[0.08em] text-foreground/65 hover:bg-primary/8 hover:text-primary transition-all no-underline"
+        <button
+          onClick={() => {
+            if (window.location.pathname !== "/") {
+              navigate("/");
+              setTimeout(() => {
+                document.getElementById("results-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }, 100);
+            } else {
+              document.getElementById("results-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          }}
+          className="hidden md:inline-block px-3 py-1.5 rounded-lg text-[12px] font-semibold uppercase tracking-[0.08em] text-foreground/65 hover:bg-primary/8 hover:text-primary transition-all bg-transparent border-none cursor-pointer"
         >
           Browse
-        </a>
-        <button
-          onClick={() => navigate("/shortlist")}
-          className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold uppercase tracking-[0.08em] text-foreground/65 hover:bg-primary/8 hover:text-primary transition-all bg-transparent border-none cursor-pointer relative"
-        >
-          <Heart className="w-3.5 h-3.5" />
-          Shortlist
-          {count > 0 && (
-            <span className="bg-primary text-primary-foreground rounded-full min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold px-1">
-              {count}
-            </span>
-          )}
         </button>
+        {user && (
+          <button
+            onClick={() => navigate("/shortlist")}
+            className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold uppercase tracking-[0.08em] text-foreground/65 hover:bg-primary/8 hover:text-primary transition-all bg-transparent border-none cursor-pointer relative"
+          >
+            <Heart className="w-3.5 h-3.5" />
+            Shortlist
+            {count > 0 && (
+              <span className="bg-primary text-primary-foreground rounded-full min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold px-1">
+                {count}
+              </span>
+            )}
+          </button>
+        )}
 
         {user ? (
           <div className="flex items-center gap-2 ml-1">
@@ -74,13 +85,21 @@ const Navbar = () => {
             </button>
           </div>
         ) : (
-          <button
-            onClick={() => navigate("/auth")}
-            className="gradient-brand text-primary-foreground px-5 py-2 rounded-lg text-[12px] font-bold uppercase tracking-[0.08em] hover:opacity-95 transition-all flex items-center gap-1.5 shadow-brand border-none cursor-pointer ml-1"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            Get Started
-          </button>
+          <div className="flex items-center gap-2 ml-1">
+            <button
+              onClick={() => navigate("/auth")}
+              className="px-4 py-2 rounded-lg text-[12px] font-bold uppercase tracking-[0.08em] text-primary border border-primary/40 hover:bg-primary/8 transition-all bg-transparent cursor-pointer"
+            >
+              Sign In
+            </button>
+            <button
+              onClick={() => navigate("/auth?mode=signup")}
+              className="gradient-brand text-primary-foreground px-5 py-2 rounded-lg text-[12px] font-bold uppercase tracking-[0.08em] hover:opacity-95 transition-all flex items-center gap-1.5 shadow-brand border-none cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              Get Started
+            </button>
+          </div>
         )}
       </div>
     </nav>
