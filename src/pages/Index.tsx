@@ -5,6 +5,7 @@ import InterestSetupBanner from "@/components/InterestSetupBanner";
 import SchoolCard from "@/components/SchoolCard";
 import SchoolDetailModal from "@/components/SchoolDetailModal";
 import CategoryQuickLinks from "@/components/CategoryQuickLinks";
+import ClosingSoonSection from "@/components/ClosingSoonSection";
 import NearbySchoolsSection from "@/components/NearbySchoolsSection";
 import CompassMark from "@/components/CompassMark";
 import { useNavigate } from "react-router-dom";
