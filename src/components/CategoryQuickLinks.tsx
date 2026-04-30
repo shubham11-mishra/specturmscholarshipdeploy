@@ -38,7 +38,7 @@ const CategoryQuickLinks = ({ active, counts, onSelect }: Props) => (
           <button
             key={label}
             onClick={() => onSelect(label)}
-            className={`group flex items-center gap-4 rounded-2xl p-5 text-left bg-card border transition-all cursor-pointer ${
+            className={`group flex items-center gap-4 rounded-2xl p-5 text-left bg-card border transition-all cursor-pointer w-full ${
               isActive
                 ? "border-primary/50 bg-primary/8 shadow-brand"
                 : "border-primary/10 hover:border-primary/40 hover:-translate-y-[3px] hover:shadow-md"
