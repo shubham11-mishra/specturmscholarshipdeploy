@@ -1,13 +1,21 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/useAuth";
 import { Eye, EyeOff, Sparkles, CheckCircle2, MapPin, GraduationCap, Heart } from "lucide-react";
-import logoHorizontal from "@/assets/logo-horizontal.svg";
+import logoStacked from "@/assets/logo-stacked.svg";
 
 const CATEGORIES = ["Academic", "Music", "Sport", "General"];
 const AU_STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"];
 const YEAR_LEVELS = ["Year 5", "Year 6", "Year 7", "Year 8", "Year 9", "Year 10", "Year 11", "Year 12"];
+
+const FEATURES = [
+  "2,400+ scholarships in one place",
+  "Smart matching by year & category",
+  "Save & track your shortlist",
+  "Deadline alerts & reminders",
+];
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -26,7 +34,6 @@ const Auth = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    // Don't redirect if user arrived via password recovery link
     const hash = window.location.hash;
     if (user && !hash.includes("type=recovery")) navigate("/");
   }, [user, navigate]);
@@ -35,6 +42,26 @@ const Auth = () => {
     setSelectedCategories((prev) =>
       prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
     );
+  };
+
+  const handleGoogle = async () => {
+    setError("");
+    setSubmitting(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        setError((result.error as Error).message || "Google sign-in failed");
+        setSubmitting(false);
+        return;
+      }
+      if (result.redirected) return;
+      navigate("/");
+    } catch (err: any) {
+      setError(err.message || "Google sign-in failed");
+      setSubmitting(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -81,13 +108,10 @@ const Auth = () => {
             },
           },
         });
-        // Ignore email rate limit errors since auto-confirm is enabled
         if (error && !error.message.toLowerCase().includes("rate limit")) throw error;
 
         if (data?.session?.user) {
           const userId = data.session.user.id;
-
-          // Save interests (profile fields are written by the signup DB trigger)
           const inserts = selectedCategories.map((category) => ({
             user_id: userId,
             category,
@@ -105,21 +129,46 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <a href="/" className="flex items-center justify-center mb-8" aria-label="Spectrum — Every school. Every opportunity.">
-          <img src={logoHorizontal} alt="Spectrum" className="h-16 md:h-20 w-auto" draggable={false} />
-        </a>
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-background">
+      {/* LEFT — Brand panel */}
+      <aside className="relative hidden lg:flex flex-col justify-center items-center text-center px-10 py-16 overflow-hidden bg-gradient-to-br from-[#7B2D8E] via-[#6B2A85] to-[#2EC4B6]">
+        {/* Decorative blobs */}
+        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
+        <div className="absolute -bottom-32 -right-16 w-[28rem] h-[28rem] rounded-full bg-white/10 blur-3xl" />
 
-        <div className="glass rounded-2xl p-6 md:p-8">
-          <h1 className="font-display text-2xl font-bold text-foreground text-center mb-1">
-            {isLogin ? "Welcome back" : "Create your account"}
+        <div className="relative z-10 flex flex-col items-center max-w-sm">
+          <img src={logoStacked} alt="Spectrum" className="w-32 h-32 mb-6 drop-shadow-xl" draggable={false} />
+          <h2 className="font-display text-white text-4xl font-extrabold tracking-[0.18em] mb-2">
+            SPECTRUM
+          </h2>
+          <p className="text-white/70 text-[11px] tracking-[0.28em] uppercase mb-12">
+            Every School. Every Opportunity.
+          </p>
+
+          <ul className="space-y-4 text-left w-full">
+            {FEATURES.map((feature, i) => (
+              <li key={feature} className="flex items-center gap-3 text-white/90 text-sm">
+                <span
+                  className="w-2 h-2 rounded-full bg-[#2EC4B6] shrink-0"
+                  style={{ boxShadow: "0 0 12px rgba(46,196,182,0.8)" }}
+                />
+                {feature}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </aside>
+
+      {/* RIGHT — Form panel */}
+      <main className="flex items-center justify-center px-4 sm:px-8 py-10 bg-background">
+        <div className="w-full max-w-md">
+          <h1 className="font-display text-3xl md:text-4xl font-extrabold text-foreground mb-1">
+            {isLogin ? "Sign In" : "Create your account"}
           </h1>
-          <p className="text-sm text-muted-foreground text-center mb-6">
+          <p className="text-sm text-muted-foreground mb-6">
             {isLogin
-              ? "Sign in to see your personalized scholarships"
-              : "Tell us a bit about you to personalize your matches"}
+              ? "Welcome back. Access your saved scholarships."
+              : "Tell us a bit about you to personalize your matches."}
           </p>
 
           {error && (
@@ -128,8 +177,33 @@ const Auth = () => {
             </div>
           )}
 
+          {/* Google */}
+          <button
+            type="button"
+            onClick={handleGoogle}
+            disabled={submitting}
+            className="w-full flex items-center justify-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground hover:bg-secondary transition-all disabled:opacity-50 cursor-pointer mb-4"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+              <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.17-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.71v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.61z"/>
+              <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.32A9 9 0 0 0 9 18z"/>
+              <path fill="#FBBC05" d="M3.97 10.71A5.4 5.4 0 0 1 3.68 9c0-.6.1-1.18.29-1.71V4.96H.96A9 9 0 0 0 0 9c0 1.45.35 2.82.96 4.04l3.01-2.33z"/>
+              <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.96l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/>
+            </svg>
+            Continue with Google
+          </button>
+
+          {/* Divider */}
+          <div className="relative my-5">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-background px-3 text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Or</span>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* LOGIN: name field hidden */}
             {!isLogin && (
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">Full Name</label>
@@ -139,47 +213,75 @@ const Auth = () => {
                   onChange={(e) => setFullName(e.target.value)}
                   required={!isLogin}
                   placeholder="John Doe"
-                  className="w-full rounded-xl border border-border bg-secondary px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all"
+                  className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all"
                 />
               </div>
             )}
 
-            {/* Email + Password — always shown */}
             <div>
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">Email</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    placeholder="you@example.com"
-                    className="w-full rounded-xl border border-border bg-secondary px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all"
-                  />
-                </div>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="Email"
+                aria-label="Email"
+                className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all"
+              />
+            </div>
 
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">Password</label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      minLength={6}
-                      placeholder="••••••••"
-                      className="w-full rounded-xl border border-border bg-secondary px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground bg-transparent border-none cursor-pointer"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
+            <div>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  placeholder="Password"
+                  aria-label="Password"
+                  className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all pr-16"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground hover:text-foreground bg-transparent border-none cursor-pointer flex items-center gap-1"
+                >
+                  {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+              {isLogin && (
+                <div className="text-right mt-1.5">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!email) {
+                        setError("Please enter your email first, then click Forgot Password.");
+                        return;
+                      }
+                      setError("");
+                      setSubmitting(true);
+                      try {
+                        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                          redirectTo: `${window.location.origin}/reset-password`,
+                        });
+                        if (error) throw error;
+                        setError("Password reset link sent! Check your email.");
+                      } catch (err: any) {
+                        setError(err.message || "Something went wrong");
+                      } finally {
+                        setSubmitting(false);
+                      }
+                    }}
+                    className="text-xs text-accent font-semibold hover:text-accent/80 transition-colors bg-transparent border-none cursor-pointer"
+                  >
+                    Forgot password?
+                  </button>
                 </div>
+              )}
+            </div>
 
-            {/* SIGNUP — Year level + Location + Interests on a single page */}
             {!isLogin && (
               <>
                 <div>
@@ -190,7 +292,7 @@ const Auth = () => {
                     value={yearLevel}
                     onChange={(e) => setYearLevel(e.target.value)}
                     required
-                    className="w-full rounded-xl border border-border bg-secondary px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all cursor-pointer"
+                    className="w-full rounded-xl border border-border bg-secondary px-3 py-3 text-sm text-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all cursor-pointer"
                   >
                     <option value="">Select year level</option>
                     {YEAR_LEVELS.map((y) => (
@@ -208,7 +310,7 @@ const Auth = () => {
                       value={stateCode}
                       onChange={(e) => setStateCode(e.target.value)}
                       required
-                      className="w-full rounded-xl border border-border bg-secondary px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all cursor-pointer"
+                      className="w-full rounded-xl border border-border bg-secondary px-3 py-3 text-sm text-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all cursor-pointer"
                     >
                       <option value="">State</option>
                       {AU_STATES.map((s) => (
@@ -223,7 +325,7 @@ const Auth = () => {
                       inputMode="numeric"
                       pattern="\d{4}"
                       placeholder="Postcode"
-                      className="w-full rounded-xl border border-border bg-secondary px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all"
+                      className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all"
                     />
                   </div>
                   <input
@@ -231,97 +333,62 @@ const Auth = () => {
                     value={suburb}
                     onChange={(e) => setSuburb(e.target.value)}
                     placeholder="Suburb (optional)"
-                    className="w-full rounded-xl border border-border bg-secondary px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all"
+                    className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all"
                   />
                 </div>
 
                 <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                  <Heart className="w-3.5 h-3.5" /> Pick your interests & strengths
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {CATEGORIES.map((cat) => {
-                    const selected = selectedCategories.includes(cat);
-                    return (
-                      <button
-                        key={cat}
-                        type="button"
-                        onClick={() => toggleCategory(cat)}
-                        className={`relative rounded-xl border px-4 py-3 text-sm font-medium cursor-pointer transition-all flex items-center gap-2 ${
-                          selected
-                            ? "border-primary/50 bg-primary/10 text-primary glow-primary"
-                            : "border-border bg-secondary text-muted-foreground hover:border-primary/30 hover:text-foreground"
-                        }`}
-                      >
-                        {selected && <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />}
-                        {cat}
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className="text-[11px] text-muted-foreground mt-2">Select all that apply.</p>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                    <Heart className="w-3.5 h-3.5" /> Pick your interests & strengths
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {CATEGORIES.map((cat) => {
+                      const selected = selectedCategories.includes(cat);
+                      return (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => toggleCategory(cat)}
+                          className={`relative rounded-xl border px-4 py-3 text-sm font-medium cursor-pointer transition-all flex items-center gap-2 ${
+                            selected
+                              ? "border-primary/50 bg-primary/10 text-primary glow-primary"
+                              : "border-border bg-secondary text-muted-foreground hover:border-primary/30 hover:text-foreground"
+                          }`}
+                        >
+                          {selected && <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />}
+                          {cat}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-2">Select all that apply.</p>
                 </div>
               </>
             )}
 
-            {/* Action button */}
             <button
               type="submit"
               disabled={submitting}
-              className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-xl px-4 py-2.5 text-sm font-semibold cursor-pointer hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 border-none"
+              className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-xl px-4 py-3.5 text-sm font-bold uppercase tracking-[0.12em] cursor-pointer hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 border-none shadow-lg"
             >
               <Sparkles className="w-4 h-4" />
               {submitting ? (isLogin ? "Please wait..." : "Creating...") : isLogin ? "Sign In" : "Create Account"}
             </button>
           </form>
 
-          {/* (removed legacy multi-step action buttons) */}
-          {false && (
-            <div className="hidden">
-              {/* placeholder to keep diff small */}
-              </div>
-            )}
-
-          {isLogin && (
-            <div className="mt-3 text-center">
-              <button
-                type="button"
-                onClick={async () => {
-                  if (!email) {
-                    setError("Please enter your email first, then click Forgot Password.");
-                    return;
-                  }
-                  setError("");
-                  setSubmitting(true);
-                  try {
-                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                      redirectTo: `${window.location.origin}/reset-password`,
-                    });
-                    if (error) throw error;
-                    setError("Password reset link sent! Check your email.");
-                  } catch (err: any) {
-                    setError(err.message || "Something went wrong");
-                  } finally {
-                    setSubmitting(false);
-                  }
-                }}
-                className="text-xs text-muted-foreground hover:text-primary transition-colors bg-transparent border-none cursor-pointer"
-              >
-                Forgot your password?
-              </button>
-            </div>
-          )}
-
-          <div className="mt-3 text-center">
+          <div className="mt-5 text-center">
+            <span className="text-sm text-muted-foreground">
+              {isLogin ? "Don't have an account? " : "Already have an account? "}
+            </span>
             <button
               onClick={() => { setIsLogin(!isLogin); setError(""); }}
-              className="text-sm text-muted-foreground hover:text-primary transition-colors bg-transparent border-none cursor-pointer"
+              className="text-sm text-accent font-semibold hover:text-accent/80 transition-colors bg-transparent border-none cursor-pointer"
             >
-              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+              {isLogin ? "Sign Up" : "Sign In"}
             </button>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };
