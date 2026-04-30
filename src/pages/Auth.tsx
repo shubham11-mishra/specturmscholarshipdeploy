@@ -121,6 +121,7 @@ const Auth = () => {
           const { error: interestsError } = await supabase.from("user_interests").insert(inserts);
           if (interestsError) throw interestsError;
         }
+        toast.success("Account created! Welcome to Spectrum.");
         navigate("/");
       }
     } catch (err: any) {
