@@ -1,5 +1,5 @@
 import { ExternalLink, MapPin, ShieldCheck, GraduationCap, Calendar, DollarSign, Heart } from "lucide-react";
-import { SchoolScholarship, getConfidenceBadge, computeDaysLeft } from "@/data/csvScholarships";
+import { SchoolScholarship, getConfidenceBadge, computeDaysLeft, formatCloseDate } from "@/data/csvScholarships";
 import { useShortlist } from "@/hooks/useShortlist";
 
 interface SchoolCardProps {
@@ -129,7 +129,7 @@ const SchoolCard = ({ school, index, onOpenDetail }: SchoolCardProps) => {
             <div className="min-w-0">
               <div className={`text-[9px] font-bold uppercase tracking-[0.08em] ${urgency.text}`}>Deadline</div>
               <div className={`text-[12.5px] font-bold truncate ${urgency.text}`}>
-                {school.application_close_date || school.closing_label || "TBA"}
+                {formatCloseDate(school.application_close_date) || school.closing_label || "TBA"}
               </div>
             </div>
             <span className={`text-[9.5px] font-bold uppercase tracking-[0.05em] text-white px-2.5 py-1 rounded-md whitespace-nowrap ${urgency.chipBg}`}>
