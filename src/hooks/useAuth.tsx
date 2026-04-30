@@ -143,6 +143,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLocation({ state: null, postcode: null, suburb: null });
     setYearLevel(null);
     setFullName(null);
+    toast.success("Signed out successfully");
   };
 
   return (
