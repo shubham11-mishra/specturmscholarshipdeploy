@@ -23,24 +23,22 @@ interface Props {
 
 const CategoryQuickLinks = ({ active, counts, onSelect }: Props) => (
   <section className="max-w-[1200px] mx-auto px-4 md:px-8 pt-4 pb-10 animate-fade-up" style={{ animationDelay: "0.05s" }}>
-    <div className="flex items-end justify-between mb-7">
-      <div>
-        <div className="text-[10px] font-bold tracking-[0.2em] text-accent uppercase mb-2">Browse</div>
-        <h2 className="font-display font-extrabold text-foreground text-[28px] md:text-[34px] leading-tight">
-          Explore by Category
-        </h2>
-      </div>
-      <span className="hidden md:block text-[11px] font-medium text-muted-foreground">Click a tile to filter</span>
+    <div className="flex flex-col items-center text-center mb-7">
+      <div className="text-[10px] font-bold tracking-[0.2em] text-accent uppercase mb-2">Browse by Category</div>
+      <h2 className="font-display font-extrabold text-foreground text-[28px] md:text-[40px] leading-tight">
+        Explore by Category
+      </h2>
+      <span className="hidden md:block text-[11px] font-medium text-muted-foreground mt-3">Click a tile to filter</span>
     </div>
 
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 justify-items-center">
       {QUICK_LINKS.map(({ label, Icon, iconBg, iconColor }) => {
         const isActive = active.includes(label);
         return (
           <button
             key={label}
             onClick={() => onSelect(label)}
-            className={`group flex items-center gap-4 rounded-2xl p-5 text-left bg-card border transition-all cursor-pointer ${
+            className={`group flex items-center gap-4 rounded-2xl p-5 text-left bg-card border transition-all cursor-pointer w-full ${
               isActive
                 ? "border-primary/50 bg-primary/8 shadow-brand"
                 : "border-primary/10 hover:border-primary/40 hover:-translate-y-[3px] hover:shadow-md"
