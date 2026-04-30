@@ -115,6 +115,10 @@ function applyFilters(query: any, q: ScholarshipQuery) {
   } else {
     query = query.neq("scholarship_confidence", "not_found");
   }
+  // Exclude scholarships whose application close date has already passed.
+  // Rows with NULL close dates remain visible (deadline unknown / rolling).
+  const today = new Date().toISOString().slice(0, 10);
+  query = query.or(`application_close_date.is.null,application_close_date.gte.${today}`);
   if (q.states?.length) query = query.in("state", q.states);
   if (q.sectors?.length) query = query.in("sector", q.sectors);
   if (q.categories?.length) query = query.in("category", q.categories);
