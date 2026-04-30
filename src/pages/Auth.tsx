@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 import { Eye, EyeOff, Sparkles, CheckCircle2, MapPin, GraduationCap, Heart } from "lucide-react";
 import logoStacked from "@/assets/logo-stacked.svg";
 
