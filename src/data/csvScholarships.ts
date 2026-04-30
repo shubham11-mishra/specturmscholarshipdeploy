@@ -108,6 +108,17 @@ export interface ScholarshipPage {
   total: number;
 }
 
+// Returns today's date as YYYY-MM-DD in the user's local timezone.
+// Called fresh on every query so the cutoff updates automatically each day,
+// even if the browser tab stays open across midnight.
+export function getTodayLocal(): string {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 function applyFilters(query: any, q: ScholarshipQuery) {
   // Always exclude not_found unless explicitly asked
   if (q.confidence && q.confidence !== "all") {
@@ -116,8 +127,9 @@ function applyFilters(query: any, q: ScholarshipQuery) {
     query = query.neq("scholarship_confidence", "not_found");
   }
   // Exclude scholarships whose application close date has already passed.
+  // `getTodayLocal()` runs on every query, so the cutoff is always current.
   // Rows with NULL close dates remain visible (deadline unknown / rolling).
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getTodayLocal();
   query = query.or(`application_close_date.is.null,application_close_date.gte.${today}`);
   if (q.states?.length) query = query.in("state", q.states);
   if (q.sectors?.length) query = query.in("sector", q.sectors);
@@ -290,7 +302,7 @@ export async function fetchScholarshipsByIds(ids: string[]): Promise<SchoolSchol
   if (ids.length === 0) return [];
   // ids look like "{acara_id}-{row_number}". We'll fetch by acara_id list and filter in JS.
   const acaraIds = Array.from(new Set(ids.map((i) => i.split("-")[0]).filter(Boolean)));
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getTodayLocal();
   const { data, error } = await supabase
     .from("scholarships")
     .select("*")
