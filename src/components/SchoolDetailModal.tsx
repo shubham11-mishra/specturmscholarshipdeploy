@@ -1,5 +1,5 @@
 import { X, ExternalLink, MapPin, GraduationCap, ShieldCheck, DollarSign, Calendar, Clock, Mail, Phone, Award, FileText } from "lucide-react";
-import { SchoolScholarship, getConfidenceBadge, getCategoryColor } from "@/data/csvScholarships";
+import { SchoolScholarship, getConfidenceBadge, getCategoryColor, computeDaysLeft } from "@/data/csvScholarships";
 import { useShortlist } from "@/hooks/useShortlist";
 import { useEffect } from "react";
 
@@ -93,7 +93,7 @@ const SchoolDetailModal = ({ school, onClose }: SchoolDetailModalProps) => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
             <Stat icon={<DollarSign className="w-3.5 h-3.5 text-gold" />} label="Value" value={school.value_type || "—"} sub={school.value_aud} />
             <Stat icon={<Calendar className="w-3.5 h-3.5 text-accent" />} label="Year Levels" value={school.year_levels || "—"} />
-            <Stat icon={<Clock className="w-3.5 h-3.5 text-coral" />} label="Closes" value={school.closing_label || school.application_close_date || "—"} sub={school.days_left ? `${school.days_left} days left` : undefined} />
+            <Stat icon={<Clock className="w-3.5 h-3.5 text-coral" />} label="Closes" value={school.application_close_date || school.closing_label || "—"} sub={(() => { const d = computeDaysLeft(school.application_close_date); if (d == null) return undefined; if (d < 0) return "Closed"; if (d === 0) return "Closes today"; return `${d} day${d === 1 ? "" : "s"} left`; })()} />
             <Stat icon={<Award className="w-3.5 h-3.5 text-primary" />} label="Test" value={school.test_provider || "—"} sub={school.test_month} />
           </div>
 

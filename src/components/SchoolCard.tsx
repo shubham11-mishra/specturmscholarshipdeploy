@@ -1,5 +1,5 @@
 import { ExternalLink, MapPin, ShieldCheck, GraduationCap, Calendar, DollarSign, Heart } from "lucide-react";
-import { SchoolScholarship, getConfidenceBadge } from "@/data/csvScholarships";
+import { SchoolScholarship, getConfidenceBadge, computeDaysLeft } from "@/data/csvScholarships";
 import { useShortlist } from "@/hooks/useShortlist";
 
 interface SchoolCardProps {
@@ -22,8 +22,10 @@ const SchoolCard = ({ school, index, onOpenDetail }: SchoolCardProps) => {
   const cardId = `${school.acara_id}-${school.row}`;
   const { toggle, isShortlisted } = useShortlist();
   const liked = isShortlisted(cardId);
-  const dl = school.days_left ? parseInt(school.days_left) : null;
-  const days = dl != null && !isNaN(dl) && dl > 0 ? dl : null;
+  // Compute days left dynamically from the close date — the stored `days_left`
+  // column is a stale snapshot from when the row was scraped.
+  const dl = computeDaysLeft(school.application_close_date);
+  const days = dl != null && dl >= 0 ? dl : null;
   const urgency = urgencyForDays(days);
   const initial = (school.school_name || "?").charAt(0).toUpperCase();
 
