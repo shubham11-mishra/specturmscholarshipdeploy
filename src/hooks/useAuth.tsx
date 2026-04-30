@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
+import { toast } from "sonner";
 
 interface UserLocation {
   state: string | null;
@@ -142,6 +143,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLocation({ state: null, postcode: null, suburb: null });
     setYearLevel(null);
     setFullName(null);
+    toast.success("Signed out successfully");
   };
 
   return (

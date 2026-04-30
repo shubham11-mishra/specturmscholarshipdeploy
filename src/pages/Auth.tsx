@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 import { Eye, EyeOff, Sparkles, CheckCircle2, MapPin, GraduationCap, Heart } from "lucide-react";
 import logoStacked from "@/assets/logo-stacked.svg";
 
@@ -73,6 +74,7 @@ const Auth = () => {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        toast.success("Welcome back!");
         navigate("/");
       } else {
         if (!fullName.trim() || !email.trim() || password.length < 6) {
@@ -119,6 +121,7 @@ const Auth = () => {
           const { error: interestsError } = await supabase.from("user_interests").insert(inserts);
           if (interestsError) throw interestsError;
         }
+        toast.success("Account created! Welcome to Spectrum.");
         navigate("/");
       }
     } catch (err: any) {
