@@ -45,10 +45,10 @@ const Navbar = () => {
             if (window.location.pathname !== "/") {
               navigate("/");
               setTimeout(() => {
-                document.getElementById("scholarships")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                document.getElementById("results-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
               }, 100);
             } else {
-              document.getElementById("scholarships")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              document.getElementById("results-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
             }
           }}
           className="hidden md:inline-block px-3 py-1.5 rounded-lg text-[12px] font-semibold uppercase tracking-[0.08em] text-foreground/65 hover:bg-primary/8 hover:text-primary transition-all bg-transparent border-none cursor-pointer"
