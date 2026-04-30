@@ -154,6 +154,31 @@ export function computeDaysLeft(closeDate?: string | null): number | null {
   return diffDays;
 }
 
+/**
+ * Format an application close date into a friendly short label, e.g. "23 May".
+ * Includes the year only if it's not the current year. Falls back to the raw
+ * string when it can't be parsed.
+ */
+export function formatCloseDate(closeDate?: string | null): string {
+  if (!closeDate) return "";
+  let y: number, m: number, d: number;
+  const iso = closeDate.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const dmy = closeDate.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if (iso) {
+    y = +iso[1]; m = +iso[2]; d = +iso[3];
+  } else if (dmy) {
+    d = +dmy[1]; m = +dmy[2]; y = +dmy[3];
+    if (y < 100) y += 2000;
+  } else {
+    return closeDate;
+  }
+  if (m < 1 || m > 12 || d < 1 || d > 31) return closeDate;
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const thisYear = new Date().getFullYear();
+  return y === thisYear ? `${d} ${months[m - 1]}` : `${d} ${months[m - 1]} ${y}`;
+}
+
+
 
 function applyFilters(query: any, q: ScholarshipQuery) {
   // Always exclude not_found unless explicitly asked
