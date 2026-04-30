@@ -111,7 +111,7 @@ export interface ScholarshipPage {
 // Returns today's date as YYYY-MM-DD in the user's local timezone.
 // Called fresh on every query so the cutoff updates automatically each day,
 // even if the browser tab stays open across midnight.
-function getTodayLocal(): string {
+export function getTodayLocal(): string {
   const d = new Date();
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
