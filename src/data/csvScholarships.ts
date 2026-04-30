@@ -119,6 +119,49 @@ export function getTodayLocal(): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+/**
+ * Compute days remaining until an application close date, dynamically from today.
+ * The `days_left` column stored in the DB is a snapshot from when the row was scraped
+ * and quickly becomes stale — always prefer this helper in the UI.
+ *
+ * Returns:
+ *   - positive integer  → days remaining (today counts as the current day; tomorrow = 1)
+ *   - 0                 → closes today
+ *   - negative integer  → already closed (caller can treat as null/hide)
+ *   - null              → no/invalid date
+ */
+export function computeDaysLeft(closeDate?: string | null): number | null {
+  if (!closeDate) return null;
+
+  // Parse YYYY-MM-DD or DD/MM/YYYY safely without timezone drift.
+  let y: number, m: number, d: number;
+  const iso = closeDate.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const dmy = closeDate.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if (iso) {
+    y = +iso[1]; m = +iso[2]; d = +iso[3];
+  } else if (dmy) {
+    d = +dmy[1]; m = +dmy[2]; y = +dmy[3];
+    if (y < 100) y += 2000;
+  } else {
+    return null;
+  }
+  if (m < 1 || m > 12 || d < 1 || d > 31) return null;
+
+  const closeUTC = Date.UTC(y, m - 1, d);
+  const now = new Date();
+  const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  const diffDays = Math.round((closeUTC - todayUTC) / 86400000);
+  return diffDays;
+}
+
+function _legacyTodayInline(): string {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 function applyFilters(query: any, q: ScholarshipQuery) {
   // Always exclude not_found unless explicitly asked
   if (q.confidence && q.confidence !== "all") {
