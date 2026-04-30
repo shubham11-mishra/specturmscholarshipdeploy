@@ -302,7 +302,7 @@ export async function fetchScholarshipsByIds(ids: string[]): Promise<SchoolSchol
   if (ids.length === 0) return [];
   // ids look like "{acara_id}-{row_number}". We'll fetch by acara_id list and filter in JS.
   const acaraIds = Array.from(new Set(ids.map((i) => i.split("-")[0]).filter(Boolean)));
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getTodayLocal();
   const { data, error } = await supabase
     .from("scholarships")
     .select("*")
