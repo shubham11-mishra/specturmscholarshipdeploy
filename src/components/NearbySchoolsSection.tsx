@@ -73,11 +73,13 @@ const NearbySchoolsSection = () => {
 
     // Pull a generous candidate set from the user's state, then rank by
     // numeric postcode distance client-side (cheap & avoids extra indexes).
+    const today = new Date().toISOString().slice(0, 10);
     supabase
       .from("scholarships")
       .select("*")
       .eq("state", location.state)
       .in("scholarship_confidence", ["high", "medium"])
+      .or(`application_close_date.is.null,application_close_date.gte.${today}`)
       .limit(500)
       .then(({ data, error }) => {
         if (cancelled) return;
