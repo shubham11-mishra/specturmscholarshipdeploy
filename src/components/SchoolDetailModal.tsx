@@ -1,5 +1,5 @@
 import { X, ExternalLink, MapPin, GraduationCap, ShieldCheck, DollarSign, Calendar, Clock, Mail, Phone, Award, FileText } from "lucide-react";
-import { SchoolScholarship, getConfidenceBadge, getCategoryColor } from "@/data/csvScholarships";
+import { SchoolScholarship, getConfidenceBadge, getCategoryColor, computeDaysLeft } from "@/data/csvScholarships";
 import { useShortlist } from "@/hooks/useShortlist";
 import { useEffect } from "react";
 
