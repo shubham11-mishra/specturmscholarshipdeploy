@@ -85,13 +85,21 @@ const Navbar = () => {
             </button>
           </div>
         ) : (
-          <button
-            onClick={() => navigate("/auth")}
-            className="gradient-brand text-primary-foreground px-5 py-2 rounded-lg text-[12px] font-bold uppercase tracking-[0.08em] hover:opacity-95 transition-all flex items-center gap-1.5 shadow-brand border-none cursor-pointer ml-1"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            Get Started
-          </button>
+          <div className="flex items-center gap-2 ml-1">
+            <button
+              onClick={() => navigate("/auth")}
+              className="px-4 py-2 rounded-lg text-[12px] font-bold uppercase tracking-[0.08em] text-primary border border-primary/40 hover:bg-primary/8 transition-all bg-transparent cursor-pointer"
+            >
+              Sign In
+            </button>
+            <button
+              onClick={() => navigate("/auth?mode=signup")}
+              className="gradient-brand text-primary-foreground px-5 py-2 rounded-lg text-[12px] font-bold uppercase tracking-[0.08em] hover:opacity-95 transition-all flex items-center gap-1.5 shadow-brand border-none cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              Get Started
+            </button>
+          </div>
         )}
       </div>
     </nav>
