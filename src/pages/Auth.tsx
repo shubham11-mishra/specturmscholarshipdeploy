@@ -74,6 +74,7 @@ const Auth = () => {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        toast.success("Welcome back!");
         navigate("/");
       } else {
         if (!fullName.trim() || !email.trim() || password.length < 6) {
