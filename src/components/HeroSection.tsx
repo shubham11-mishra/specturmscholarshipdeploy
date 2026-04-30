@@ -46,9 +46,9 @@ const HeroSection = ({ searchQuery, onSearchChange, onSearch, onStartMatching }:
 
       {/* Headline */}
       <h1 className="font-display font-extrabold text-foreground leading-[1.05] mb-6 text-[44px] sm:text-[56px] md:text-[72px] lg:text-[80px]">
-        Find Every <span className="gradient-text italic">Scholarship</span>
+        Find the Right <span className="gradient-text italic">Scholarship</span>
         <br />
-        That Fits.
+        for You.
       </h1>
 
       <p className="mx-auto max-w-[560px] text-[15px] md:text-[17px] font-light text-foreground/60 leading-[1.7] mb-10 tracking-wide">
