@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Playfair Display", "Georgia", "serif"],
-        body: ["Josefin Sans", "Century Gothic", "Trebuchet MS", "sans-serif"],
+        display: ["Century Gothic", "Nunito", "Trebuchet MS", "sans-serif"],
+        body: ["Century Gothic", "Nunito", "Arial", "Helvetica", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

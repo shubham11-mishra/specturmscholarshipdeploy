@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700;1,800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,70 +6,92 @@
 
 @layer base {
   :root {
-    /* Spectrum light palette — purple #7B2D8E + teal #2EC4B6 on cream */
-    --background: 280 30% 98%;
-    --foreground: 240 26% 14%;       /* ink #1a1a2e */
+    /* Spectrum Tuition palette — Gold #FAC82C, Charcoal #20242C, Slate #334155 */
+    --background: 0 0% 100%;
+    --foreground: 220 17% 15%;       /* charcoal #20242C */
     --card: 0 0% 100%;
-    --card-foreground: 240 26% 14%;
+    --card-foreground: 220 17% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 26% 14%;
+    --popover-foreground: 220 17% 15%;
 
-    --primary: 289 53% 37%;          /* #7B2D8E */
-    --primary-foreground: 0 0% 100%;
-    --primary-light: 285 50% 56%;    /* #a855c8 */
+    /* Primary = Spectrum Gold (CTA color) */
+    --primary: 43 96% 58%;           /* #FAC82C */
+    --primary-foreground: 220 17% 15%;
+    --primary-light: 43 96% 70%;
 
-    --secondary: 280 30% 96%;
-    --secondary-foreground: 240 26% 18%;
-    --muted: 280 20% 95%;
-    --muted-foreground: 240 10% 45%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 220 17% 15%;
+    --muted: 210 30% 95%;
+    --muted-foreground: 215 25% 35%;
 
-    --accent: 174 62% 47%;           /* #2EC4B6 teal */
+    /* Accent = Spectrum Blue */
+    --accent: 199 99% 50%;           /* #02B2FC */
     --accent-foreground: 0 0% 100%;
-    --accent-dark: 174 71% 36%;      /* #1a9e92 */
+    --accent-dark: 199 99% 40%;
 
-    --destructive: 0 72% 50%;
+    --destructive: 351 100% 53%;     /* #FF0F3B Spectrum Red */
     --destructive-foreground: 0 0% 100%;
-    --border: 289 30% 88%;
-    --input: 289 30% 88%;
-    --ring: 289 53% 37%;
-    --radius: 0.875rem;
+    --border: 210 20% 88%;
+    --input: 210 20% 88%;
+    --ring: 43 96% 58%;
+    --radius: 0.5rem;
 
-    /* Spectrum custom tokens */
-    --ink: 240 26% 14%;
-    --canvas: 280 30% 98%;
-    --cream: 36 40% 96%;
-    --gold: 42 92% 50%;
-    --gold-light: 42 95% 92%;
-    --teal: 174 62% 47%;
-    --teal-light: 174 65% 92%;
-    --coral: 0 72% 58%;
+    /* Spectrum Tuition tokens */
+    --ink: 220 17% 15%;              /* #20242C */
+    --canvas: 0 0% 100%;
+    --hero-dark: 222 18% 21%;        /* #2C323F */
+    --slate: 215 25% 27%;            /* #334155 */
+
+    /* Rainbow accents */
+    --gold: 43 96% 58%;              /* #FAC82C */
+    --gold-light: 49 100% 95%;       /* #FFFAE7 */
+    --spec-blue: 199 99% 50%;        /* #02B2FC */
+    --spec-blue-light: 200 80% 94%;  /* #EDF8FD */
+    --spec-green: 76 70% 45%;        /* #8FC225 */
+    --spec-green-light: 75 50% 95%;  /* #F6FAEB */
+    --spec-orange: 28 100% 57%;      /* #FF8822 */
+    --spec-orange-light: 30 75% 95%; /* #FCF5ED */
+    --spec-red: 351 100% 53%;        /* #FF0F3B */
+
+    /* Legacy aliases kept for component compatibility */
+    --cream: 49 100% 95%;
+    --teal: 199 99% 50%;
+    --teal-light: 200 80% 94%;
+    --coral: 351 100% 53%;
     --coral-light: 0 80% 95%;
-    --slate: 240 10% 45%;
 
-    --font-display: 'Playfair Display', Georgia, serif;
-    --font-body: 'Josefin Sans', 'Century Gothic', 'Trebuchet MS', sans-serif;
+    --font-display: 'Century Gothic', 'Nunito', 'Trebuchet MS', sans-serif;
+    --font-body: 'Century Gothic', 'Nunito', Arial, Helvetica, sans-serif;
 
-    --shadow-sm: 0 1px 3px rgba(26,26,46,0.06);
-    --shadow-md: 0 4px 20px rgba(26,26,46,0.08);
-    --shadow-lg: 0 12px 50px rgba(26,26,46,0.12);
-    --shadow-brand: 0 8px 28px rgba(123,45,142,0.35);
+    --shadow-sm: 0 1px 3px rgba(32,36,44,0.06);
+    --shadow-md: 0 4px 20px rgba(32,36,44,0.08);
+    --shadow-lg: 0 12px 50px rgba(32,36,44,0.12);
+    --shadow-brand: 0 8px 24px rgba(250,200,44,0.45);
 
-    --gradient-brand: linear-gradient(135deg, hsl(289 53% 37%) 0%, hsl(174 62% 47%) 100%);
-    --gradient-text: linear-gradient(90deg, hsl(285 50% 56%) 0%, hsl(174 62% 47%) 100%);
-    --gradient-canvas: linear-gradient(170deg, hsl(280 60% 97%) 0%, hsl(174 60% 97%) 100%);
+    /* Brand gradient = gold (CTA-style); rainbow used only for divider bar */
+    --gradient-brand: linear-gradient(135deg, hsl(43 96% 58%) 0%, hsl(43 96% 50%) 100%);
+    --gradient-text: linear-gradient(90deg, hsl(220 17% 15%) 0%, hsl(43 96% 50%) 100%);
+    --gradient-canvas: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(200 80% 98%) 100%);
+    --gradient-rainbow: linear-gradient(90deg,
+      hsl(199 99% 50%) 0%,
+      hsl(180 80% 50%) 20%,
+      hsl(76 70% 45%) 40%,
+      hsl(43 96% 58%) 60%,
+      hsl(28 100% 57%) 80%,
+      hsl(351 100% 53%) 100%);
 
-    --glow-primary: 0 0 30px hsl(289 53% 37% / 0.25);
-    --glow-accent: 0 0 30px hsl(174 62% 47% / 0.22);
-    --glow-gold: 0 0 30px hsl(42 92% 50% / 0.22);
+    --glow-primary: 0 0 30px hsl(43 96% 58% / 0.30);
+    --glow-accent: 0 0 30px hsl(199 99% 50% / 0.22);
+    --glow-gold: 0 0 30px hsl(43 96% 58% / 0.30);
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 240 26% 14%;
-    --sidebar-primary: 289 53% 37%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 280 30% 96%;
-    --sidebar-accent-foreground: 240 26% 18%;
-    --sidebar-border: 289 30% 88%;
-    --sidebar-ring: 289 53% 37%;
+    --sidebar-foreground: 220 17% 15%;
+    --sidebar-primary: 43 96% 58%;
+    --sidebar-primary-foreground: 220 17% 15%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 220 17% 15%;
+    --sidebar-border: 210 20% 88%;
+    --sidebar-ring: 43 96% 58%;
   }
 }
 
@@ -113,25 +135,32 @@
     animation: gradShift 6s linear infinite;
   }
   .glass {
-    background: hsl(0 0% 100% / 0.78);
+    background: hsl(0 0% 100% / 0.92);
     backdrop-filter: blur(20px);
-    border: 1px solid hsl(289 30% 88% / 0.7);
+    border: 1px solid hsl(210 20% 88% / 0.9);
   }
   .glass-strong {
-    background: hsl(0 0% 100% / 0.95);
+    background: hsl(0 0% 100% / 0.98);
     backdrop-filter: blur(24px);
-    border: 1px solid hsl(289 30% 88% / 0.9);
+    border: 1px solid hsl(210 20% 88%);
+  }
+
+  /* Spectrum signature gradient bar — use between hero and content */
+  .spectrum-bar {
+    height: 6px;
+    width: 100%;
+    background: var(--gradient-rainbow);
   }
 
   /* Hero dot grid */
   .hero-dot-grid {
-    background-image: radial-gradient(rgba(123,45,142,0.14) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(32,36,44,0.10) 1px, transparent 1px);
     background-size: 32px 32px;
     -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 0%, transparent 100%);
             mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 0%, transparent 100%);
   }
   .hero-radial {
-    background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(123,45,142,0.14) 0%, rgba(46,196,182,0.08) 50%, transparent 80%);
+    background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(2,178,252,0.10) 0%, rgba(250,200,44,0.08) 50%, transparent 80%);
   }
 
   .card-shine { position: relative; overflow: hidden; }
@@ -140,7 +169,7 @@
     position: absolute;
     top: 0; left: -75%;
     width: 50%; height: 100%;
-    background: linear-gradient(90deg, transparent, hsl(289 53% 60% / 0.08), transparent);
+    background: linear-gradient(90deg, transparent, hsl(43 96% 58% / 0.10), transparent);
     transform: skewX(-20deg);
     transition: left 0.6s ease;
   }
