@@ -27,7 +27,7 @@ const Shortlist = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-10">
+      <div className="max-w-[1200px] mx-auto px-4 md:px-8 pt-28 pb-10">
         <div className="flex items-center gap-2 mb-6">
           <Heart className="w-5 h-5 text-primary fill-primary" />
           <h1 className="font-display text-2xl font-bold text-foreground">My Shortlist</h1>
