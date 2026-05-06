@@ -14,7 +14,7 @@ const mapRow = (obj: any): SchoolScholarship => ({
   acara_id: obj.acara_id || "",
   school_name: obj.school_name || "",
   suburb: obj.suburb || "",
-  postcode: obj.postcode || "",
+  postcode: (obj.postcode || "").replace(/\.0+$/, ""),
   state: obj.state || "",
   sector: obj.sector || "",
   school_sector: obj.school_sector || "",
@@ -83,7 +83,7 @@ const NearbySchoolsSection = () => {
       .eq("state", location.state)
       .in("scholarship_confidence", ["high", "medium"])
       .or(`application_close_date.is.null,application_close_date.gte.${today}`)
-      .limit(500)
+      .limit(2000)
       .then(({ data, error }) => {
         if (cancelled) return;
         if (error) {
