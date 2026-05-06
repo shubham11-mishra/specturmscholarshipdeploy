@@ -127,7 +127,7 @@ const Profile = () => {
             </p>
           </div>
 
-          <form onSubmit={handleSave} className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6 shadow-sm">
+          <form onSubmit={handleSaveClick} className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6 shadow-sm">
             <div>
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
                 <UserIcon className="w-3.5 h-3.5" /> Full Name
@@ -237,6 +237,25 @@ const Profile = () => {
               {saving ? "Saving..." : "Save Changes"}
             </button>
           </form>
+        </div>
+      </main>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Save changes?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will update your profile details and personalize your scholarship matches.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={saving}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={(e) => { e.preventDefault(); handleConfirmSave(); }} disabled={saving}>
+              {saving ? "Saving..." : "Confirm"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
         </div>
       </main>
     </div>
