@@ -49,7 +49,7 @@ function mapRow(obj: any): SchoolScholarship {
     acara_id: obj.acara_id || "",
     school_name: obj.school_name || "",
     suburb: obj.suburb || "",
-    postcode: obj.postcode || "",
+    postcode: (obj.postcode || "").replace(/\.0+$/, ""),
     state: obj.state || "",
     sector: obj.sector || "",
     school_sector: obj.school_sector || "",
