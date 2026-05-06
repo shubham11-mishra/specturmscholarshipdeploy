@@ -41,7 +41,7 @@ export interface SchoolScholarship {
   is_active: string;
   extraction_confidence_score: string;
   last_verified_at: string;
-  dataset_type: string;
+  dataset_type?: string;
 }
 
 function mapRow(obj: any): SchoolScholarship {
