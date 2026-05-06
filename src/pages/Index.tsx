@@ -188,8 +188,9 @@ const Index = () => {
     CATEGORY_BUCKETS.forEach((b) => {
       out[b.label] = b.values.reduce((sum, v) => sum + (rawCategoryCounts[v] ?? 0), 0);
     });
+    out[GIFTED_LABEL] = giftedCount;
     return out;
-  }, [rawCategoryCounts]);
+  }, [rawCategoryCounts, giftedCount]);
 
   const toggleCategoryBucket = (label: string) => {
     setCategoryFilters((prev) =>
