@@ -95,12 +95,20 @@ const Index = () => {
   });
   const [counts, setCounts] = useState({ all: 0, high: 0, medium: 0, low: 0 });
   const [rawCategoryCounts, setRawCategoryCounts] = useState<Record<string, number>>({});
+  const [giftedCount, setGiftedCount] = useState(0);
 
   // One-time: load filter options + counts
   useEffect(() => {
     fetchFilterOptions().then(setFilterOptions);
     fetchConfidenceCounts().then(setCounts);
     fetchCategoryCounts().then(setRawCategoryCounts);
+    import("@/integrations/supabase/client").then(({ supabase }) =>
+      supabase
+        .from("scholarships")
+        .select("*", { count: "exact", head: true })
+        .eq("dataset_type", "gifted_program")
+        .then(({ count }) => setGiftedCount(count ?? 0))
+    );
   }, []);
 
   // Debounce search input
