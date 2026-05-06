@@ -50,6 +50,7 @@ const mapRow = (obj: any): SchoolScholarship => ({
   is_active: obj.is_active || "",
   extraction_confidence_score: obj.extraction_confidence_score || "",
   last_verified_at: obj.last_verified_at || "",
+  dataset_type: obj.dataset_type || "scholarship",
 });
 
 /**

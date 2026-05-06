@@ -58,6 +58,7 @@ export type Database = {
           contact_email: string | null
           contact_phone: string | null
           created_at: string
+          dataset_type: string
           days_left: string | null
           description: string | null
           eligibility_criteria: string | null
@@ -102,6 +103,7 @@ export type Database = {
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
+          dataset_type?: string
           days_left?: string | null
           description?: string | null
           eligibility_criteria?: string | null
@@ -146,6 +148,7 @@ export type Database = {
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
+          dataset_type?: string
           days_left?: string | null
           description?: string | null
           eligibility_criteria?: string | null

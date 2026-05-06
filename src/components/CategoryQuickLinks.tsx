@@ -1,4 +1,4 @@
-import { GraduationCap, Palette, Trophy, Globe, HandCoins, FlaskConical, School, ChevronRight } from "lucide-react";
+import { GraduationCap, Palette, Trophy, Globe, HandCoins, FlaskConical, School, Sparkles, ChevronRight } from "lucide-react";
 
 const QUICK_LINKS: {
   label: string;
@@ -13,6 +13,7 @@ const QUICK_LINKS: {
   { label: "Financial Need",  Icon: HandCoins,     iconBg: "bg-[#fef3c7]", iconColor: "text-[#b45309]" },
   { label: "STEM",            Icon: FlaskConical,  iconBg: "bg-[#e0f7fa]", iconColor: "text-[#0e7490]" },
   { label: "School-Specific", Icon: School,        iconBg: "bg-[#ede9fe]", iconColor: "text-[#4f46e5]" },
+  { label: "Gifted Program",  Icon: Sparkles,      iconBg: "bg-[#fef9c3]", iconColor: "text-[#a16207]" },
 ];
 
 interface Props {

@@ -41,6 +41,7 @@ export interface SchoolScholarship {
   is_active: string;
   extraction_confidence_score: string;
   last_verified_at: string;
+  dataset_type?: string;
 }
 
 function mapRow(obj: any): SchoolScholarship {
@@ -85,6 +86,7 @@ function mapRow(obj: any): SchoolScholarship {
     is_active: obj.is_active || "",
     extraction_confidence_score: obj.extraction_confidence_score || "",
     last_verified_at: obj.last_verified_at || "",
+    dataset_type: obj.dataset_type || "scholarship",
   };
 }
 
@@ -96,6 +98,7 @@ export interface ScholarshipQuery {
   categories?: string[];
   genders?: string[];
   valueTypes?: string[];
+  datasetTypes?: string[]; // e.g. ["scholarship"], ["gifted_program"]
   interestCategories?: string[]; // ORs across these (uses category aliases handled client-side via expansion before passing in)
   yearLevel?: string | null; // e.g. "Year 7" — matches if the row's year_levels text contains it
   sortBy?: "closing" | "name" | "suburb" | "confidence" | "value";
@@ -197,6 +200,7 @@ function applyFilters(query: any, q: ScholarshipQuery) {
   if (q.categories?.length) query = query.in("category", q.categories);
   if (q.genders?.length) query = query.in("gender", q.genders);
   if (q.valueTypes?.length) query = query.in("value_type", q.valueTypes);
+  if (q.datasetTypes?.length) query = query.in("dataset_type", q.datasetTypes);
   if (q.interestCategories?.length) query = query.in("category", q.interestCategories);
   if (q.yearLevel?.trim()) {
     // year_levels is a text field that typically contains a comma-separated
