@@ -98,6 +98,7 @@ export interface ScholarshipQuery {
   categories?: string[];
   genders?: string[];
   valueTypes?: string[];
+  datasetTypes?: string[]; // e.g. ["scholarship"], ["gifted_program"]
   interestCategories?: string[]; // ORs across these (uses category aliases handled client-side via expansion before passing in)
   yearLevel?: string | null; // e.g. "Year 7" — matches if the row's year_levels text contains it
   sortBy?: "closing" | "name" | "suburb" | "confidence" | "value";
