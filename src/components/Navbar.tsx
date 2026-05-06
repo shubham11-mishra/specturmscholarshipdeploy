@@ -72,10 +72,14 @@ const Navbar = () => {
 
         {user ? (
           <div className="flex items-center gap-2 ml-1">
-            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-[12px] text-muted-foreground">
+            <button
+              onClick={() => navigate("/profile")}
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-[12px] text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all border-none cursor-pointer"
+              aria-label="Edit profile"
+            >
               <User className="w-3.5 h-3.5" />
               <span className="max-w-[160px] truncate">{fullName || user.user_metadata?.full_name || user.email?.split("@")[0]}</span>
-            </div>
+            </button>
             <button
               onClick={() => signOut()}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground transition-all bg-transparent border-none cursor-pointer"
