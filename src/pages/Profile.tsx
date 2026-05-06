@@ -5,6 +5,16 @@ import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
 import { toast } from "sonner";
 import { CheckCircle2, MapPin, GraduationCap, Heart, User as UserIcon, Save } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const CATEGORIES = ["Academic", "Music", "Sport", "General"];
 const AU_STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"];
@@ -48,12 +58,18 @@ const Profile = () => {
     setSelectedCategories((prev) => (prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]));
   };
 
-  const handleSave = async (e: React.FormEvent) => {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const handleSaveClick = (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
     if (!fullName.trim()) return toast.error("Please enter your full name.");
     if (!stateCode || !/^\d{4}$/.test(postcode.trim())) return toast.error("Select state and a valid 4-digit postcode.");
+    setConfirmOpen(true);
+  };
 
+  const handleConfirmSave = async () => {
+    if (!user) return;
     setSaving(true);
     try {
       const { error: profileError } = await supabase
@@ -68,7 +84,6 @@ const Profile = () => {
         .eq("id", user.id);
       if (profileError) throw profileError;
 
-      // Sync interests: delete all, re-insert
       const { error: delErr } = await supabase.from("user_interests").delete().eq("user_id", user.id);
       if (delErr) throw delErr;
       if (selectedCategories.length > 0) {
@@ -80,6 +95,8 @@ const Profile = () => {
 
       await refreshInterests();
       toast.success("Profile updated successfully.");
+      setConfirmOpen(false);
+      navigate("/");
     } catch (err: any) {
       toast.error(err.message || "Failed to update profile.");
     } finally {
