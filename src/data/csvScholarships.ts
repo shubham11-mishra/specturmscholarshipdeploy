@@ -200,6 +200,7 @@ function applyFilters(query: any, q: ScholarshipQuery) {
   if (q.categories?.length) query = query.in("category", q.categories);
   if (q.genders?.length) query = query.in("gender", q.genders);
   if (q.valueTypes?.length) query = query.in("value_type", q.valueTypes);
+  if (q.datasetTypes?.length) query = query.in("dataset_type", q.datasetTypes);
   if (q.interestCategories?.length) query = query.in("category", q.interestCategories);
   if (q.yearLevel?.trim()) {
     // year_levels is a text field that typically contains a comma-separated
