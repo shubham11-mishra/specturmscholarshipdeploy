@@ -95,8 +95,9 @@ const NearbySchoolsSection = () => {
         const userPc = parseInt(location.postcode || "0", 10);
         const ranked = (data || [])
           .map(mapRow)
-          .filter((r) => r.postcode && /^\d+$/.test(r.postcode))
-          .map((r) => ({ r, dist: Math.abs(parseInt(r.postcode, 10) - userPc) }))
+          .map((r) => ({ r, pc: parseInt((r.postcode || "").replace(/\D/g, ""), 10) }))
+          .filter(({ pc }) => Number.isFinite(pc) && pc > 0)
+          .map(({ r, pc }) => ({ r, dist: Math.abs(pc - userPc) }))
           .sort((a, b) => a.dist - b.dist);
 
         // Dedupe by school so we don't show the same school many times.
