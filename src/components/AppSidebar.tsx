@@ -1,4 +1,4 @@
-import { Home, Heart, User as UserIcon, Sparkles, LogIn, LogOut, Compass } from "lucide-react";
+import { Home, Heart, User as UserIcon, Sparkles, LogIn, LogOut, Compass, GraduationCap, Users, Flame } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -26,10 +26,17 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, signOut, fullName } = useAuth();
+  const { user, signOut, fullName, viewMode, setViewMode, yearLevel, location, streakLabel } = useAuth();
   const { count } = useShortlist();
 
   const isActive = (path: string) => pathname === path;
+
+  const initials = (fullName || user?.email || "U")
+    .split(" ")
+    .map((s) => s[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">
@@ -46,7 +53,65 @@ export function AppSidebar() {
         </NavLink>
       </SidebarHeader>
 
-      <SidebarContent className="px-2">
+      <SidebarContent className="px-2 gap-3">
+        {!collapsed && (
+          <div className="px-2 space-y-3">
+            {/* Student / Parent toggle */}
+            <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-white/8 border border-white/10">
+              <button
+                onClick={() => setViewMode("student")}
+                className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all border-none cursor-pointer ${
+                  viewMode === "student"
+                    ? "bg-gradient-to-r from-primary to-accent text-white shadow-md"
+                    : "bg-transparent text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                }`}
+              >
+                <GraduationCap className="w-3.5 h-3.5" />
+                Student
+              </button>
+              <button
+                onClick={() => setViewMode("parent")}
+                className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all border-none cursor-pointer ${
+                  viewMode === "parent"
+                    ? "bg-gradient-to-r from-primary to-accent text-white shadow-md"
+                    : "bg-transparent text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                Parent
+              </button>
+            </div>
+
+            {/* User card */}
+            {user && (
+              <div className="p-3 rounded-xl bg-white/8 border border-white/10 space-y-2.5">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-xs font-bold shrink-0">
+                    {initials}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold text-sidebar-foreground truncate leading-tight">
+                      {fullName || user.email?.split("@")[0]}
+                    </div>
+                    <div className="text-[11px] text-sidebar-foreground/60 truncate">
+                      {[yearLevel, location.state].filter(Boolean).join(" · ") || "Set up profile"}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-orange-400/90 to-pink-500/90 text-white text-[10px] font-bold">
+                    <Flame className="w-3 h-3" />
+                    {streakLabel || "Fire Band"}
+                  </span>
+                  <span className="text-[11px] text-sidebar-foreground/70 font-medium">
+                    {count} {count === 1 ? "match" : "matches"}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
