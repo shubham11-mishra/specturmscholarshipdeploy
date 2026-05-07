@@ -17,6 +17,10 @@ interface AuthContextType {
   location: UserLocation;
   yearLevel: string | null;
   fullName: string | null;
+  viewMode: "student" | "parent";
+  streakDays: number;
+  streakLabel: string | null;
+  setViewMode: (mode: "student" | "parent") => Promise<void>;
   signOut: () => Promise<void>;
   refreshInterests: () => Promise<void>;
 }
