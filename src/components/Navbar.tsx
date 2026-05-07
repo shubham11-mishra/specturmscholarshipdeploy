@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import { Sparkles, LogOut, User, Heart } from "lucide-react";
+import { Sparkles, ChevronDown, User as UserIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useShortlist } from "@/hooks/useShortlist";
 import { useNavigate } from "react-router-dom";
 import logoHorizontal from "@/assets/logo-horizontal.svg";
+import UserDashboardSheet from "./UserDashboardSheet";
 
 const Navbar = () => {
-  const { user, fullName, signOut } = useAuth();
-  const { count } = useShortlist();
+  const { user, fullName } = useAuth();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
+  const [dashOpen, setDashOpen] = useState(false);
 
   useEffect(() => {
     const handle = () => setScrolled(window.scrollY > 20);
@@ -39,57 +39,29 @@ const Navbar = () => {
         />
       </a>
 
-      <div className="flex items-center gap-1.5">
-        <button
-          onClick={() => {
-            if (window.location.pathname !== "/") {
-              navigate("/");
-              setTimeout(() => {
-                document.getElementById("results-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
-              }, 100);
-            } else {
-              document.getElementById("results-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
-            }
-          }}
-          className="hidden md:inline-block px-3 py-1.5 rounded-lg text-[12px] font-semibold uppercase tracking-[0.08em] text-foreground/65 hover:bg-primary/8 hover:text-primary transition-all bg-transparent border-none cursor-pointer"
-        >
-          Browse
-        </button>
-        {user && (
-          <button
-            onClick={() => navigate("/shortlist")}
-            className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold uppercase tracking-[0.08em] text-foreground/65 hover:bg-primary/8 hover:text-primary transition-all bg-transparent border-none cursor-pointer relative"
-          >
-            <Heart className="w-3.5 h-3.5" />
-            Shortlist
-            {count > 0 && (
-              <span className="bg-primary text-primary-foreground rounded-full min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold px-1">
-                {count}
-              </span>
-            )}
-          </button>
-        )}
-
+      <div className="flex items-center gap-2">
         {user ? (
-          <div className="flex items-center gap-2 ml-1">
-            <button
-              onClick={() => navigate("/profile")}
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-[12px] text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all border-none cursor-pointer"
-              aria-label="Edit profile"
-            >
-              <User className="w-3.5 h-3.5" />
-              <span className="max-w-[160px] truncate">{fullName || user.user_metadata?.full_name || user.email?.split("@")[0]}</span>
-            </button>
-            <button
-              onClick={() => signOut()}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground transition-all bg-transparent border-none cursor-pointer"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Logout</span>
-            </button>
-          </div>
+          <button
+            onClick={() => setDashOpen(true)}
+            aria-label="Open dashboard"
+            className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full bg-secondary border border-primary/15 hover:border-primary/40 hover:bg-primary/8 transition-all cursor-pointer"
+          >
+            <span className="w-7 h-7 rounded-full gradient-brand text-primary-foreground text-[11px] font-bold flex items-center justify-center">
+              {(fullName || user.user_metadata?.full_name || user.email || "U")
+                .split(" ")
+                .map((n: string) => n[0])
+                .filter(Boolean)
+                .slice(0, 2)
+                .join("")
+                .toUpperCase() || <UserIcon className="w-3.5 h-3.5" />}
+            </span>
+            <span className="text-[13px] font-semibold text-foreground max-w-[140px] truncate">
+              {fullName || user.user_metadata?.full_name || user.email?.split("@")[0]}
+            </span>
+            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+          </button>
         ) : (
-          <div className="flex items-center gap-2 ml-1">
+          <>
             <button
               onClick={() => navigate("/auth")}
               className="px-4 py-2 rounded-lg text-[12px] font-bold uppercase tracking-[0.08em] text-primary border border-primary/40 hover:bg-primary/8 transition-all bg-transparent cursor-pointer"
@@ -103,9 +75,10 @@ const Navbar = () => {
               <Sparkles className="w-3.5 h-3.5" />
               Get Started
             </button>
-          </div>
+          </>
         )}
       </div>
+      {user && <UserDashboardSheet open={dashOpen} onOpenChange={setDashOpen} />}
     </nav>
   );
 };
