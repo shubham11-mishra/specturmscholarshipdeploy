@@ -22,10 +22,7 @@ export type Database = {
           id: string
           postcode: string
           state: string
-          streak_days: number
-          streak_label: string | null
           suburb: string | null
-          view_mode: string
           year_level: string | null
         }
         Insert: {
@@ -35,10 +32,7 @@ export type Database = {
           id: string
           postcode: string
           state: string
-          streak_days?: number
-          streak_label?: string | null
           suburb?: string | null
-          view_mode?: string
           year_level?: string | null
         }
         Update: {
@@ -48,10 +42,7 @@ export type Database = {
           id?: string
           postcode?: string
           state?: string
-          streak_days?: number
-          streak_label?: string | null
           suburb?: string | null
-          view_mode?: string
           year_level?: string | null
         }
         Relationships: []
