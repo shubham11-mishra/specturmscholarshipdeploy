@@ -25,11 +25,13 @@ interface Props {
 const CategoryQuickLinks = ({ active, counts, onSelect }: Props) => (
   <section className="max-w-[1200px] mx-auto px-4 md:px-8 pt-4 pb-10 animate-fade-up" style={{ animationDelay: "0.05s" }}>
     <div className="flex flex-col items-center text-center mb-7">
-      <div className="text-[10px] font-bold tracking-[0.2em] text-accent uppercase mb-2">Browse by Category</div>
       <h2 className="font-display font-extrabold text-foreground text-[28px] md:text-[40px] leading-tight">
-        Explore by Category
+        Find The Right Path
       </h2>
-      <span className="hidden md:block text-[11px] font-medium text-muted-foreground mt-3">Click a tile to filter</span>
+      <div className="rainbow-underline" />
+      <p className="max-w-[640px] text-[14px] md:text-[15px] text-muted-foreground mt-4">
+        We cover all Australian schools, helping families discover the best academic, creative, sporting, and community opportunities.
+      </p>
     </div>
 
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 justify-items-center">

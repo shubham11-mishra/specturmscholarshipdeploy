@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Sparkles, LogOut, User, Heart } from "lucide-react";
+import { Sparkles, LogOut, User, Heart, Search } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useShortlist } from "@/hooks/useShortlist";
 import { useNavigate } from "react-router-dom";
@@ -28,15 +28,16 @@ const Navbar = () => {
     >
       <a
         href="/"
-        className="flex items-center no-underline"
-        aria-label="Spectrum — Every school. Every opportunity."
+        className="flex items-center gap-2 no-underline"
+        aria-label="Scholarship Searcher"
       >
-        <img
-          src={logoHorizontal}
-          alt="Spectrum"
-          className="h-14 md:h-16 w-auto"
-          draggable={false}
-        />
+        <div className="w-9 h-9 rounded-full border-2 flex items-center justify-center" style={{ borderImage: "linear-gradient(135deg,#1d4ed8,#22c55e,#facc15,#f97316,#ef4444) 1", borderColor: "#1d4ed8" }}>
+          <Search className="w-4 h-4 text-[#1d4ed8]" />
+        </div>
+        <span className="font-display font-extrabold leading-[0.95] text-[14px] tracking-tight">
+          <span className="block rainbow-text">SCHOLARSHIP</span>
+          <span className="block rainbow-text">SEARCHER</span>
+        </span>
       </a>
 
       <div className="flex items-center gap-1.5">
