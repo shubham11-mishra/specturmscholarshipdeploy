@@ -17,10 +17,6 @@ interface AuthContextType {
   location: UserLocation;
   yearLevel: string | null;
   fullName: string | null;
-  viewMode: "student" | "parent";
-  streakDays: number;
-  streakLabel: string | null;
-  setViewMode: (mode: "student" | "parent") => Promise<void>;
   signOut: () => Promise<void>;
   refreshInterests: () => Promise<void>;
 }
@@ -33,10 +29,6 @@ const AuthContext = createContext<AuthContextType>({
   location: { state: null, postcode: null, suburb: null },
   yearLevel: null,
   fullName: null,
-  viewMode: "student",
-  streakDays: 0,
-  streakLabel: null,
-  setViewMode: async () => {},
   signOut: async () => {},
   refreshInterests: async () => {},
 });
@@ -51,14 +43,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [location, setLocation] = useState<UserLocation>({ state: null, postcode: null, suburb: null });
   const [yearLevel, setYearLevel] = useState<string | null>(null);
   const [fullName, setFullName] = useState<string | null>(null);
-  const [viewMode, setViewModeState] = useState<"student" | "parent">("student");
-  const [streakDays, setStreakDays] = useState<number>(0);
-  const [streakLabel, setStreakLabel] = useState<string | null>(null);
 
   const fetchLocation = async (userId: string) => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("state, postcode, suburb, year_level, full_name, view_mode, streak_days, streak_label")
+      .select("state, postcode, suburb, year_level, full_name")
       .eq("id", userId)
       .maybeSingle();
     if (error) {
@@ -72,19 +61,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
     setYearLevel(data?.year_level ?? null);
     setFullName(data?.full_name ?? null);
-    setViewModeState((data?.view_mode === "parent" ? "parent" : "student"));
-    setStreakDays(data?.streak_days ?? 0);
-    setStreakLabel(data?.streak_label ?? null);
-  };
-
-  const setViewMode = async (mode: "student" | "parent") => {
-    setViewModeState(mode);
-    if (!user) return;
-    const { error } = await supabase.from("profiles").update({ view_mode: mode }).eq("id", user.id);
-    if (error) {
-      console.error("Error updating view mode:", error);
-      toast.error("Couldn't update mode");
-    }
   };
 
   const fetchInterests = async (userId: string) => {
@@ -171,7 +147,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, interests, location, yearLevel, fullName, viewMode, streakDays, streakLabel, setViewMode, signOut, refreshInterests }}>
+    <AuthContext.Provider value={{ user, session, loading, interests, location, yearLevel, fullName, signOut, refreshInterests }}>
       {children}
     </AuthContext.Provider>
   );

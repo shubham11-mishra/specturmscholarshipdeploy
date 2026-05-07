@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import Navbar from "@/components/Navbar";
 import { toast } from "sonner";
 import { CheckCircle2, MapPin, GraduationCap, Heart, User as UserIcon, Save } from "lucide-react";
 import {
@@ -106,6 +107,7 @@ const Profile = () => {
   if (loading || initializing) {
     return (
       <div className="min-h-screen bg-background">
+        <Navbar />
         <div className="pt-32 text-center text-muted-foreground">Loading…</div>
       </div>
     );
@@ -113,6 +115,7 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navbar />
       <main className="pt-28 pb-16 px-4 md:px-8">
         <div className="max-w-2xl mx-auto">
           <div className="mb-8">

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,36 +6,35 @@
 
 @layer base {
   :root {
-    /* Spectrum Navigator palette — Violet #7c3aed, Pink #ec4899, Lilac canvas */
-    --background: 270 60% 97%;       /* #f5f0fd */
-    --foreground: 260 30% 15%;
+    /* Spectrum Tuition palette — Gold #FAC82C, Charcoal #20242C, Slate #334155 */
+    --background: 0 0% 100%;
+    --foreground: 220 17% 15%;       /* charcoal #20242C */
     --card: 0 0% 100%;
-    --card-foreground: 260 30% 15%;
+    --card-foreground: 220 17% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 260 30% 15%;
+    --popover-foreground: 220 17% 15%;
 
-    /* Primary = Violet */
-    --primary: 262 83% 58%;          /* #7c3aed */
-    --primary-foreground: 0 0% 100%;
-    --primary-light: 262 83% 72%;
-    --primary-dark: 263 70% 35%;     /* deep purple #3a1a6e */
+    /* Primary = Spectrum Gold (CTA color) */
+    --primary: 43 96% 58%;           /* #FAC82C */
+    --primary-foreground: 220 17% 15%;
+    --primary-light: 43 96% 70%;
 
-    --secondary: 270 50% 94%;
-    --secondary-foreground: 260 30% 15%;
-    --muted: 270 40% 95%;
-    --muted-foreground: 260 15% 42%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 220 17% 15%;
+    --muted: 210 30% 95%;
+    --muted-foreground: 215 25% 35%;
 
-    /* Accent = Pink */
-    --accent: 330 81% 60%;           /* #ec4899 */
+    /* Accent = Spectrum Blue */
+    --accent: 199 99% 50%;           /* #02B2FC */
     --accent-foreground: 0 0% 100%;
-    --accent-dark: 330 81% 50%;
+    --accent-dark: 199 99% 40%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 351 100% 53%;     /* #FF0F3B Spectrum Red */
     --destructive-foreground: 0 0% 100%;
-    --border: 270 30% 88%;
-    --input: 270 30% 88%;
-    --ring: 262 83% 58%;
-    --radius: 0.75rem;
+    --border: 210 20% 88%;
+    --input: 210 20% 88%;
+    --ring: 43 96% 58%;
+    --radius: 0.5rem;
 
     /* Spectrum Tuition tokens */
     --ink: 220 17% 15%;              /* #20242C */
@@ -61,38 +60,38 @@
     --coral: 351 100% 53%;
     --coral-light: 0 80% 95%;
 
-    --font-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-display: 'Century Gothic', 'Nunito', 'Trebuchet MS', sans-serif;
+    --font-body: 'Century Gothic', 'Nunito', Arial, Helvetica, sans-serif;
 
-    --shadow-sm: 0 1px 3px rgba(60,30,120,0.06);
-    --shadow-md: 0 4px 20px rgba(60,30,120,0.08);
-    --shadow-lg: 0 12px 50px rgba(60,30,120,0.14);
-    --shadow-brand: 0 8px 24px rgba(124,58,237,0.35);
+    --shadow-sm: 0 1px 3px rgba(32,36,44,0.06);
+    --shadow-md: 0 4px 20px rgba(32,36,44,0.08);
+    --shadow-lg: 0 12px 50px rgba(32,36,44,0.12);
+    --shadow-brand: 0 8px 24px rgba(250,200,44,0.45);
 
-    /* Spectrum Navigator gradients */
-    --gradient-brand: linear-gradient(135deg, hsl(262 83% 58%) 0%, hsl(330 81% 60%) 100%);
-    --gradient-banner: linear-gradient(90deg, hsl(263 70% 35%) 0%, hsl(262 83% 58%) 100%);
-    --gradient-text: linear-gradient(90deg, hsl(263 70% 35%) 0%, hsl(330 81% 60%) 100%);
-    --gradient-canvas: linear-gradient(180deg, hsl(270 60% 97%) 0%, hsl(320 60% 97%) 100%);
-    --gradient-ai: linear-gradient(90deg, hsl(270 60% 97%) 0%, hsl(320 60% 97%) 100%);
+    /* Brand gradient = gold (CTA-style); rainbow used only for divider bar */
+    --gradient-brand: linear-gradient(135deg, hsl(43 96% 58%) 0%, hsl(43 96% 50%) 100%);
+    --gradient-text: linear-gradient(90deg, hsl(220 17% 15%) 0%, hsl(43 96% 50%) 100%);
+    --gradient-canvas: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(200 80% 98%) 100%);
     --gradient-rainbow: linear-gradient(90deg,
-      hsl(263 70% 35%) 0%,
-      hsl(262 83% 58%) 50%,
-      hsl(330 81% 60%) 100%);
+      hsl(199 99% 50%) 0%,
+      hsl(180 80% 50%) 20%,
+      hsl(76 70% 45%) 40%,
+      hsl(43 96% 58%) 60%,
+      hsl(28 100% 57%) 80%,
+      hsl(351 100% 53%) 100%);
 
-    --glow-primary: 0 0 30px hsl(262 83% 58% / 0.30);
-    --glow-accent: 0 0 30px hsl(330 81% 60% / 0.25);
-    --glow-gold: 0 0 30px hsl(262 83% 58% / 0.30);
+    --glow-primary: 0 0 30px hsl(43 96% 58% / 0.30);
+    --glow-accent: 0 0 30px hsl(199 99% 50% / 0.22);
+    --glow-gold: 0 0 30px hsl(43 96% 58% / 0.30);
 
-    /* Sidebar = deep purple */
-    --sidebar-background: 263 70% 22%;          /* #3a1a6e */
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 262 83% 58%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 263 60% 30%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 263 50% 30%;
-    --sidebar-ring: 330 81% 60%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 17% 15%;
+    --sidebar-primary: 43 96% 58%;
+    --sidebar-primary-foreground: 220 17% 15%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 220 17% 15%;
+    --sidebar-border: 210 20% 88%;
+    --sidebar-ring: 43 96% 58%;
   }
 }
 
