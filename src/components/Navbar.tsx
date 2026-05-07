@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Sparkles, LogOut, User, Heart } from "lucide-react";
+import { Sparkles, LogOut, User, Heart, Search } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useShortlist } from "@/hooks/useShortlist";
 import { useNavigate } from "react-router-dom";
