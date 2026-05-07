@@ -134,6 +134,25 @@
     background-clip: text;
     animation: gradShift 6s linear infinite;
   }
+  .rainbow-text {
+    background: var(--gradient-rainbow);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+  }
+  .rainbow-bar {
+    height: 4px;
+    width: 100%;
+    background: var(--gradient-rainbow);
+  }
+  .rainbow-underline {
+    height: 4px;
+    width: 120px;
+    border-radius: 2px;
+    background: var(--gradient-rainbow);
+    margin: 12px auto 0;
+  }
   .glass {
     background: hsl(0 0% 100% / 0.92);
     backdrop-filter: blur(20px);
