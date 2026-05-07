@@ -33,6 +33,10 @@ const AuthContext = createContext<AuthContextType>({
   location: { state: null, postcode: null, suburb: null },
   yearLevel: null,
   fullName: null,
+  viewMode: "student",
+  streakDays: 0,
+  streakLabel: null,
+  setViewMode: async () => {},
   signOut: async () => {},
   refreshInterests: async () => {},
 });
