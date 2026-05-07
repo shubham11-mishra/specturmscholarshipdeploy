@@ -62,7 +62,11 @@ const Navbar = () => {
         {user && (
           <button
             onClick={() => navigate("/shortlist")}
-            className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold uppercase tracking-[0.08em] text-foreground/65 hover:bg-primary/8 hover:text-primary transition-all bg-transparent border-none cursor-pointer relative"
+            className={`hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold uppercase tracking-[0.08em] transition-all bg-transparent border-none cursor-pointer relative ${
+              scrolled
+                ? "text-foreground/65 hover:bg-primary/8 hover:text-primary"
+                : "text-white hover:text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
+            }`}
           >
             <Heart className="w-3.5 h-3.5" />
             Shortlist
@@ -78,7 +82,11 @@ const Navbar = () => {
           <div className="flex items-center gap-2 ml-1">
             <button
               onClick={() => navigate("/profile")}
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-[12px] text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all border-none cursor-pointer"
+              className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] transition-all border-none cursor-pointer ${
+                scrolled
+                  ? "bg-secondary text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                  : "bg-white/90 text-foreground hover:bg-white"
+              }`}
               aria-label="Edit profile"
             >
               <User className="w-3.5 h-3.5" />
@@ -86,7 +94,11 @@ const Navbar = () => {
             </button>
             <button
               onClick={() => signOut()}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground transition-all bg-transparent border-none cursor-pointer"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all bg-transparent border-none cursor-pointer ${
+                scrolled
+                  ? "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  : "text-white hover:text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
+              }`}
             >
               <LogOut className="w-3.5 h-3.5" />
               <span className="hidden md:inline">Logout</span>
