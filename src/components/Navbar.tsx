@@ -49,7 +49,9 @@ const Navbar = () => {
           <a
             key={l.label}
             href={l.to}
-            className="text-[14px] font-medium text-foreground/80 hover:text-primary transition-colors no-underline"
+            className={`text-[14px] font-semibold transition-colors no-underline ${
+              scrolled ? "text-foreground/80 hover:text-primary" : "text-white hover:text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
+            }`}
           >
             {l.label}
           </a>
