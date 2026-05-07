@@ -1,4 +1,4 @@
-import { Home, Heart, User as UserIcon, Sparkles, LogIn, LogOut, Compass } from "lucide-react";
+import { Home, Heart, User as UserIcon, Sparkles, LogIn, LogOut, Compass, GraduationCap, Users, Flame } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
