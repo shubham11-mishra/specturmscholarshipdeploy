@@ -85,6 +85,7 @@ const Index = () => {
   const [showPersonalized, setShowPersonalized] = useState(true);
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<SchoolScholarship | null>(null);
+  const [showResults, setShowResults] = useState(false);
 
   const [filterOptions, setFilterOptions] = useState({
     states: [] as string[],
