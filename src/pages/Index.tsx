@@ -381,6 +381,7 @@ const Index = () => {
           </div>
         </div>
       </div>
+      )}
 
       {/* CTA band */}
       {!user && (
