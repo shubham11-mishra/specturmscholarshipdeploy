@@ -145,9 +145,11 @@ const Index = () => {
       categories: expandCategoryBuckets(otherCats),
       genders: genderFilters,
       valueTypes: valueTypeFilters,
-      datasetTypes: giftedSelected
-        ? (otherCats.length === 0 ? ["gifted_program"] : ["scholarship", "gifted_program"])
-        : ["scholarship"],
+      datasetTypes: searchQuery
+        ? undefined // when searching, look across all dataset types
+        : giftedSelected
+          ? (otherCats.length === 0 ? ["gifted_program"] : ["scholarship", "gifted_program"])
+          : ["scholarship"],
       interestCategories,
       yearLevel: showPersonalized && !searchQuery ? yearLevel : null,
       sortBy,
