@@ -45,8 +45,11 @@ const HeroSection = ({ searchQuery, onSearchChange, onSearch, onStartMatching }:
       </div>
 
       {/* Headline */}
-      <h1 className="font-display font-extrabold text-foreground leading-[1.05] mb-6 text-[44px] sm:text-[56px] md:text-[72px] lg:text-[80px]">
-        Find the Right <span className="gradient-text italic">Scholarship</span>
+      <h1 className="font-display font-extrabold text-foreground leading-[1.1] mb-6 text-[40px] sm:text-[52px] md:text-[64px] lg:text-[72px]">
+        Find the Right{" "}
+        <span className="gradient-text italic inline-block pr-2 pb-1 leading-[1.15]">
+          Scholarship
+        </span>
         <br />
         for You.
       </h1>
