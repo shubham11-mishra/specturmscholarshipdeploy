@@ -85,6 +85,7 @@ const Index = () => {
   const [showPersonalized, setShowPersonalized] = useState(true);
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<SchoolScholarship | null>(null);
+  const [showResults, setShowResults] = useState(false);
 
   const [filterOptions, setFilterOptions] = useState({
     states: [] as string[],
@@ -168,7 +169,13 @@ const Index = () => {
     interestCategories, yearLevel, showPersonalized,
   ]);
 
-  const handleSearch = () => setSearchQuery(searchInput.trim());
+  const handleSearch = () => {
+    setSearchQuery(searchInput.trim());
+    setShowResults(true);
+    requestAnimationFrame(() => {
+      document.getElementById("results-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
 
   const activeFiltersCount =
     sectorFilters.length + stateFilters.length + categoryFilters.length + genderFilters.length + valueTypeFilters.length;
@@ -198,7 +205,7 @@ const Index = () => {
     setCategoryFilters((prev) =>
       prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]
     );
-    // Smooth-scroll to the results so users see the filter take effect
+    setShowResults(true);
     requestAnimationFrame(() => {
       document.getElementById("results-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
@@ -229,13 +236,13 @@ const Index = () => {
         }}
       />
 
-      {user && interests.length === 0 && (
+      {showResults && user && interests.length === 0 && (
         <div id="interest-setup" className="transition-all">
           <InterestSetupBanner />
         </div>
       )}
 
-      {user && <NearbySchoolsSection />}
+      {showResults && user && <NearbySchoolsSection />}
 
       <CategoryQuickLinks
         active={categoryFilters}
@@ -243,7 +250,7 @@ const Index = () => {
         onSelect={toggleCategoryBucket}
       />
 
-      {user && interests.length > 0 && (
+      {showResults && user && interests.length > 0 && (
         <div className="max-w-[1200px] mx-auto px-4 md:px-8 pb-3 animate-fade-up">
           <div className="glass rounded-xl px-4 py-2.5 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-sm">
@@ -264,6 +271,8 @@ const Index = () => {
           </div>
         </div>
       )}
+
+      {showResults && (
 
       <div id="results-grid" className="max-w-[1280px] mx-auto px-4 md:px-8 pb-20 animate-fade-up" style={{ animationDelay: "0.1s" }}>
         <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
@@ -372,6 +381,7 @@ const Index = () => {
           </div>
         </div>
       </div>
+      )}
 
       {/* CTA band */}
       {!user && (

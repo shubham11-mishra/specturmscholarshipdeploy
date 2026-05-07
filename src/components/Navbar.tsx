@@ -39,22 +39,24 @@ const Navbar = () => {
         />
       </a>
 
+      <div className="hidden md:flex items-center gap-7 absolute left-1/2 -translate-x-1/2">
+        {[
+          { label: "Home", to: "/" },
+          { label: "Find Schools", to: "/#results-grid" },
+          { label: "About", to: "/#about" },
+          { label: "Contact", to: "/#contact" },
+        ].map((l) => (
+          <a
+            key={l.label}
+            href={l.to}
+            className="text-[14px] font-medium text-foreground/80 hover:text-primary transition-colors no-underline"
+          >
+            {l.label}
+          </a>
+        ))}
+      </div>
+
       <div className="flex items-center gap-1.5">
-        <button
-          onClick={() => {
-            if (window.location.pathname !== "/") {
-              navigate("/");
-              setTimeout(() => {
-                document.getElementById("results-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
-              }, 100);
-            } else {
-              document.getElementById("results-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
-            }
-          }}
-          className="hidden md:inline-block px-3 py-1.5 rounded-lg text-[12px] font-semibold uppercase tracking-[0.08em] text-foreground/65 hover:bg-primary/8 hover:text-primary transition-all bg-transparent border-none cursor-pointer"
-        >
-          Browse
-        </button>
         {user && (
           <button
             onClick={() => navigate("/shortlist")}
