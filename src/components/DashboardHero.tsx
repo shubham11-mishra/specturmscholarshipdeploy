@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Sparkles, TrendingUp, Heart, Clock, Search } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useShortlist } from "@/hooks/useShortlist";
@@ -143,5 +143,3 @@ function StatCard({
     </div>
   );
 }
-
-import type { ReactNode } from "react";
