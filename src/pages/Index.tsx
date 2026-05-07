@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import Navbar from "@/components/Navbar";
-import HeroSection from "@/components/HeroSection";
+import DashboardHero from "@/components/DashboardHero";
 import InterestSetupBanner from "@/components/InterestSetupBanner";
 import SchoolCard from "@/components/SchoolCard";
 import SchoolDetailModal from "@/components/SchoolDetailModal";
@@ -204,27 +203,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
-      <Navbar />
-      <HeroSection
+      <DashboardHero
+        totalEligible={total}
         searchQuery={searchInput}
         onSearchChange={setSearchInput}
         onSearch={handleSearch}
-        onStartMatching={() => {
-          if (!user) {
-            navigate("/auth");
-            return;
-          }
-          if (interests.length === 0) {
-            requestAnimationFrame(() => {
-              const el = document.getElementById("interest-setup");
-              el?.scrollIntoView({ behavior: "smooth", block: "center" });
-              el?.classList.add("ring-2", "ring-primary/60", "rounded-2xl");
-              setTimeout(() => el?.classList.remove("ring-2", "ring-primary/60", "rounded-2xl"), 2200);
-            });
-            return;
-          }
-          document.getElementById("results-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
-        }}
       />
 
       {user && interests.length === 0 && (
