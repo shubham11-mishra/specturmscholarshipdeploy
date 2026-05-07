@@ -51,7 +51,7 @@ const HeroSection = ({ searchQuery, onSearchChange, onSearch }: HeroSectionProps
           onSubmit={(e) => { e.preventDefault(); onSearch(); }}
           className="bg-white rounded-2xl shadow-2xl p-2 flex flex-col sm:flex-row items-stretch gap-2 max-w-[820px] mx-auto"
         >
-          <div className="relative flex-1">
+          <div className="relative flex-1 min-w-0 sm:min-w-[280px]">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-foreground/40" />
             <input
               type="text"
