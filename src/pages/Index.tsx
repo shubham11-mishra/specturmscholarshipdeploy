@@ -169,7 +169,13 @@ const Index = () => {
     interestCategories, yearLevel, showPersonalized,
   ]);
 
-  const handleSearch = () => setSearchQuery(searchInput.trim());
+  const handleSearch = () => {
+    setSearchQuery(searchInput.trim());
+    setShowResults(true);
+    requestAnimationFrame(() => {
+      document.getElementById("results-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
 
   const activeFiltersCount =
     sectorFilters.length + stateFilters.length + categoryFilters.length + genderFilters.length + valueTypeFilters.length;
@@ -199,7 +205,7 @@ const Index = () => {
     setCategoryFilters((prev) =>
       prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]
     );
-    // Smooth-scroll to the results so users see the filter take effect
+    setShowResults(true);
     requestAnimationFrame(() => {
       document.getElementById("results-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
