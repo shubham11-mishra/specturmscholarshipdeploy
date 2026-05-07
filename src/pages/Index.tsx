@@ -236,13 +236,13 @@ const Index = () => {
         }}
       />
 
-      {user && interests.length === 0 && (
+      {showResults && user && interests.length === 0 && (
         <div id="interest-setup" className="transition-all">
           <InterestSetupBanner />
         </div>
       )}
 
-      {user && <NearbySchoolsSection />}
+      {showResults && user && <NearbySchoolsSection />}
 
       <CategoryQuickLinks
         active={categoryFilters}
@@ -250,7 +250,7 @@ const Index = () => {
         onSelect={toggleCategoryBucket}
       />
 
-      {user && interests.length > 0 && (
+      {showResults && user && interests.length > 0 && (
         <div className="max-w-[1200px] mx-auto px-4 md:px-8 pb-3 animate-fade-up">
           <div className="glass rounded-xl px-4 py-2.5 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-sm">
@@ -271,6 +271,8 @@ const Index = () => {
           </div>
         </div>
       )}
+
+      {showResults && (
 
       <div id="results-grid" className="max-w-[1280px] mx-auto px-4 md:px-8 pb-20 animate-fade-up" style={{ animationDelay: "0.1s" }}>
         <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
