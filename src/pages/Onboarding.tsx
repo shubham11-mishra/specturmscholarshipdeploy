@@ -463,5 +463,4 @@ const Onboarding = () => {
   );
 };
 
-import { Sparkles as SparklesIcon } from "lucide-react";
 export default Onboarding;
