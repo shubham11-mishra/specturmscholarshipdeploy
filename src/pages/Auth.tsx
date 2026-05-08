@@ -130,21 +130,27 @@ const Auth = () => {
         options: {
           data: {
             full_name: `${firstName} ${lastName}`.trim(),
-            state: stateCode, postcode: postcode.trim(), suburb: suburb.trim(),
+            state: stateCode,
+            postcode: postcode.trim(),
+            suburb: suburb.trim(),
             year_level: yearLevel,
+            school_type: schoolType,
+            grades,
+            extracurriculars: extras,
+            financial_need: financial,
+            target_year: targetYear,
+            target_schools: targetSchools,
+            scholarship_categories: scholarshipCats,
           },
         },
       });
       if (error && !error.message.toLowerCase().includes("rate limit")) throw error;
 
       const userId = data?.session?.user?.id ?? data?.user?.id;
-      if (userId) {
-        // Save scholarship category interests
-        if (scholarshipCats.length) {
-          await supabase.from("user_interests").insert(
-            scholarshipCats.map((category) => ({ user_id: userId, category }))
-          );
-        }
+      if (userId && scholarshipCats.length) {
+        await supabase.from("user_interests").insert(
+          scholarshipCats.map((category) => ({ user_id: userId, category }))
+        );
       }
       toast.success("Welcome to Spectrum Tuition!");
       navigate("/");
