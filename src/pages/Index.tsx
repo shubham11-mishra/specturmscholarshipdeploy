@@ -118,6 +118,21 @@ const Index = () => {
     return () => clearTimeout(t);
   }, [searchInput]);
 
+  // Reveal results when navigating to #results-grid (e.g. from navbar "Find Schools")
+  useEffect(() => {
+    const reveal = () => {
+      if (window.location.hash === "#results-grid") {
+        setShowResults(true);
+        requestAnimationFrame(() => {
+          document.getElementById("results-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+    };
+    reveal();
+    window.addEventListener("hashchange", reveal);
+    return () => window.removeEventListener("hashchange", reveal);
+  }, []);
+
   // Reset to page 0 whenever any filter/search changes
   useEffect(() => {
     setPage(0);
