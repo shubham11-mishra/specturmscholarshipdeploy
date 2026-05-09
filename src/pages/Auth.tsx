@@ -66,6 +66,68 @@ const Auth = () => {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // Step 5 — computed matches from DB
+  const [matchLoading, setMatchLoading] = useState(false);
+  const [eligibleCount, setEligibleCount] = useState(0);
+  const [competitiveCount, setCompetitiveCount] = useState(0);
+  const [matchPercent, setMatchPercent] = useState(0);
+  const [topMatches, setTopMatches] = useState<Array<{ id: string; school_name: string; program_name: string | null; category: string | null; state: string | null }>>([]);
+
+  useEffect(() => {
+    if (step !== 4) return;
+    let cancelled = false;
+    (async () => {
+      setMatchLoading(true);
+      const { data } = await supabase
+        .from("scholarships")
+        .select("id, school_name, program_name, category, state, year_levels, gender_eligibility, is_active")
+        .limit(2000);
+      if (cancelled || !data) { setMatchLoading(false); return; }
+
+      const norm = (s: string | null | undefined) => (s ?? "").toLowerCase();
+      const cats = scholarshipCats.map((c) => norm(c));
+      const yearNum = (yearLevel.match(/\d+/) || [""])[0];
+      const targetYearNum = (targetYear.match(/\d+/) || [""])[0];
+
+      const eligible = data.filter((s) => {
+        // state match (or unspecified)
+        const stateOk = !s.state || norm(s.state) === norm(stateCode);
+        // year match (or unspecified)
+        const yl = norm(s.year_levels);
+        const yearOk = !yl || (!!yearNum && yl.includes(yearNum)) || (!!targetYearNum && yl.includes(targetYearNum));
+        return stateOk && yearOk;
+      });
+
+      const matchesCategory = (s: typeof eligible[number]) => {
+        if (!cats.length) return false;
+        const c = norm(s.category);
+        return cats.some((cat) => c.includes(cat) || cat.includes(c));
+      };
+
+      const competitive = eligible.filter((s) => {
+        if (!matchesCategory(s)) return false;
+        // bonus competitiveness: has grades or extras
+        const hasStrengths = Object.values(grades).some((g) => g === "HD" || g === "A") || extras.length >= 2;
+        return hasStrengths;
+      });
+
+      const pct = eligible.length
+        ? Math.min(100, Math.round((competitive.length / eligible.length) * 100))
+        : 0;
+
+      setEligibleCount(eligible.length);
+      setCompetitiveCount(competitive.length);
+      setMatchPercent(pct);
+      setTopMatches(
+        (competitive.length ? competitive : eligible)
+          .slice(0, 5)
+          .map((s) => ({ id: s.id, school_name: s.school_name, program_name: s.program_name, category: s.category, state: s.state })),
+      );
+      setMatchLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, [step, scholarshipCats, stateCode, yearLevel, targetYear, grades, extras]);
+
   useEffect(() => {
     const hash = window.location.hash;
     if (user && !hash.includes("type=recovery")) navigate("/");
@@ -437,19 +499,44 @@ const Auth = () => {
                 <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
                   <circle cx="50" cy="50" r="44" fill="none" stroke="hsl(var(--secondary))" strokeWidth="6" />
                   <circle cx="50" cy="50" r="44" fill="none" stroke="hsl(var(--primary))" strokeWidth="6"
-                    strokeDasharray={`${2 * Math.PI * 44}`} strokeLinecap="round" />
+                    strokeDasharray={`${(2 * Math.PI * 44 * matchPercent) / 100} ${2 * Math.PI * 44}`}
+                    strokeLinecap="round"
+                    style={{ transition: "stroke-dasharray 600ms ease" }} />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <div className="font-display text-4xl font-extrabold text-foreground">100</div>
+                  <div className="font-display text-4xl font-extrabold text-foreground">{matchLoading ? "…" : matchPercent}</div>
                   <div className="text-xs text-muted-foreground">%</div>
                 </div>
               </div>
-              <p className="text-muted-foreground mb-4">Building your results…</p>
+              <p className="text-muted-foreground mb-4">{matchLoading ? "Building your results…" : "Based on your profile, here's what we found."}</p>
               <div className="text-3xl mb-2">🎉</div>
               <p className="text-foreground font-semibold mb-1">
-                You're eligible for <span className="bg-foreground text-background rounded-md px-3 py-1 ml-1 font-bold">23 scholarships</span>
+                You're eligible for <span className="bg-foreground text-background rounded-md px-3 py-1 ml-1 font-bold">{eligibleCount} scholarship{eligibleCount === 1 ? "" : "s"}</span>
               </p>
-              <p className="text-sm text-muted-foreground mb-6">You're strongly competitive for 6 right now.</p>
+              <p className="text-sm text-muted-foreground mb-4">
+                {competitiveCount > 0
+                  ? `You're strongly competitive for ${competitiveCount} right now.`
+                  : "Add more strengths to boost your competitiveness."}
+              </p>
+
+              {topMatches.length > 0 && (
+                <div className="text-left bg-secondary/40 border border-border rounded-xl p-3 mb-6 max-h-52 overflow-y-auto">
+                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2 px-1">Top matches</div>
+                  <ul className="space-y-1.5">
+                    {topMatches.map((m) => (
+                      <li key={m.id} className="text-sm text-foreground flex items-start gap-2 px-1">
+                        <Check className="w-3.5 h-3.5 text-primary mt-1 shrink-0" />
+                        <span>
+                          <span className="font-semibold">{m.school_name}</span>
+                          {m.program_name ? <span className="text-muted-foreground"> · {m.program_name}</span> : null}
+                          {m.category ? <span className="text-muted-foreground"> · {m.category}</span> : null}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               <button onClick={handleFinalSubmit} disabled={submitting}
                 className="bg-primary text-primary-foreground rounded-xl px-6 py-3.5 text-sm font-bold cursor-pointer hover:opacity-95 transition-all inline-flex items-center gap-2 disabled:opacity-50 border-none shadow-brand">
                 {submitting ? "Creating account…" : <>View your dashboard <ChevronRight className="w-4 h-4" /></>}
