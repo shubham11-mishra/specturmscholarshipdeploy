@@ -95,7 +95,7 @@ export const ELEMENT_BANDS = [
 ] as const;
 
 export const bandForPoints = (points: number) => {
-  let current = ELEMENT_BANDS[0];
+  let current: typeof ELEMENT_BANDS[number] = ELEMENT_BANDS[0];
   for (const band of ELEMENT_BANDS) if (points >= band.min) current = band;
   return current;
 };
