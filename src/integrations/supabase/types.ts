@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      navigator_shortlist: {
+        Row: {
+          created_at: string
+          id: string
+          match_band: string | null
+          match_score: number | null
+          notes: string | null
+          scholarship_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_band?: string | null
+          match_score?: number | null
+          notes?: string | null
+          scholarship_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_band?: string | null
+          match_score?: number | null
+          notes?: string | null
+          scholarship_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -236,6 +272,84 @@ export type Database = {
         }
         Relationships: []
       }
+      student_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          description: string | null
+          element_stage: string
+          evidence_url: string | null
+          id: string
+          points_earned: number
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          description?: string | null
+          element_stage: string
+          evidence_url?: string | null
+          id?: string
+          points_earned?: number
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          description?: string | null
+          element_stage?: string
+          evidence_url?: string | null
+          id?: string
+          points_earned?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      student_progress: {
+        Row: {
+          badges: string[]
+          created_at: string
+          current_band: string
+          element_points_aether: number
+          element_points_air: number
+          element_points_earth: number
+          element_points_fire: number
+          element_points_water: number
+          id: string
+          total_points: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          badges?: string[]
+          created_at?: string
+          current_band?: string
+          element_points_aether?: number
+          element_points_air?: number
+          element_points_earth?: number
+          element_points_fire?: number
+          element_points_water?: number
+          id?: string
+          total_points?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          badges?: string[]
+          created_at?: string
+          current_band?: string
+          element_points_aether?: number
+          element_points_air?: number
+          element_points_earth?: number
+          element_points_fire?: number
+          element_points_water?: number
+          id?: string
+          total_points?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_interests: {
         Row: {
           category: string
@@ -253,6 +367,66 @@ export type Database = {
           category?: string
           created_at?: string
           id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wheel_scores: {
+        Row: {
+          academic_self: number | null
+          academic_verified: number | null
+          arts_self: number | null
+          arts_verified: number | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          leadership_self: number | null
+          leadership_verified: number | null
+          sports_self: number | null
+          sports_verified: number | null
+          stem_self: number | null
+          stem_verified: number | null
+          test_readiness_self: number | null
+          test_readiness_verified: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          academic_self?: number | null
+          academic_verified?: number | null
+          arts_self?: number | null
+          arts_verified?: number | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          leadership_self?: number | null
+          leadership_verified?: number | null
+          sports_self?: number | null
+          sports_verified?: number | null
+          stem_self?: number | null
+          stem_verified?: number | null
+          test_readiness_self?: number | null
+          test_readiness_verified?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          academic_self?: number | null
+          academic_verified?: number | null
+          arts_self?: number | null
+          arts_verified?: number | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          leadership_self?: number | null
+          leadership_verified?: number | null
+          sports_self?: number | null
+          sports_verified?: number | null
+          stem_self?: number | null
+          stem_verified?: number | null
+          test_readiness_self?: number | null
+          test_readiness_verified?: number | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
