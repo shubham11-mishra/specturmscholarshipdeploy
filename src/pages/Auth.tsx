@@ -144,16 +144,17 @@ const Auth = () => {
     setError("");
     setSubmitting(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/auth`,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth`,
+        },
       });
-      if (result.error) {
-        setError((result.error as Error).message || "Google sign-in failed");
+      if (error) {
+        setError(error.message || "Google sign-in failed");
         setSubmitting(false);
         return;
       }
-      if (result.redirected) return;
-      navigate("/");
     } catch (err: any) {
       setError(err.message || "Google sign-in failed");
       setSubmitting(false);
