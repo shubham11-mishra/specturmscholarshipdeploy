@@ -66,6 +66,68 @@ const Auth = () => {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // Step 5 — computed matches from DB
+  const [matchLoading, setMatchLoading] = useState(false);
+  const [eligibleCount, setEligibleCount] = useState(0);
+  const [competitiveCount, setCompetitiveCount] = useState(0);
+  const [matchPercent, setMatchPercent] = useState(0);
+  const [topMatches, setTopMatches] = useState<Array<{ id: string; school_name: string; program_name: string | null; category: string | null; state: string | null }>>([]);
+
+  useEffect(() => {
+    if (step !== 4) return;
+    let cancelled = false;
+    (async () => {
+      setMatchLoading(true);
+      const { data } = await supabase
+        .from("scholarships")
+        .select("id, school_name, program_name, category, state, year_levels, gender_eligibility, is_active")
+        .limit(2000);
+      if (cancelled || !data) { setMatchLoading(false); return; }
+
+      const norm = (s: string | null | undefined) => (s ?? "").toLowerCase();
+      const cats = scholarshipCats.map((c) => norm(c));
+      const yearNum = (yearLevel.match(/\d+/) || [""])[0];
+      const targetYearNum = (targetYear.match(/\d+/) || [""])[0];
+
+      const eligible = data.filter((s) => {
+        // state match (or unspecified)
+        const stateOk = !s.state || norm(s.state) === norm(stateCode);
+        // year match (or unspecified)
+        const yl = norm(s.year_levels);
+        const yearOk = !yl || (!!yearNum && yl.includes(yearNum)) || (!!targetYearNum && yl.includes(targetYearNum));
+        return stateOk && yearOk;
+      });
+
+      const matchesCategory = (s: typeof eligible[number]) => {
+        if (!cats.length) return false;
+        const c = norm(s.category);
+        return cats.some((cat) => c.includes(cat) || cat.includes(c));
+      };
+
+      const competitive = eligible.filter((s) => {
+        if (!matchesCategory(s)) return false;
+        // bonus competitiveness: has grades or extras
+        const hasStrengths = Object.values(grades).some((g) => g === "HD" || g === "A") || extras.length >= 2;
+        return hasStrengths;
+      });
+
+      const pct = eligible.length
+        ? Math.min(100, Math.round((competitive.length / eligible.length) * 100))
+        : 0;
+
+      setEligibleCount(eligible.length);
+      setCompetitiveCount(competitive.length);
+      setMatchPercent(pct);
+      setTopMatches(
+        (competitive.length ? competitive : eligible)
+          .slice(0, 5)
+          .map((s) => ({ id: s.id, school_name: s.school_name, program_name: s.program_name, category: s.category, state: s.state })),
+      );
+      setMatchLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, [step, scholarshipCats, stateCode, yearLevel, targetYear, grades, extras]);
+
   useEffect(() => {
     const hash = window.location.hash;
     if (user && !hash.includes("type=recovery")) navigate("/");
