@@ -141,13 +141,23 @@ const Auth = () => {
     setter(list.includes(val) ? list.filter((x) => x !== val) : [...list, val]);
 
   const handleGoogle = async () => {
-    setError(""); setSubmitting(true);
+    setError("");
+    setSubmitting(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-      if (result.error) { setError((result.error as Error).message || "Google sign-in failed"); setSubmitting(false); return; }
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/auth`,
+      });
+      if (result.error) {
+        setError((result.error as Error).message || "Google sign-in failed");
+        setSubmitting(false);
+        return;
+      }
       if (result.redirected) return;
       navigate("/");
-    } catch (err: any) { setError(err.message || "Google sign-in failed"); setSubmitting(false); }
+    } catch (err: any) {
+      setError(err.message || "Google sign-in failed");
+      setSubmitting(false);
+    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
