@@ -20,7 +20,7 @@ const CATEGORIES = ["Academic", "Music", "Sport", "General"];
 const AU_STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"];
 const YEAR_LEVELS = ["Year 5", "Year 6", "Year 7", "Year 8", "Year 9", "Year 10", "Year 11", "Year 12"];
 
-const Profile = () => {
+const ProfileEdit = () => {
   const { user, loading, refreshInterests } = useAuth();
   const navigate = useNavigate();
 
@@ -260,4 +260,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default ProfileEdit;
