@@ -399,10 +399,28 @@ const Auth = () => {
                   </select>
                 </Field>
                 <Field label="Suburb">
-                  <input value={suburb} onChange={(e) => setSuburb(e.target.value)} placeholder="Chatswood" className={inputCls} />
+                  <input
+                    value={suburb}
+                    onChange={(e) => setSuburb(e.target.value)}
+                    placeholder={suburbOptions.length ? "Choose or type your suburb" : "Chatswood"}
+                    list="suburb-options"
+                    className={inputCls}
+                  />
+                  {suburbOptions.length > 0 && (
+                    <datalist id="suburb-options">
+                      {suburbOptions.map((s) => (
+                        <option key={s} value={s} />
+                      ))}
+                    </datalist>
+                  )}
                 </Field>
                 <Field label="Postcode">
                   <input value={postcode} onChange={(e) => setPostcode(e.target.value.replace(/\D/g, "").slice(0, 4))} inputMode="numeric" placeholder="2067" className={inputCls} />
+                  {postcode.length === 4 && stateFromPostcode(postcode) && (
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      Auto-detected state: <span className="font-semibold text-foreground">{stateFromPostcode(postcode)}</span>
+                    </p>
+                  )}
                 </Field>
               </div>
 
