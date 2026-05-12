@@ -164,7 +164,7 @@ const Profile = () => {
           {/* Quick actions */}
           <div className="grid sm:grid-cols-3 gap-3 mb-8">
             <ActionCard
-              to="/"
+              to="/scholarships"
               icon={<Target className="w-4 h-4" />}
               title="Browse scholarships"
               hint="Find your next opportunity"
