@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Eye, EyeOff, Sparkles, Check, ChevronLeft, ChevronRight, User, BookOpen, Palette, Target, PartyPopper } from "lucide-react";
 import logoMark from "@/assets/logo-mark.svg";
+import { stateFromPostcode, lookupSuburbsForPostcode } from "@/lib/postcode";
 
 const AU_STATES = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"];
 const YEAR_LEVELS = ["Year 5", "Year 6", "Year 7", "Year 8", "Year 9", "Year 10", "Year 11", "Year 12"];
