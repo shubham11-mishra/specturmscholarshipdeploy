@@ -534,10 +534,16 @@ const Auth = () => {
                 </div>
               )}
 
-              <button onClick={handleFinalSubmit} disabled={submitting}
-                className="bg-primary text-primary-foreground rounded-xl px-6 py-3.5 text-sm font-bold cursor-pointer hover:opacity-95 transition-all inline-flex items-center gap-2 disabled:opacity-50 border-none shadow-brand">
-                {submitting ? "Creating account…" : <>View your dashboard <ChevronRight className="w-4 h-4" /></>}
-              </button>
+              <div className="flex items-center justify-center gap-3 flex-wrap">
+                <button type="button" onClick={goBack}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card text-foreground px-5 py-3 text-sm font-semibold hover:bg-secondary transition cursor-pointer">
+                  <ChevronLeft className="w-4 h-4" /> Back to Goals
+                </button>
+                <button onClick={handleFinalSubmit} disabled={submitting}
+                  className="bg-primary text-primary-foreground rounded-xl px-6 py-3.5 text-sm font-bold cursor-pointer hover:opacity-95 transition-all inline-flex items-center gap-2 disabled:opacity-50 border-none shadow-brand">
+                  {submitting ? "Creating account…" : <>View your dashboard <ChevronRight className="w-4 h-4" /></>}
+                </button>
+              </div>
             </div>
           )}
         </div>
