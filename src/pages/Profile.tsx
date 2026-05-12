@@ -1,263 +1,370 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useShortlist } from "@/hooks/useShortlist";
 import Navbar from "@/components/Navbar";
-import { toast } from "sonner";
-import { CheckCircle2, MapPin, GraduationCap, Heart, User as UserIcon, Save } from "lucide-react";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-
-const CATEGORIES = ["Academic", "Music", "Sport", "General"];
-const AU_STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"];
-const YEAR_LEVELS = ["Year 5", "Year 6", "Year 7", "Year 8", "Year 9", "Year 10", "Year 11", "Year 12"];
+  Sparkles,
+  Compass,
+  GraduationCap,
+  MapPin,
+  Heart,
+  Pencil,
+  ArrowRight,
+  Flame,
+  Trophy,
+  Target,
+  CalendarClock,
+  Loader2,
+} from "lucide-react";
+import {
+  WHEEL_DIMENSIONS,
+  DEFAULT_WHEEL_SCORES,
+  bandForPoints,
+  type WheelScores,
+} from "@/lib/navigator";
 
 const Profile = () => {
-  const { user, loading, refreshInterests } = useAuth();
+  const { user, loading, fullName, location, yearLevel, interests } = useAuth();
+  const { count: shortlistCount } = useShortlist();
   const navigate = useNavigate();
 
-  const [fullName, setFullName] = useState("");
-  const [stateCode, setStateCode] = useState("");
-  const [postcode, setPostcode] = useState("");
-  const [suburb, setSuburb] = useState("");
-  const [yearLevel, setYearLevel] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [saving, setSaving] = useState(false);
-  const [initializing, setInitializing] = useState(true);
+  const [scores, setScores] = useState<WheelScores>(DEFAULT_WHEEL_SCORES);
+  const [hasWheel, setHasWheel] = useState(false);
+  const [points, setPoints] = useState(0);
+  const [bandKey, setBandKey] = useState("Earth");
+  const [eligibleCount, setEligibleCount] = useState<number | null>(null);
+  const [hydrating, setHydrating] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
-  }, [user, loading, navigate]);
+  }, [loading, user, navigate]);
 
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [{ data: profile }, { data: interests }] = await Promise.all([
-        supabase.from("profiles").select("full_name, state, postcode, suburb, year_level").eq("id", user.id).maybeSingle(),
-        supabase.from("user_interests").select("category").eq("user_id", user.id),
+      setHydrating(true);
+      const [{ data: wheel }, { data: progress }, { count }] = await Promise.all([
+        supabase.from("wheel_scores").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("student_progress").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase
+          .from("scholarships")
+          .select("*", { count: "exact", head: true })
+          .eq(location.state ? "state" : "id", location.state ?? "00000000-0000-0000-0000-000000000000"),
       ]);
-      setFullName(profile?.full_name ?? "");
-      setStateCode(profile?.state ?? "");
-      setPostcode(profile?.postcode ?? "");
-      setSuburb(profile?.suburb ?? "");
-      setYearLevel(profile?.year_level ?? "");
-      setSelectedCategories(interests?.map((i) => i.category) ?? []);
-      setInitializing(false);
-    })();
-  }, [user]);
 
-  const toggleCategory = (cat: string) => {
-    setSelectedCategories((prev) => (prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]));
-  };
-
-  const [confirmOpen, setConfirmOpen] = useState(false);
-
-  const handleSaveClick = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-    if (!fullName.trim()) return toast.error("Please enter your full name.");
-    if (!stateCode || !/^\d{4}$/.test(postcode.trim())) return toast.error("Select state and a valid 4-digit postcode.");
-    setConfirmOpen(true);
-  };
-
-  const handleConfirmSave = async () => {
-    if (!user) return;
-    setSaving(true);
-    try {
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({
-          full_name: fullName.trim(),
-          state: stateCode,
-          postcode: postcode.trim(),
-          suburb: suburb.trim() || null,
-          year_level: yearLevel || null,
-        })
-        .eq("id", user.id);
-      if (profileError) throw profileError;
-
-      const { error: delErr } = await supabase.from("user_interests").delete().eq("user_id", user.id);
-      if (delErr) throw delErr;
-      if (selectedCategories.length > 0) {
-        const { error: insErr } = await supabase
-          .from("user_interests")
-          .insert(selectedCategories.map((category) => ({ user_id: user.id, category })));
-        if (insErr) throw insErr;
+      if (wheel) {
+        setScores({
+          academic: wheel.academic_self ?? 5,
+          stem: wheel.stem_self ?? 5,
+          arts: wheel.arts_self ?? 5,
+          sports: wheel.sports_self ?? 5,
+          leadership: wheel.leadership_self ?? 5,
+          test_readiness: wheel.test_readiness_self ?? 5,
+        });
+        setHasWheel(true);
       }
+      if (progress) {
+        setPoints(progress.total_points ?? 0);
+        setBandKey(progress.current_band ?? "Earth");
+      }
+      setEligibleCount(count ?? 0);
+      setHydrating(false);
+    })();
+  }, [user, location.state]);
 
-      await refreshInterests();
-      toast.success("Profile updated successfully.");
-      setConfirmOpen(false);
-      navigate("/");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update profile.");
-    } finally {
-      setSaving(false);
-    }
-  };
+  const wheelAvg = useMemo(
+    () =>
+      Math.round(
+        (Object.values(scores).reduce((a, b) => a + b, 0) / WHEEL_DIMENSIONS.length) * 10,
+      ) / 10,
+    [scores],
+  );
 
-  if (loading || initializing) {
+  const strongDimensions = useMemo(
+    () => WHEEL_DIMENSIONS.filter((d) => scores[d.key] >= 7).length,
+    [scores],
+  );
+  const growDimensions = useMemo(
+    () => WHEEL_DIMENSIONS.filter((d) => scores[d.key] <= 4).length,
+    [scores],
+  );
+
+  if (loading || hydrating) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="pt-32 text-center text-muted-foreground">Loading…</div>
+        <div className="pt-32 flex items-center justify-center text-muted-foreground">
+          <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading your dashboard…
+        </div>
       </div>
     );
   }
 
+  const displayName =
+    (fullName && fullName.trim()) ||
+    (user?.user_metadata?.full_name as string | undefined) ||
+    user?.email?.split("@")[0] ||
+    "Student";
+  const firstName = displayName.split(" ")[0];
+  const band = bandForPoints(points);
+
+  const greeting = (() => {
+    const h = new Date().getHours();
+    if (h < 12) return "Good morning";
+    if (h < 18) return "Good afternoon";
+    return "Good evening";
+  })();
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="pt-28 pb-16 px-4 md:px-8">
-        <div className="max-w-2xl mx-auto">
-          <div className="mb-8">
-            <h1 className="font-display text-3xl md:text-4xl font-extrabold text-foreground mb-2">
-              Your Profile
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Update your details so we can personalize your scholarship matches.
-            </p>
+      <main className="pt-28 pb-20 px-4 md:px-8">
+        <div className="max-w-[1200px] mx-auto">
+          {/* Hero greeting */}
+          <section
+            className="relative overflow-hidden rounded-3xl p-8 md:p-10 mb-8 shadow-md"
+            style={{ background: "var(--gradient-hero, linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent))))" }}
+          >
+            <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/10 blur-2xl" />
+            <div className="relative z-10 text-primary-foreground">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur text-[11px] font-bold tracking-[0.14em] uppercase mb-4">
+                <Sparkles className="w-3.5 h-3.5" />
+                Your Spectrum Dashboard
+              </div>
+              <h1 className="font-display font-extrabold text-[28px] md:text-[40px] leading-tight">
+                {greeting}, {firstName} <span className="inline-block">👋</span>
+              </h1>
+              <p className="text-white/85 mt-2 text-[14px] md:text-[15px] max-w-[640px]">
+                {yearLevel ? `${yearLevel} · ` : ""}
+                {location.suburb ? `${location.suburb}, ` : ""}
+                {location.state || "Australia"}
+              </p>
+
+              <div className="grid grid-cols-3 gap-4 md:gap-8 mt-7 max-w-[640px]">
+                <Stat value={eligibleCount ?? 0} label="Eligible scholarships" />
+                <Stat value={shortlistCount} label="Shortlisted" />
+                <Stat value={hasWheel ? `${wheelAvg}/10` : "—"} label="Wheel average" />
+              </div>
+            </div>
+          </section>
+
+          {/* Quick actions */}
+          <div className="grid sm:grid-cols-3 gap-3 mb-8">
+            <ActionCard
+              to="/"
+              icon={<Target className="w-4 h-4" />}
+              title="Browse scholarships"
+              hint="Find your next opportunity"
+            />
+            <ActionCard
+              to="/navigator"
+              icon={<Compass className="w-4 h-4" />}
+              title="Open Navigator"
+              hint="Update your Spectrum Wheel"
+            />
+            <ActionCard
+              to="/profile/edit"
+              icon={<Pencil className="w-4 h-4" />}
+              title="Edit profile"
+              hint="Year level, location, interests"
+            />
           </div>
 
-          <form onSubmit={handleSaveClick} className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6 shadow-sm">
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-                <UserIcon className="w-3.5 h-3.5" /> Full Name
-              </label>
-              <input
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="John Doe"
-                className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">
-                Email
-              </label>
-              <input
-                type="email"
-                value={user?.email ?? ""}
-                disabled
-                className="w-full rounded-xl border border-border bg-muted px-4 py-3 text-sm text-muted-foreground cursor-not-allowed"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-                <GraduationCap className="w-3.5 h-3.5" /> Current year level
-              </label>
-              <select
-                value={yearLevel}
-                onChange={(e) => setYearLevel(e.target.value)}
-                className="w-full rounded-xl border border-border bg-secondary px-3 py-3 text-sm text-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all cursor-pointer"
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* Readiness band */}
+            <div className="rounded-3xl bg-card border border-border/60 p-6 shadow-sm lg:col-span-1">
+              <div className="text-[11px] font-bold tracking-[0.14em] uppercase text-muted-foreground mb-3">
+                Readiness Band
+              </div>
+              <div
+                className="rounded-2xl p-5 text-white shadow-md"
+                style={{ background: band.color }}
               >
-                <option value="">Select year level</option>
-                {YEAR_LEVELS.map((y) => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
+                <div className="flex items-center gap-2 text-xs font-bold tracking-[0.12em] uppercase opacity-90">
+                  <Flame className="w-4 h-4" /> Element
+                </div>
+                <div className="font-display font-extrabold text-2xl mt-1">{band.label}</div>
+                <div className="text-sm text-white/85 mt-1">⚡ {points} Spectrum Points</div>
+              </div>
+              <Link
+                to="/navigator"
+                className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-secondary text-foreground py-2.5 text-sm font-semibold hover:bg-primary/10 hover:text-primary transition"
+              >
+                View readiness journey <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5" /> Location
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <select
-                  value={stateCode}
-                  onChange={(e) => setStateCode(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-secondary px-3 py-3 text-sm text-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all cursor-pointer"
-                >
-                  <option value="">State</option>
-                  {AU_STATES.map((s) => (
-                    <option key={s} value={s}>{s}</option>
+            {/* Wheel breakdown */}
+            <div className="rounded-3xl bg-card border border-border/60 p-6 shadow-sm lg:col-span-2">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <div className="text-[11px] font-bold tracking-[0.14em] uppercase text-muted-foreground">
+                    Spectrum Wheel
+                  </div>
+                  <div className="font-display font-bold text-foreground text-xl mt-0.5">
+                    Your strengths at a glance
+                  </div>
+                </div>
+                {hasWheel && (
+                  <div className="hidden md:flex items-center gap-3 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1"><Trophy className="w-3.5 h-3.5 text-primary" /> {strongDimensions} strong</span>
+                    <span className="flex items-center gap-1"><Target className="w-3.5 h-3.5 text-accent" /> {growDimensions} to grow</span>
+                  </div>
+                )}
+              </div>
+
+              {hasWheel ? (
+                <div className="space-y-3">
+                  {WHEEL_DIMENSIONS.map((d) => (
+                    <div key={d.key}>
+                      <div className="flex items-center justify-between text-sm mb-1">
+                        <span className="font-semibold text-foreground flex items-center gap-2">
+                          <span>{d.emoji}</span> {d.label}
+                        </span>
+                        <span
+                          className="text-xs font-bold tabular-nums px-2 py-0.5 rounded-md"
+                          style={{ background: `${d.color}22`, color: d.color }}
+                        >
+                          {scores[d.key]}/10
+                        </span>
+                      </div>
+                      <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all"
+                          style={{
+                            width: `${scores[d.key] * 10}%`,
+                            background: d.color,
+                          }}
+                        />
+                      </div>
+                    </div>
                   ))}
-                </select>
-                <input
-                  type="text"
-                  value={postcode}
-                  onChange={(e) => setPostcode(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                  inputMode="numeric"
-                  placeholder="Postcode"
-                  className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all"
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-border p-8 text-center">
+                  <div className="text-sm text-muted-foreground mb-3">
+                    Complete your Spectrum Wheel to unlock personalised matches.
+                  </div>
+                  <Link
+                    to="/navigator"
+                    className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-xl px-4 py-2.5 text-sm font-semibold hover:opacity-90 transition"
+                  >
+                    <Compass className="w-4 h-4" /> Start your assessment
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Profile snapshot */}
+            <div className="rounded-3xl bg-card border border-border/60 p-6 shadow-sm lg:col-span-3">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <div className="text-[11px] font-bold tracking-[0.14em] uppercase text-muted-foreground">
+                    Profile snapshot
+                  </div>
+                  <div className="font-display font-bold text-foreground text-xl mt-0.5">
+                    {displayName}
+                  </div>
+                </div>
+                <Link
+                  to="/profile/edit"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+                >
+                  <Pencil className="w-3.5 h-3.5" /> Edit
+                </Link>
+              </div>
+
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <SnapshotItem
+                  icon={<GraduationCap className="w-4 h-4" />}
+                  label="Year level"
+                  value={yearLevel || "Not set"}
+                />
+                <SnapshotItem
+                  icon={<MapPin className="w-4 h-4" />}
+                  label="Location"
+                  value={
+                    [location.suburb, location.state, location.postcode]
+                      .filter(Boolean)
+                      .join(" · ") || "Not set"
+                  }
+                />
+                <SnapshotItem
+                  icon={<Heart className="w-4 h-4" />}
+                  label="Interests"
+                  value={interests.length > 0 ? interests.join(", ") : "None yet"}
+                />
+                <SnapshotItem
+                  icon={<CalendarClock className="w-4 h-4" />}
+                  label="Member since"
+                  value={
+                    user?.created_at
+                      ? new Date(user.created_at).toLocaleDateString(undefined, {
+                          month: "short",
+                          year: "numeric",
+                        })
+                      : "—"
+                  }
                 />
               </div>
-              <input
-                type="text"
-                value={suburb}
-                onChange={(e) => setSuburb(e.target.value)}
-                placeholder="Suburb (optional)"
-                className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all"
-              />
             </div>
-
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                <Heart className="w-3.5 h-3.5" /> Interests & strengths
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {CATEGORIES.map((cat) => {
-                  const selected = selectedCategories.includes(cat);
-                  return (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => toggleCategory(cat)}
-                      className={`relative rounded-xl border px-4 py-3 text-sm font-medium cursor-pointer transition-all flex items-center gap-2 ${
-                        selected
-                          ? "border-primary/50 bg-primary/10 text-primary glow-primary"
-                          : "border-border bg-secondary text-muted-foreground hover:border-primary/30 hover:text-foreground"
-                      }`}
-                    >
-                      {selected && <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />}
-                      {cat}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={saving}
-              className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-xl px-4 py-3.5 text-sm font-bold uppercase tracking-[0.12em] cursor-pointer hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 border-none shadow-lg"
-            >
-              <Save className="w-4 h-4" />
-              {saving ? "Saving..." : "Save Changes"}
-            </button>
-          </form>
+          </div>
         </div>
       </main>
-
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Save changes?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will update your profile details and personalize your scholarship matches.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={saving}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={(e) => { e.preventDefault(); handleConfirmSave(); }} disabled={saving}>
-              {saving ? "Saving..." : "Confirm"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
+
+const Stat = ({ value, label }: { value: number | string; label: string }) => (
+  <div>
+    <div className="font-display font-extrabold text-3xl md:text-4xl text-white">{value}</div>
+    <div className="text-xs md:text-[13px] text-white/80 mt-1">{label}</div>
+  </div>
+);
+
+const ActionCard = ({
+  to,
+  icon,
+  title,
+  hint,
+}: {
+  to: string;
+  icon: React.ReactNode;
+  title: string;
+  hint: string;
+}) => (
+  <Link
+    to={to}
+    className="group rounded-2xl bg-card border border-border/60 p-4 flex items-center gap-3 hover:border-primary/40 hover:shadow-md transition"
+  >
+    <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+      {icon}
+    </div>
+    <div className="flex-1 min-w-0">
+      <div className="font-display font-bold text-foreground text-sm">{title}</div>
+      <div className="text-xs text-muted-foreground truncate">{hint}</div>
+    </div>
+    <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition" />
+  </Link>
+);
+
+const SnapshotItem = ({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) => (
+  <div className="rounded-2xl bg-secondary/60 border border-border/60 p-4">
+    <div className="flex items-center gap-1.5 text-[11px] font-bold tracking-[0.12em] uppercase text-muted-foreground mb-1.5">
+      {icon} {label}
+    </div>
+    <div className="text-sm font-semibold text-foreground line-clamp-2">{value}</div>
+  </div>
+);
 
 export default Profile;
