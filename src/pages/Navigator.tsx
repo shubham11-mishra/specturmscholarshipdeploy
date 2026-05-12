@@ -266,11 +266,13 @@ const Navigator = () => {
   );
 };
 
+import { BAND_CUTOFFS } from "@/lib/readiness";
+
 export const ElementJourneyStrip = ({ currentBandKey }: { currentBandKey: string }) => (
   <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
     {ELEMENT_JOURNEY.map((el) => {
       const isCurrent = el.key === currentBandKey;
-      const band = (require("@/lib/readiness").BAND_CUTOFFS as any)[el.key];
+      const band = BAND_CUTOFFS[el.key as keyof typeof BAND_CUTOFFS];
       return (
         <div
           key={el.key}
