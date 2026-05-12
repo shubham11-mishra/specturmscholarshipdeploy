@@ -96,7 +96,7 @@ const ProfileEdit = () => {
       await refreshInterests();
       toast.success("Profile updated successfully.");
       setConfirmOpen(false);
-      navigate("/");
+      navigate("/profile");
     } catch (err: any) {
       toast.error(err.message || "Failed to update profile.");
     } finally {
