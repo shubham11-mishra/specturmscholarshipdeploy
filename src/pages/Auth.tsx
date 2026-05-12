@@ -20,7 +20,6 @@ const EXTRACURRICULARS = [
   "Cultural Groups",
 ];
 const FINANCIAL_OPTIONS = ["Prefer not to say", "No financial need", "Some financial need", "Significant financial need"];
-const TARGET_SCHOOLS = ["Knox Grammar", "Loreto Normanhurst", "Cranbrook", "The King's School", "Pymble Ladies' College", "Sydney Grammar", "Wenona", "Ravenswood", "Shore", "SCEGGS Darlinghurst"];
 const SCHOLARSHIP_CATEGORIES = ["Academic Merit", "Music", "Sports", "STEM", "Arts", "Community Service", "All-Rounder", "Financial Need"];
 
 const STEPS = [
