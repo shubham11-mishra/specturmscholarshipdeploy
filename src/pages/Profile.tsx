@@ -24,6 +24,8 @@ import {
   bandForPoints,
   type WheelScores,
 } from "@/lib/navigator";
+import { wheelAverageToScore } from "@/lib/readiness";
+import ElementJourney from "@/components/ElementJourney";
 
 const Profile = () => {
   const { user, loading, fullName, location, yearLevel, interests } = useAuth();
