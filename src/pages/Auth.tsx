@@ -139,6 +139,48 @@ const Auth = () => {
     if (new URLSearchParams(window.location.search).get("mode") === "signup") setIsLogin(false);
   }, []);
 
+  // Autofill state + suburb suggestions from postcode
+  useEffect(() => {
+    if (!/^\d{4}$/.test(postcode)) {
+      setSuburbOptions([]);
+      return;
+    }
+    const inferred = stateFromPostcode(postcode);
+    if (inferred && !stateCode) setStateCode(inferred);
+    let cancelled = false;
+    lookupSuburbsForPostcode(postcode).then((subs) => {
+      if (cancelled) return;
+      setSuburbOptions(subs);
+      if (subs.length === 1 && !suburb) setSuburb(subs[0]);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [postcode]);
+
+  // Debounced check for already-registered email (signup only)
+  useEffect(() => {
+    if (isLogin) {
+      setEmailTaken(false);
+      return;
+    }
+    const trimmed = email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setEmailTaken(false);
+      return;
+    }
+    const t = setTimeout(async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", trimmed)
+        .maybeSingle();
+      setEmailTaken(!!data);
+    }, 500);
+    return () => clearTimeout(t);
+  }, [email, isLogin]);
+
   const toggleIn = (list: string[], setter: (v: string[]) => void, val: string) =>
     setter(list.includes(val) ? list.filter((x) => x !== val) : [...list, val]);
 
