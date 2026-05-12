@@ -40,7 +40,7 @@ const Navigator = () => {
       ]);
 
       if (wheel) {
-        const w = wheel as Record<string, number | null>;
+        const w = wheel as unknown as Record<string, number | null>;
         setScores({
           academic: w.academic_self ?? 5,
           stem: w.stem_self ?? 5,
