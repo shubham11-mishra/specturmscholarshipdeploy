@@ -126,7 +126,7 @@ const Applications = () => {
   const deadlines = useMemo(() => {
     const upcoming = apps
       .map((a) => ({ app: a, due: parseDeadline(a.scholarship?.application_close_date ?? null) }))
-      .filter((x): x is { app: AppRow; due: Date } => !!x.due && (daysUntil(x.due) ?? -1) >= -3 && a => true)
+      .filter((x): x is { app: AppRow; due: Date } => !!x.due && (daysUntil(x.due) ?? -1) >= -3)
       .sort((x, y) => x.due.getTime() - y.due.getTime())
       .slice(0, 12);
     return upcoming;
