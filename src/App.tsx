@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +12,8 @@ import Shortlist from "./pages/Shortlist.tsx";
 import Profile from "./pages/Profile.tsx";
 import ProfileEdit from "./pages/ProfileEdit.tsx";
 import Navigator from "./pages/Navigator.tsx";
+import Scholarships from "./pages/Scholarships.tsx";
+import ScholarshipDetail from "./pages/ScholarshipDetail.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -31,7 +33,14 @@ const App = () => (
               <Route path="/shortlist" element={<Shortlist />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/profile/edit" element={<ProfileEdit />} />
+              <Route path="/dashboard" element={<Profile />} />
               <Route path="/navigator" element={<Navigator />} />
+              <Route path="/wheel" element={<Navigator />} />
+              <Route path="/scholarships" element={<Scholarships />} />
+              <Route path="/scholarships/:id" element={<ScholarshipDetail />} />
+              <Route path="/applications" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/readiness" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/copilot" element={<Navigate to="/dashboard" replace />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -24,6 +24,8 @@ import {
   bandForPoints,
   type WheelScores,
 } from "@/lib/navigator";
+import { wheelAverageToScore } from "@/lib/readiness";
+import ElementJourney from "@/components/ElementJourney";
 
 const Profile = () => {
   const { user, loading, fullName, location, yearLevel, interests } = useAuth();
@@ -154,10 +156,15 @@ const Profile = () => {
             </div>
           </section>
 
+          {/* Five-Element Journey */}
+          <div className="mb-8">
+            <ElementJourney score={wheelAverageToScore(Object.values(scores))} />
+          </div>
+
           {/* Quick actions */}
           <div className="grid sm:grid-cols-3 gap-3 mb-8">
             <ActionCard
-              to="/"
+              to="/scholarships"
               icon={<Target className="w-4 h-4" />}
               title="Browse scholarships"
               hint="Find your next opportunity"

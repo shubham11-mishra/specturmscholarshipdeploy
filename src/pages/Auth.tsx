@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Eye, EyeOff, Sparkles, Check, ChevronLeft, ChevronRight, User, BookOpen, Palette, Target, PartyPopper } from "lucide-react";
 import logoMark from "@/assets/logo-mark.svg";
+import { stateFromPostcode, lookupSuburbsForPostcode } from "@/lib/postcode";
 
 const AU_STATES = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"];
 const YEAR_LEVELS = ["Year 5", "Year 6", "Year 7", "Year 8", "Year 9", "Year 10", "Year 11", "Year 12"];
@@ -63,6 +64,8 @@ const Auth = () => {
   const [scholarshipCats, setScholarshipCats] = useState<string[]>([]);
 
   const [error, setError] = useState("");
+  const [emailTaken, setEmailTaken] = useState(false);
+  const [suburbOptions, setSuburbOptions] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   // Step 5 — computed matches from DB
@@ -136,6 +139,48 @@ const Auth = () => {
     if (new URLSearchParams(window.location.search).get("mode") === "signup") setIsLogin(false);
   }, []);
 
+  // Autofill state + suburb suggestions from postcode
+  useEffect(() => {
+    if (!/^\d{4}$/.test(postcode)) {
+      setSuburbOptions([]);
+      return;
+    }
+    const inferred = stateFromPostcode(postcode);
+    if (inferred && !stateCode) setStateCode(inferred);
+    let cancelled = false;
+    lookupSuburbsForPostcode(postcode).then((subs) => {
+      if (cancelled) return;
+      setSuburbOptions(subs);
+      if (subs.length === 1 && !suburb) setSuburb(subs[0]);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [postcode]);
+
+  // Debounced check for already-registered email (signup only)
+  useEffect(() => {
+    if (isLogin) {
+      setEmailTaken(false);
+      return;
+    }
+    const trimmed = email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setEmailTaken(false);
+      return;
+    }
+    const t = setTimeout(async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", trimmed)
+        .maybeSingle();
+      setEmailTaken(!!data);
+    }, 500);
+    return () => clearTimeout(t);
+  }, [email, isLogin]);
+
   const toggleIn = (list: string[], setter: (v: string[]) => void, val: string) =>
     setter(list.includes(val) ? list.filter((x) => x !== val) : [...list, val]);
 
@@ -180,6 +225,7 @@ const Auth = () => {
       if (!stateCode) return "Please select your state.";
       if (!/^\d{4}$/.test(postcode.trim())) return "Please enter a valid 4-digit postcode.";
       if (!email.trim()) return "Please enter your email.";
+      if (emailTaken) return "That email is already registered. Please sign in instead.";
       if (password.length < 6) return "Password must be at least 6 characters.";
     }
     return null;
@@ -353,10 +399,28 @@ const Auth = () => {
                   </select>
                 </Field>
                 <Field label="Suburb">
-                  <input value={suburb} onChange={(e) => setSuburb(e.target.value)} placeholder="Chatswood" className={inputCls} />
+                  <input
+                    value={suburb}
+                    onChange={(e) => setSuburb(e.target.value)}
+                    placeholder={suburbOptions.length ? "Choose or type your suburb" : "Chatswood"}
+                    list="suburb-options"
+                    className={inputCls}
+                  />
+                  {suburbOptions.length > 0 && (
+                    <datalist id="suburb-options">
+                      {suburbOptions.map((s) => (
+                        <option key={s} value={s} />
+                      ))}
+                    </datalist>
+                  )}
                 </Field>
                 <Field label="Postcode">
                   <input value={postcode} onChange={(e) => setPostcode(e.target.value.replace(/\D/g, "").slice(0, 4))} inputMode="numeric" placeholder="2067" className={inputCls} />
+                  {postcode.length === 4 && stateFromPostcode(postcode) && (
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      Auto-detected state: <span className="font-semibold text-foreground">{stateFromPostcode(postcode)}</span>
+                    </p>
+                  )}
                 </Field>
               </div>
 
@@ -374,7 +438,17 @@ const Auth = () => {
               <div className="border-t border-border pt-5">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Account</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Field label="Email"><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className={inputCls} /></Field>
+                  <Field label="Email">
+                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className={`${inputCls} ${emailTaken ? "border-destructive" : ""}`} />
+                    {emailTaken && (
+                      <p className="text-[11px] text-destructive mt-1">
+                        Already registered.{" "}
+                        <button type="button" onClick={() => { setIsLogin(true); setError(""); }} className="underline font-semibold bg-transparent border-none cursor-pointer text-destructive">
+                          Sign in instead
+                        </button>
+                      </p>
+                    )}
+                  </Field>
                   <Field label="Password">
                     <div className="relative">
                       <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" className={`${inputCls} pr-12`} />
