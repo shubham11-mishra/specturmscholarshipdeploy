@@ -41,7 +41,8 @@ const App = () => (
               <Route path="/wheel" element={<Navigator />} />
               <Route path="/scholarships" element={<Scholarships />} />
               <Route path="/scholarships/:id" element={<ScholarshipDetail />} />
-              <Route path="/applications" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/applications" element={<Applications />} />
+              <Route path="/wins" element={<Wins />} />
               <Route path="/readiness" element={<Readiness />} />
               <Route path="/copilot" element={<Navigate to="/dashboard" replace />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
