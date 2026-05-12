@@ -10,6 +10,7 @@ import Auth from "./pages/Auth.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import Shortlist from "./pages/Shortlist.tsx";
 import Profile from "./pages/Profile.tsx";
+import ProfileEdit from "./pages/ProfileEdit.tsx";
 import Navigator from "./pages/Navigator.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
