@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      applications: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          scholarship_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          scholarship_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          scholarship_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       navigator_shortlist: {
         Row: {
           created_at: string
@@ -375,13 +405,19 @@ export type Database = {
         Row: {
           academic_self: number | null
           academic_verified: number | null
+          arts_creative_self: number | null
+          arts_creative_verified: number | null
           arts_self: number | null
           arts_verified: number | null
           completed_at: string | null
           created_at: string
           id: string
+          interview_self: number | null
+          interview_verified: number | null
           leadership_self: number | null
           leadership_verified: number | null
+          service_community_self: number | null
+          service_community_verified: number | null
           sports_self: number | null
           sports_verified: number | null
           stem_self: number | null
@@ -394,13 +430,19 @@ export type Database = {
         Insert: {
           academic_self?: number | null
           academic_verified?: number | null
+          arts_creative_self?: number | null
+          arts_creative_verified?: number | null
           arts_self?: number | null
           arts_verified?: number | null
           completed_at?: string | null
           created_at?: string
           id?: string
+          interview_self?: number | null
+          interview_verified?: number | null
           leadership_self?: number | null
           leadership_verified?: number | null
+          service_community_self?: number | null
+          service_community_verified?: number | null
           sports_self?: number | null
           sports_verified?: number | null
           stem_self?: number | null
@@ -413,13 +455,19 @@ export type Database = {
         Update: {
           academic_self?: number | null
           academic_verified?: number | null
+          arts_creative_self?: number | null
+          arts_creative_verified?: number | null
           arts_self?: number | null
           arts_verified?: number | null
           completed_at?: string | null
           created_at?: string
           id?: string
+          interview_self?: number | null
+          interview_verified?: number | null
           leadership_self?: number | null
           leadership_verified?: number | null
+          service_community_self?: number | null
+          service_community_verified?: number | null
           sports_self?: number | null
           sports_verified?: number | null
           stem_self?: number | null
