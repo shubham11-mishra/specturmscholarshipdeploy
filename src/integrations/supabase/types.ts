@@ -14,13 +14,52 @@ export type Database = {
   }
   public: {
     Tables: {
+      application_checklist_items: {
+        Row: {
+          application_id: string
+          completed: boolean
+          completed_at: string | null
+          id: string
+          item_key: string
+          item_label: string
+        }
+        Insert: {
+          application_id: string
+          completed?: boolean
+          completed_at?: string | null
+          id?: string
+          item_key: string
+          item_label: string
+        }
+        Update: {
+          application_id?: string
+          completed?: boolean
+          completed_at?: string | null
+          id?: string
+          item_key?: string
+          item_label?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_checklist_items_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           created_at: string
           id: string
           notes: string | null
+          outcome: string | null
+          outcome_at: string | null
           scholarship_id: string
           status: string
+          testimonial: string | null
+          testimonial_visible_to_spectrum: boolean
           updated_at: string
           user_id: string
         }
@@ -28,8 +67,12 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          outcome?: string | null
+          outcome_at?: string | null
           scholarship_id: string
           status?: string
+          testimonial?: string | null
+          testimonial_visible_to_spectrum?: boolean
           updated_at?: string
           user_id: string
         }
@@ -37,10 +80,106 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          outcome?: string | null
+          outcome_at?: string | null
           scholarship_id?: string
           status?: string
+          testimonial?: string | null
+          testimonial_visible_to_spectrum?: boolean
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      gap_actions_completed: {
+        Row: {
+          id: string
+          marked_done_at: string
+          recommendation_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          marked_done_at?: string
+          recommendation_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          marked_done_at?: string
+          recommendation_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gap_actions_completed_recommendation_id_fkey"
+            columns: ["recommendation_id"]
+            isOneToOne: false
+            referencedRelation: "gap_recommendations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gap_recommendations: {
+        Row: {
+          band_relevance: string[] | null
+          category: string | null
+          created_at: string
+          description: string | null
+          dimension: string
+          display_order: number | null
+          effort_level: string
+          estimated_unlocks: number | null
+          external_resource_name: string | null
+          external_resource_url: string | null
+          icon_emoji: string | null
+          id: string
+          is_active: boolean | null
+          priority: string
+          spectrum_product_name: string | null
+          spectrum_product_url: string | null
+          title: string
+          trigger_score_max: number
+        }
+        Insert: {
+          band_relevance?: string[] | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          dimension: string
+          display_order?: number | null
+          effort_level: string
+          estimated_unlocks?: number | null
+          external_resource_name?: string | null
+          external_resource_url?: string | null
+          icon_emoji?: string | null
+          id?: string
+          is_active?: boolean | null
+          priority: string
+          spectrum_product_name?: string | null
+          spectrum_product_url?: string | null
+          title: string
+          trigger_score_max: number
+        }
+        Update: {
+          band_relevance?: string[] | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          dimension?: string
+          display_order?: number | null
+          effort_level?: string
+          estimated_unlocks?: number | null
+          external_resource_name?: string | null
+          external_resource_url?: string | null
+          icon_emoji?: string | null
+          id?: string
+          is_active?: boolean | null
+          priority?: string
+          spectrum_product_name?: string | null
+          spectrum_product_url?: string | null
+          title?: string
+          trigger_score_max?: number
         }
         Relationships: []
       }
