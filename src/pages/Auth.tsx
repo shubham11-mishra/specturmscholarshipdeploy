@@ -225,6 +225,7 @@ const Auth = () => {
       if (!stateCode) return "Please select your state.";
       if (!/^\d{4}$/.test(postcode.trim())) return "Please enter a valid 4-digit postcode.";
       if (!email.trim()) return "Please enter your email.";
+      if (emailTaken) return "That email is already registered. Please sign in instead.";
       if (password.length < 6) return "Password must be at least 6 characters.";
     }
     return null;
