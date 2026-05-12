@@ -462,18 +462,13 @@ const Auth = () => {
                 </select>
                 <p className="text-xs text-muted-foreground mt-1">We'll prioritise scholarships for this entry point.</p>
               </Field>
-              <Field label="Target schools (select any)">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {TARGET_SCHOOLS.map((s) => {
-                    const sel = targetSchools.includes(s);
-                    return (
-                      <button key={s} type="button" onClick={() => toggleIn(targetSchools, setTargetSchools, s)}
-                        className={`text-left px-4 py-3 rounded-lg border text-sm font-medium transition-all cursor-pointer ${sel ? "border-primary bg-primary/10 text-foreground" : "border-border bg-card text-muted-foreground hover:border-primary/40"}`}>
-                        {s}
-                      </button>
-                    );
-                  })}
-                </div>
+              <Field label="🎯 Dream schools (optional)">
+                <input
+                  value={targetSchools.join(", ")}
+                  onChange={(e) => setTargetSchools(e.target.value.split(",").map((s) => s.trim()).filter(Boolean))}
+                  placeholder="Type any school name you're aiming for — we'll watch for their scholarships"
+                  className={inputCls}
+                />
               </Field>
               <Field label="Scholarship categories you're interested in">
                 <div className="flex flex-wrap gap-2">
