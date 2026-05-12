@@ -15,6 +15,8 @@ import Navigator from "./pages/Navigator.tsx";
 import Scholarships from "./pages/Scholarships.tsx";
 import ScholarshipDetail from "./pages/ScholarshipDetail.tsx";
 import Readiness from "./pages/Readiness.tsx";
+import Applications from "./pages/Applications.tsx";
+import Wins from "./pages/Wins.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
