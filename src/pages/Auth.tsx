@@ -438,7 +438,17 @@ const Auth = () => {
               <div className="border-t border-border pt-5">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Account</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Field label="Email"><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className={inputCls} /></Field>
+                  <Field label="Email">
+                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className={`${inputCls} ${emailTaken ? "border-destructive" : ""}`} />
+                    {emailTaken && (
+                      <p className="text-[11px] text-destructive mt-1">
+                        Already registered.{" "}
+                        <button type="button" onClick={() => { setIsLogin(true); setError(""); }} className="underline font-semibold bg-transparent border-none cursor-pointer text-destructive">
+                          Sign in instead
+                        </button>
+                      </p>
+                    )}
+                  </Field>
                   <Field label="Password">
                     <div className="relative">
                       <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" className={`${inputCls} pr-12`} />
