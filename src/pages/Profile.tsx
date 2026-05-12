@@ -156,6 +156,11 @@ const Profile = () => {
             </div>
           </section>
 
+          {/* Five-Element Journey */}
+          <div className="mb-8">
+            <ElementJourney score={wheelAverageToScore(Object.values(scores))} />
+          </div>
+
           {/* Quick actions */}
           <div className="grid sm:grid-cols-3 gap-3 mb-8">
             <ActionCard
