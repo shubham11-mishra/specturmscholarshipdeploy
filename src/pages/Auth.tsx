@@ -64,6 +64,8 @@ const Auth = () => {
   const [scholarshipCats, setScholarshipCats] = useState<string[]>([]);
 
   const [error, setError] = useState("");
+  const [emailTaken, setEmailTaken] = useState(false);
+  const [suburbOptions, setSuburbOptions] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   // Step 5 — computed matches from DB
