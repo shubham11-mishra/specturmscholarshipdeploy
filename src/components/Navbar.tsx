@@ -29,23 +29,31 @@ const Navbar = () => {
       <a
         href="/"
         className="flex items-center no-underline"
-        aria-label="Scholarship Searcher — Every school. Every opportunity."
+        aria-label="Spectrum Navigator — Navigate every educational opportunity"
       >
         <img
           src={logoHorizontal}
-          alt="Scholarship Searcher"
+          alt="Spectrum Navigator"
           className="h-12 md:h-14 w-auto"
           draggable={false}
         />
       </a>
 
       <div className="hidden md:flex items-center gap-7 absolute left-1/2 -translate-x-1/2">
-        {[
-          { label: "Home", to: "/" },
-          { label: "Find Schools", to: "/#results-grid" },
-          { label: "About", to: "/#about" },
-          { label: "Contact", to: "/#contact" },
-        ].map((l) => (
+        {(user
+          ? [
+              { label: "Home", to: "/" },
+              { label: "Find Scholarships", to: "/scholarships" },
+              { label: "My Wheel", to: "/wheel" },
+              { label: "My Profile", to: "/profile" },
+            ]
+          : [
+              { label: "Home", to: "/" },
+              { label: "Find Schools", to: "/#results-grid" },
+              { label: "About", to: "/#about" },
+              { label: "Contact", to: "/#contact" },
+            ]
+        ).map((l) => (
           <a
             key={l.label}
             href={l.to}
