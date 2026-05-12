@@ -20,7 +20,6 @@ const EXTRACURRICULARS = [
   "Cultural Groups",
 ];
 const FINANCIAL_OPTIONS = ["Prefer not to say", "No financial need", "Some financial need", "Significant financial need"];
-const TARGET_SCHOOLS = ["Knox Grammar", "Loreto Normanhurst", "Cranbrook", "The King's School", "Pymble Ladies' College", "Sydney Grammar", "Wenona", "Ravenswood", "Shore", "SCEGGS Darlinghurst"];
 const SCHOLARSHIP_CATEGORIES = ["Academic Merit", "Music", "Sports", "STEM", "Arts", "Community Service", "All-Rounder", "Financial Need"];
 
 const STEPS = [
@@ -463,18 +462,13 @@ const Auth = () => {
                 </select>
                 <p className="text-xs text-muted-foreground mt-1">We'll prioritise scholarships for this entry point.</p>
               </Field>
-              <Field label="Target schools (select any)">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {TARGET_SCHOOLS.map((s) => {
-                    const sel = targetSchools.includes(s);
-                    return (
-                      <button key={s} type="button" onClick={() => toggleIn(targetSchools, setTargetSchools, s)}
-                        className={`text-left px-4 py-3 rounded-lg border text-sm font-medium transition-all cursor-pointer ${sel ? "border-primary bg-primary/10 text-foreground" : "border-border bg-card text-muted-foreground hover:border-primary/40"}`}>
-                        {s}
-                      </button>
-                    );
-                  })}
-                </div>
+              <Field label="🎯 Dream schools (optional)">
+                <input
+                  value={targetSchools.join(", ")}
+                  onChange={(e) => setTargetSchools(e.target.value.split(",").map((s) => s.trim()).filter(Boolean))}
+                  placeholder="Type any school name you're aiming for — we'll watch for their scholarships"
+                  className={inputCls}
+                />
               </Field>
               <Field label="Scholarship categories you're interested in">
                 <div className="flex flex-wrap gap-2">
@@ -540,10 +534,16 @@ const Auth = () => {
                 </div>
               )}
 
-              <button onClick={handleFinalSubmit} disabled={submitting}
-                className="bg-primary text-primary-foreground rounded-xl px-6 py-3.5 text-sm font-bold cursor-pointer hover:opacity-95 transition-all inline-flex items-center gap-2 disabled:opacity-50 border-none shadow-brand">
-                {submitting ? "Creating account…" : <>View your dashboard <ChevronRight className="w-4 h-4" /></>}
-              </button>
+              <div className="flex items-center justify-center gap-3 flex-wrap">
+                <button type="button" onClick={goBack}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card text-foreground px-5 py-3 text-sm font-semibold hover:bg-secondary transition cursor-pointer">
+                  <ChevronLeft className="w-4 h-4" /> Back to Goals
+                </button>
+                <button onClick={handleFinalSubmit} disabled={submitting}
+                  className="bg-primary text-primary-foreground rounded-xl px-6 py-3.5 text-sm font-bold cursor-pointer hover:opacity-95 transition-all inline-flex items-center gap-2 disabled:opacity-50 border-none shadow-brand">
+                  {submitting ? "Creating account…" : <>View your dashboard <ChevronRight className="w-4 h-4" /></>}
+                </button>
+              </div>
             </div>
           )}
         </div>

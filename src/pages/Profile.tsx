@@ -56,13 +56,16 @@ const Profile = () => {
       ]);
 
       if (wheel) {
+        const w = wheel as unknown as Record<string, number | null>;
         setScores({
-          academic: wheel.academic_self ?? 5,
-          stem: wheel.stem_self ?? 5,
-          arts: wheel.arts_self ?? 5,
-          sports: wheel.sports_self ?? 5,
-          leadership: wheel.leadership_self ?? 5,
-          test_readiness: wheel.test_readiness_self ?? 5,
+          academic: w.academic_self ?? 5,
+          stem: w.stem_self ?? 5,
+          arts_creative: w.arts_creative_self ?? w.arts_self ?? 5,
+          sports_fitness: w.sports_self ?? 5,
+          leadership: w.leadership_self ?? 5,
+          service_community: w.service_community_self ?? 5,
+          interview: w.interview_self ?? 5,
+          test_readiness: w.test_readiness_self ?? 5,
         });
         setHasWheel(true);
       }
