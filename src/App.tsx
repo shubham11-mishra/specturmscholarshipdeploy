@@ -19,6 +19,7 @@ import Applications from "./pages/Applications.tsx";
 import Wins from "./pages/Wins.tsx";
 import Copilot from "./pages/Copilot.tsx";
 import Achievements from "./pages/Achievements.tsx";
+import Parent from "./pages/Parent.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
