@@ -252,6 +252,60 @@ export type Database = {
         }
         Relationships: []
       }
+      parent_invite_codes: {
+        Row: {
+          child_id: string
+          code: string
+          created_at: string
+          expires_at: string
+          id: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          child_id: string
+          code: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          child_id?: string
+          code?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: []
+      }
+      parent_links: {
+        Row: {
+          child_id: string
+          created_at: string
+          id: string
+          parent_id: string
+          status: string
+        }
+        Insert: {
+          child_id: string
+          created_at?: string
+          id?: string
+          parent_id: string
+          status?: string
+        }
+        Update: {
+          child_id?: string
+          created_at?: string
+          id?: string
+          parent_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -686,6 +740,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_linked_children_summary: {
+        Args: never
+        Returns: {
+          applications_count: number
+          child_id: string
+          current_band: string
+          full_name: string
+          shortlisted_count: number
+          total_points: number
+          wins_count: number
+          year_level: string
+        }[]
+      }
+      redeem_parent_invite: { Args: { _code: string }; Returns: string }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
