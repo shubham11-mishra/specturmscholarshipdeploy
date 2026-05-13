@@ -46,6 +46,7 @@ const Navbar = () => {
               { label: "Home", to: "/" },
               { label: "Find Scholarships", to: "/scholarships" },
               { label: "My Wheel", to: "/wheel" },
+              { label: "Parent", to: "/parent" },
               { label: "My Profile", to: "/profile" },
             ]
           : [
