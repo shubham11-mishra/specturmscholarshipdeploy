@@ -219,6 +219,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          kind: string
+          link: string | null
+          read: boolean
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          link?: string | null
+          read?: boolean
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          link?: string | null
+          read?: boolean
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -515,6 +548,36 @@ export type Database = {
           id?: string
           total_points?: number
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_badges: {
+        Row: {
+          badge_key: string
+          description: string | null
+          earned_at: string
+          icon_emoji: string
+          id: string
+          label: string
+          user_id: string
+        }
+        Insert: {
+          badge_key: string
+          description?: string | null
+          earned_at?: string
+          icon_emoji?: string
+          id?: string
+          label: string
+          user_id: string
+        }
+        Update: {
+          badge_key?: string
+          description?: string | null
+          earned_at?: string
+          icon_emoji?: string
+          id?: string
+          label?: string
           user_id?: string
         }
         Relationships: []
