@@ -49,6 +49,7 @@ const App = () => (
               <Route path="/readiness" element={<Readiness />} />
               <Route path="/copilot" element={<Copilot />} />
               <Route path="/achievements" element={<Achievements />} />
+              <Route path="/parent" element={<Parent />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
