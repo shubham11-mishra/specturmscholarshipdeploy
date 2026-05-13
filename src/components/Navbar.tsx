@@ -69,22 +69,34 @@ const Navbar = () => {
 
       <div className="flex items-center gap-1.5">
         {user && (
-          <button
-            onClick={() => navigate("/shortlist")}
-            className={`hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold uppercase tracking-[0.08em] transition-all bg-transparent border-none cursor-pointer relative ${
-              scrolled
-                ? "text-foreground/65 hover:bg-primary/8 hover:text-primary"
-                : "text-white hover:text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
-            }`}
-          >
-            <Heart className="w-3.5 h-3.5" />
-            Shortlist
-            {count > 0 && (
-              <span className="bg-primary text-primary-foreground rounded-full min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold px-1">
-                {count}
-              </span>
-            )}
-          </button>
+          <>
+            <button
+              onClick={() => navigate("/copilot")}
+              className={`hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold uppercase tracking-[0.08em] transition-all bg-transparent border-none cursor-pointer ${
+                scrolled ? "text-foreground/65 hover:bg-primary/8 hover:text-primary" : "text-white hover:text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
+              }`}
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              Copilot
+            </button>
+            <button
+              onClick={() => navigate("/shortlist")}
+              className={`hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold uppercase tracking-[0.08em] transition-all bg-transparent border-none cursor-pointer relative ${
+                scrolled
+                  ? "text-foreground/65 hover:bg-primary/8 hover:text-primary"
+                  : "text-white hover:text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
+              }`}
+            >
+              <Heart className="w-3.5 h-3.5" />
+              Shortlist
+              {count > 0 && (
+                <span className="bg-primary text-primary-foreground rounded-full min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold px-1">
+                  {count}
+                </span>
+              )}
+            </button>
+            <NotificationsBell scrolled={scrolled} />
+          </>
         )}
 
         {user ? (
