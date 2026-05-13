@@ -19,6 +19,7 @@ import Applications from "./pages/Applications.tsx";
 import Wins from "./pages/Wins.tsx";
 import Copilot from "./pages/Copilot.tsx";
 import Achievements from "./pages/Achievements.tsx";
+import Parent from "./pages/Parent.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="/readiness" element={<Readiness />} />
               <Route path="/copilot" element={<Copilot />} />
               <Route path="/achievements" element={<Achievements />} />
+              <Route path="/parent" element={<Parent />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
