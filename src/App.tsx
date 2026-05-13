@@ -17,6 +17,8 @@ import ScholarshipDetail from "./pages/ScholarshipDetail.tsx";
 import Readiness from "./pages/Readiness.tsx";
 import Applications from "./pages/Applications.tsx";
 import Wins from "./pages/Wins.tsx";
+import Copilot from "./pages/Copilot.tsx";
+import Achievements from "./pages/Achievements.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -44,7 +46,8 @@ const App = () => (
               <Route path="/applications" element={<Applications />} />
               <Route path="/wins" element={<Wins />} />
               <Route path="/readiness" element={<Readiness />} />
-              <Route path="/copilot" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/copilot" element={<Copilot />} />
+              <Route path="/achievements" element={<Achievements />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

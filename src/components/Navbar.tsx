@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Sparkles, LogOut, User, Heart } from "lucide-react";
+import { Sparkles, LogOut, User, Heart, MessageCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useShortlist } from "@/hooks/useShortlist";
 import { useNavigate } from "react-router-dom";
 import logoHorizontal from "@/assets/logo-horizontal.svg";
+import NotificationsBell from "@/components/NotificationsBell";
 
 const Navbar = () => {
   const { user, fullName, signOut } = useAuth();
