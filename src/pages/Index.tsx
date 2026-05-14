@@ -331,7 +331,7 @@ const Index = () => {
           <div>
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2.5">
               <div className="text-sm text-muted-foreground">
-                Showing <strong className="text-foreground font-bold">{total.toLocaleString()}</strong> scholarships
+                Showing <strong className="text-foreground font-bold">{total.toLocaleString()}</strong> {total === 1 ? "opportunity" : "opportunities"}
               </div>
               <div className="flex items-center gap-2">
                 <label htmlFor="sort-by" className="text-[11px] font-semibold tracking-[0.12em] uppercase text-muted-foreground">
