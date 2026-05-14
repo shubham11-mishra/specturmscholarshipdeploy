@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2, Trophy, Sparkles, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
-import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -92,8 +91,8 @@ const Wins = () => {
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="pt-32 flex items-center justify-center text-muted-foreground">
+
+        <div className="pt-2 flex items-center justify-center text-muted-foreground">
           <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading wins…
         </div>
       </div>
@@ -102,8 +101,8 @@ const Wins = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="pt-28 pb-20 max-w-6xl mx-auto px-4 md:px-8">
+
+      <main className="pt-2 pb-20 max-w-6xl mx-auto px-4 md:px-8">
         <div className="text-center mb-10">
           <Trophy className="w-14 h-14 mx-auto text-amber-500 mb-3" />
           <h1 className="font-serif text-4xl md:text-5xl font-bold">Trophy Room</h1>

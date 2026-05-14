@@ -14,7 +14,6 @@ import {
   Circle,
 } from "lucide-react";
 import { toast } from "sonner";
-import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useShortlist } from "@/hooks/useShortlist";
@@ -141,8 +140,8 @@ const ScholarshipDetail = () => {
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="pt-32 flex items-center justify-center text-muted-foreground">
+
+        <div className="pt-2 flex items-center justify-center text-muted-foreground">
           <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading scholarship…
         </div>
       </div>
@@ -152,8 +151,8 @@ const ScholarshipDetail = () => {
   if (!row) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="pt-32 text-center text-muted-foreground">
+
+        <div className="pt-2 text-center text-muted-foreground">
           Scholarship not found.{" "}
           <Link to="/scholarships" className="text-primary font-semibold underline">
             Back to list
@@ -168,8 +167,8 @@ const ScholarshipDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="pt-28 pb-20 px-4 md:px-8">
+
+      <main className="pt-2 pb-20 px-4 md:px-8">
         <div className="max-w-[1100px] mx-auto">
           <Link
             to="/scholarships"

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Navbar from "@/components/Navbar";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Navigate, Link } from "react-router-dom";
@@ -95,8 +94,8 @@ const Parent = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="max-w-5xl mx-auto pt-28 pb-16 px-4">
+
+      <main className="max-w-5xl mx-auto pt-2 pb-16 px-4">
         <header className="mb-8">
           <div className="flex items-center gap-2 text-primary">
             <Users className="w-5 h-5" />
