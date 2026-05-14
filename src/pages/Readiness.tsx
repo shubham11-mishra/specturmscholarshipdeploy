@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronDown, ChevronUp, ExternalLink, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import ElementJourney from "@/components/ElementJourney";
+import WheelPanel from "@/components/navigator/WheelPanel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { WHEEL_DIMENSIONS, DEFAULT_WHEEL_SCORES, type WheelScores, type WheelDimensionKey } from "@/lib/navigator";
