@@ -308,14 +308,28 @@ export type Database = {
       }
       profiles: {
         Row: {
+          applying_year_level: number | null
           created_at: string
+          current_school_name: string | null
+          current_school_type: string | null
+          dream_schools: string | null
           email: string | null
           extracurriculars: string[] | null
+          faith_background: string | null
           financial_need: string | null
           full_name: string | null
+          gender: string | null
           grades: Json | null
+          has_sibling_enrolled: boolean | null
           id: string
+          is_indigenous: boolean | null
+          is_rural: boolean | null
+          last_name: string | null
+          max_travel_km: number | null
+          onboarding_completed: boolean | null
+          parent_email: string | null
           postcode: string
+          preferred_sectors: string[] | null
           scholarship_categories: string[] | null
           school_type: string | null
           state: string
@@ -323,19 +337,35 @@ export type Database = {
           streak_label: string | null
           suburb: string | null
           target_schools: string[] | null
+          target_start_year: number | null
           target_year: string | null
           view_mode: string
+          willing_to_board: string | null
           year_level: string | null
         }
         Insert: {
+          applying_year_level?: number | null
           created_at?: string
+          current_school_name?: string | null
+          current_school_type?: string | null
+          dream_schools?: string | null
           email?: string | null
           extracurriculars?: string[] | null
+          faith_background?: string | null
           financial_need?: string | null
           full_name?: string | null
+          gender?: string | null
           grades?: Json | null
+          has_sibling_enrolled?: boolean | null
           id: string
+          is_indigenous?: boolean | null
+          is_rural?: boolean | null
+          last_name?: string | null
+          max_travel_km?: number | null
+          onboarding_completed?: boolean | null
+          parent_email?: string | null
           postcode: string
+          preferred_sectors?: string[] | null
           scholarship_categories?: string[] | null
           school_type?: string | null
           state: string
@@ -343,19 +373,35 @@ export type Database = {
           streak_label?: string | null
           suburb?: string | null
           target_schools?: string[] | null
+          target_start_year?: number | null
           target_year?: string | null
           view_mode?: string
+          willing_to_board?: string | null
           year_level?: string | null
         }
         Update: {
+          applying_year_level?: number | null
           created_at?: string
+          current_school_name?: string | null
+          current_school_type?: string | null
+          dream_schools?: string | null
           email?: string | null
           extracurriculars?: string[] | null
+          faith_background?: string | null
           financial_need?: string | null
           full_name?: string | null
+          gender?: string | null
           grades?: Json | null
+          has_sibling_enrolled?: boolean | null
           id?: string
+          is_indigenous?: boolean | null
+          is_rural?: boolean | null
+          last_name?: string | null
+          max_travel_km?: number | null
+          onboarding_completed?: boolean | null
+          parent_email?: string | null
           postcode?: string
+          preferred_sectors?: string[] | null
           scholarship_categories?: string[] | null
           school_type?: string | null
           state?: string
@@ -363,8 +409,10 @@ export type Database = {
           streak_label?: string | null
           suburb?: string | null
           target_schools?: string[] | null
+          target_start_year?: number | null
           target_year?: string | null
           view_mode?: string
+          willing_to_board?: string | null
           year_level?: string | null
         }
         Relationships: []
