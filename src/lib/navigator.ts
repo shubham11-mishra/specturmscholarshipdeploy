@@ -6,8 +6,6 @@ export type WheelDimensionKey =
   | "arts_creative"
   | "sports_fitness"
   | "leadership"
-  | "service_community"
-  | "interview"
   | "test_readiness";
 
 export interface WheelDimension {
@@ -59,30 +57,12 @@ export const WHEEL_DIMENSIONS: WheelDimension[] = [
   },
   {
     key: "leadership",
-    label: "Leadership",
-    emoji: "✨",
-    prompt: "How active are you in formal leadership roles (captain, prefect, club president)?",
+    label: "Leadership & Community",
+    emoji: "🌟",
+    prompt: "How active are you in leadership roles, community service, or volunteering?",
     scaleHint: "1–3 limited · 4–5 occasional · 6–7 active · 8–9 captain/prefect · 10 founder/leader",
     category: "Leadership",
     color: "hsl(40, 85%, 50%)",
-  },
-  {
-    key: "service_community",
-    label: "Service & Community",
-    emoji: "🤝",
-    prompt: "How much documented community service or volunteering have you done?",
-    scaleHint: "1–3 limited · 4–5 occasional · 6–7 regular · 8–9 significant impact · 10 community-recognised",
-    category: "Cultural",
-    color: "hsl(160, 50%, 45%)",
-  },
-  {
-    key: "interview",
-    label: "Interview Readiness",
-    emoji: "🎤",
-    prompt: "How confident are you in interview settings (school, scholarship, public speaking)?",
-    scaleHint: "1–3 nervous/untested · 4–5 some experience · 6–7 comfortable · 8–9 polished · 10 highly confident",
-    category: "Interview",
-    color: "hsl(260, 60%, 55%)",
   },
   {
     key: "test_readiness",
@@ -103,8 +83,6 @@ export const DEFAULT_WHEEL_SCORES: WheelScores = {
   arts_creative: 5,
   sports_fitness: 5,
   leadership: 5,
-  service_community: 5,
-  interview: 5,
   test_readiness: 5,
 };
 

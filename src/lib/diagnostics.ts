@@ -23,19 +23,9 @@ const NOTES: Record<WheelDimensionKey, Record<"low" | "medium" | "high", string>
     high: "Competitive sports profile — keep your representation records current.",
   },
   leadership: {
-    low: "No formal leadership roles documented yet.",
-    medium: "Some involvement noted — run for a formal role this year.",
-    high: "Strong leadership evidence — make sure it's all on your application.",
-  },
-  service_community: {
-    low: "No documented community service hours on file.",
-    medium: "Some volunteering noted; aim for 20+ documented hours.",
-    high: "Strong service profile — keep documentation current.",
-  },
-  interview: {
-    low: "No mock interview practice recorded yet.",
-    medium: "Some practice — consider a coached mock interview.",
-    high: "Strong interview readiness — keep practising before applications.",
+    low: "No formal leadership or service activities documented yet.",
+    medium: "Some involvement — aim for a formal role and 20+ service hours.",
+    high: "Strong leadership & community evidence — keep documentation current.",
   },
   test_readiness: {
     low: "No test prep recorded yet.",

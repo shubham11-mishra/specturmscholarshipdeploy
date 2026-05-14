@@ -1,10 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { ReactNode } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ShortlistProvider } from "@/hooks/useShortlist";
+import AppLayout from "@/components/layouts/AppLayout";
 import Index from "./pages/Index.tsx";
 import Auth from "./pages/Auth.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
@@ -24,7 +26,11 @@ import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
 
-const App = () => (
+const App = ({ children, title }: { children: ReactNode; title: string }) => (
+  <AppLayout pageTitle={title}>{children}</AppLayout>
+);
+
+const Root = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
@@ -36,21 +42,24 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/shortlist" element={<Shortlist />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/profile/edit" element={<ProfileEdit />} />
-              <Route path="/dashboard" element={<Profile />} />
-              <Route path="/navigator" element={<Navigator />} />
-              <Route path="/wheel" element={<Navigator />} />
-              <Route path="/scholarships" element={<Scholarships />} />
-              <Route path="/scholarships/:id" element={<ScholarshipDetail />} />
-              <Route path="/applications" element={<Applications />} />
-              <Route path="/wins" element={<Wins />} />
-              <Route path="/readiness" element={<Readiness />} />
-              <Route path="/copilot" element={<Copilot />} />
-              <Route path="/achievements" element={<Achievements />} />
-              <Route path="/parent" element={<Parent />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
+              <Route path="/dashboard" element={<App title="Dashboard"><Profile /></App>} />
+              <Route path="/profile" element={<App title="My Profile"><Profile /></App>} />
+              <Route path="/profile/edit" element={<App title="Edit Profile"><ProfileEdit /></App>} />
+              <Route path="/scholarships" element={<App title="Scholarships"><Scholarships /></App>} />
+              <Route path="/scholarships/:id" element={<App title="Scholarship Detail"><ScholarshipDetail /></App>} />
+              <Route path="/shortlist" element={<App title="My Shortlist"><Shortlist /></App>} />
+              <Route path="/applications" element={<App title="Applications"><Applications /></App>} />
+              <Route path="/wins" element={<App title="Wins"><Wins /></App>} />
+              <Route path="/readiness" element={<App title="Readiness"><Readiness /></App>} />
+              <Route path="/copilot" element={<App title="AI Copilot"><Copilot /></App>} />
+              <Route path="/achievements" element={<App title="Achievements"><Achievements /></App>} />
+              <Route path="/parent" element={<App title="Parent Dashboard"><Parent /></App>} />
+
+              {/* Backwards compat: /wheel + /navigator → Readiness with My Wheel tab */}
+              <Route path="/wheel" element={<Navigate to="/readiness?tab=my-wheel" replace />} />
+              <Route path="/navigator" element={<Navigate to="/readiness?tab=my-wheel" replace />} />
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </ShortlistProvider>
@@ -60,4 +69,4 @@ const App = () => (
   </QueryClientProvider>
 );
 
-export default App;
+export default Root;

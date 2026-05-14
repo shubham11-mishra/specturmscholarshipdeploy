@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronDown, ChevronUp, ExternalLink, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import Navbar from "@/components/Navbar";
 import ElementJourney from "@/components/ElementJourney";
+import WheelPanel from "@/components/navigator/WheelPanel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { WHEEL_DIMENSIONS, DEFAULT_WHEEL_SCORES, type WheelScores, type WheelDimensionKey } from "@/lib/navigator";
@@ -34,6 +35,7 @@ const EFFORT_ORDER = { low: 0, medium: 1, high: 2 } as const;
 const Readiness = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [wheel, setWheel] = useState<WheelScores>(DEFAULT_WHEEL_SCORES);
   const [recs, setRecs] = useState<GapRec[]>([]);
   const [done, setDone] = useState<Set<string>>(new Set());
@@ -64,8 +66,6 @@ const Readiness = () => {
           arts_creative: x.arts_creative_self ?? x.arts_self ?? 5,
           sports_fitness: x.sports_self ?? 5,
           leadership: x.leadership_self ?? 5,
-          service_community: x.service_community_self ?? 5,
-          interview: x.interview_self ?? 5,
           test_readiness: x.test_readiness_self ?? 5,
         });
       }
@@ -126,163 +126,133 @@ const Readiness = () => {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="pt-32 flex items-center justify-center text-muted-foreground">
-          <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading readiness…
-        </div>
+      <div className="flex items-center justify-center py-20 text-muted-foreground">
+        <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading readiness…
       </div>
     );
   }
 
   const guidance = BAND_GUIDANCE[band.key];
-  const verifiedCount = 0; // placeholder for future "verified by Spectrum" count
+  const verifiedCount = 0;
   const confidence = verifiedCount >= 6 ? "High" : verifiedCount >= 3 ? "Medium" : "Self-rated";
 
-  return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="pt-28 pb-20 px-4 md:px-8">
-        <div className="max-w-[1100px] mx-auto space-y-6">
-          {/* A. Header */}
-          <header>
-            <h1 className="font-display font-extrabold text-3xl md:text-4xl text-foreground">Readiness Dashboard</h1>
-            <p className="text-muted-foreground mt-1">Understand your scholarship readiness and how to improve it.</p>
-          </header>
+  const tab = searchParams.get("tab") === "my-wheel" ? "my-wheel" : searchParams.get("tab") === "gap" ? "gap" : "overview";
 
-          {/* B. Five-band journey + score */}
-          <ElementJourney score={overall} />
-          <div className="rounded-3xl bg-card border border-border/60 p-5 md:p-6 shadow-sm flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <div className="font-display font-extrabold text-2xl">
-                {overall} / 100 · <span style={{ color: band.color }}>{band.emoji} {band.label} band</span>
-              </div>
-              <div className="text-xs text-muted-foreground mt-1">{confidence} confidence — based on self-rated scores</div>
+  return (
+    <Tabs
+      value={tab}
+      onValueChange={(v) => setSearchParams(v === "overview" ? {} : { tab: v }, { replace: true })}
+      className="space-y-6"
+    >
+      <TabsList className="bg-card border border-border h-auto p-1">
+        <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">📊 Overview</TabsTrigger>
+        <TabsTrigger value="my-wheel" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">🎯 My Wheel</TabsTrigger>
+        <TabsTrigger value="gap" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">💡 Gap Analysis</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="overview" className="space-y-6 mt-0">
+        <ElementJourney score={overall} />
+        <div className="rounded-3xl bg-card border border-border/60 p-5 md:p-6 shadow-sm flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="font-display font-extrabold text-2xl">
+              {overall} / 100 · <span style={{ color: band.color }}>{band.emoji} {band.label} band</span>
             </div>
-            <Link to="/wheel" className="text-sm text-primary font-bold hover:underline">Update my Wheel →</Link>
+            <div className="text-xs text-muted-foreground mt-1">{confidence} confidence — based on self-rated scores</div>
+          </div>
+          <button onClick={() => setSearchParams({ tab: "my-wheel" }, { replace: true })} className="text-sm text-primary font-bold hover:underline bg-transparent border-none cursor-pointer">
+            Update my Wheel →
+          </button>
+        </div>
+
+        <section className="grid lg:grid-cols-5 gap-6">
+          <div className="lg:col-span-3 rounded-3xl bg-card border border-border/60 p-5 md:p-6 shadow-sm">
+            <h2 className="font-display font-bold text-lg mb-4">Dimension Scores</h2>
+            <div className="space-y-4">
+              {WHEEL_DIMENSIONS.map((d) => {
+                const s = dimScores[d.key];
+                const c = scoreColor(s);
+                return (
+                  <div key={d.key}>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-semibold text-foreground">{d.emoji} {d.label}</span>
+                      <span className="font-display font-extrabold text-foreground">{s}</span>
+                    </div>
+                    <div className="h-2 mt-1.5 bg-muted rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-[width]" style={{ width: `${s}%`, background: c }} />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1.5">{getDiagnosticNote(d.key, s)}</p>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          {/* C. Two-column: Dimension Scores + At a Glance */}
-          <section className="grid lg:grid-cols-5 gap-6">
-            <div className="lg:col-span-3 rounded-3xl bg-card border border-border/60 p-5 md:p-6 shadow-sm">
-              <h2 className="font-display font-bold text-lg mb-4">Dimension Scores</h2>
-              <div className="space-y-4">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="rounded-3xl bg-card border border-border/60 p-5 md:p-6 shadow-sm">
+              <h2 className="font-display font-bold text-lg mb-4">At a Glance</h2>
+              <div className="grid grid-cols-3 gap-3">
                 {WHEEL_DIMENSIONS.map((d) => {
                   const s = dimScores[d.key];
-                  const c = scoreColor(s);
-                  return (
-                    <div key={d.key}>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="font-semibold text-foreground">
-                          {d.emoji} {d.label}
-                        </span>
-                        <span className="font-display font-extrabold text-foreground">{s}</span>
-                      </div>
-                      <div className="h-2 mt-1.5 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-[width]"
-                          style={{ width: `${s}%`, background: c }}
-                        />
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1.5">{getDiagnosticNote(d.key, s)}</p>
-                    </div>
-                  );
+                  return <RingGauge key={d.key} value={s} label={d.label} emoji={d.emoji} />;
                 })}
               </div>
             </div>
 
-            <div className="lg:col-span-2 space-y-4">
-              <div className="rounded-3xl bg-card border border-border/60 p-5 md:p-6 shadow-sm">
-                <h2 className="font-display font-bold text-lg mb-4">At a Glance</h2>
-                <div className="grid grid-cols-4 gap-3">
-                  {WHEEL_DIMENSIONS.map((d) => {
-                    const s = dimScores[d.key];
-                    return <RingGauge key={d.key} value={s} label={d.label} emoji={d.emoji} />;
-                  })}
-                </div>
-              </div>
-
-              <div
-                className="rounded-3xl p-5 md:p-6 shadow-sm border"
-                style={{ background: "hsl(var(--gold-light))", borderColor: "hsl(var(--gold))" }}
-              >
-                <div className="text-[11px] uppercase tracking-[0.14em] font-bold text-muted-foreground">
-                  Overall Readiness
-                </div>
-                <div className="font-display font-extrabold text-4xl text-foreground mt-1">{overall} / 100</div>
-                <div className="text-sm font-bold mt-1" style={{ color: band.color }}>
-                  {band.emoji} {band.label}
-                </div>
-                <div className="text-xs text-muted-foreground mt-2">{confidence} confidence</div>
-              </div>
+            <div className="rounded-3xl p-5 md:p-6 shadow-sm border" style={{ background: "hsl(var(--gold-light))", borderColor: "hsl(var(--gold))" }}>
+              <div className="text-[11px] uppercase tracking-[0.14em] font-bold text-muted-foreground">Overall Readiness</div>
+              <div className="font-display font-extrabold text-4xl text-foreground mt-1">{overall} / 100</div>
+              <div className="text-sm font-bold mt-1" style={{ color: band.color }}>{band.emoji} {band.label}</div>
+              <div className="text-xs text-muted-foreground mt-2">{confidence} confidence</div>
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* D. Gap Analysis */}
-          <section className="rounded-3xl bg-card border border-border/60 p-5 md:p-6 shadow-sm">
-            <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
-              <div>
-                <h2 className="font-display font-bold text-xl">Gap Analysis</h2>
-                <p className="text-sm text-muted-foreground">Actions ranked by impact — how to unlock more scholarships.</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setShowCompleted((v) => !v)}
-                  className="text-xs text-muted-foreground hover:text-foreground"
-                >
-                  {showCompleted ? "Hide completed" : "Show completed"}
-                </button>
-                <Link to="/copilot" className="text-sm text-primary font-bold hover:underline">
-                  Ask Copilot about gaps →
-                </Link>
-              </div>
+        {guidance && (
+          <section className="rounded-3xl p-6 md:p-8 shadow-md" style={{ background: "hsl(var(--hero-dark))", color: "white" }}>
+            <div className="text-[11px] uppercase tracking-[0.14em] font-bold text-white/70 mb-2">{band.emoji} {band.label} band guidance</div>
+            <h2 className="font-display font-extrabold text-2xl md:text-3xl">{guidance.headline}</h2>
+            <p className="text-white/85 mt-2 max-w-2xl">{guidance.body}</p>
+            <a href={guidance.cta_url} target="_blank" rel="noopener" className="inline-flex items-center gap-2 mt-5 bg-primary text-primary-foreground font-bold rounded-xl px-5 py-2.5 text-sm hover:opacity-95">
+              Explore {guidance.spectrum_offering} <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </section>
+        )}
+      </TabsContent>
+
+      <TabsContent value="my-wheel" className="mt-0">
+        <WheelPanel />
+      </TabsContent>
+
+      <TabsContent value="gap" className="mt-0">
+        <section className="rounded-3xl bg-card border border-border/60 p-5 md:p-6 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
+            <div>
+              <h2 className="font-display font-bold text-xl">Gap Analysis</h2>
+              <p className="text-sm text-muted-foreground">Actions ranked by impact — how to unlock more scholarships.</p>
             </div>
+            <div className="flex items-center gap-3">
+              <button onClick={() => setShowCompleted((v) => !v)} className="text-xs text-muted-foreground hover:text-foreground">
+                {showCompleted ? "Hide completed" : "Show completed"}
+              </button>
+              <Link to="/copilot" className="text-sm text-primary font-bold hover:underline">Ask Copilot about gaps →</Link>
+            </div>
+          </div>
 
-            {gapList.length === 0 ? (
-              <div className="text-center py-10 text-muted-foreground">
-                <Sparkles className="w-6 h-6 mx-auto mb-2 text-primary" />
-                You've cleared the high-impact gaps for your current band — keep going!
-              </div>
-            ) : (
-              <ul className="space-y-3">
-                {gapList.map((rec) => (
-                  <GapCard
-                    key={rec.id}
-                    rec={rec}
-                    expanded={expanded.has(rec.id)}
-                    onToggle={() => toggleExpand(rec.id)}
-                    onMarkDone={() => markDone(rec)}
-                    completed={done.has(rec.id)}
-                  />
-                ))}
-              </ul>
-            )}
-          </section>
-
-          {/* E. Spectrum Bridge */}
-          {guidance && (
-            <section
-              className="rounded-3xl p-6 md:p-8 shadow-md"
-              style={{ background: "hsl(var(--hero-dark))", color: "white" }}
-            >
-              <div className="text-[11px] uppercase tracking-[0.14em] font-bold text-white/70 mb-2">
-                {band.emoji} {band.label} band guidance
-              </div>
-              <h2 className="font-display font-extrabold text-2xl md:text-3xl">{guidance.headline}</h2>
-              <p className="text-white/85 mt-2 max-w-2xl">{guidance.body}</p>
-              <a
-                href={guidance.cta_url}
-                target="_blank"
-                rel="noopener"
-                className="inline-flex items-center gap-2 mt-5 bg-primary text-primary-foreground font-bold rounded-xl px-5 py-2.5 text-sm hover:opacity-95"
-              >
-                Explore {guidance.spectrum_offering} <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            </section>
+          {gapList.length === 0 ? (
+            <div className="text-center py-10 text-muted-foreground">
+              <Sparkles className="w-6 h-6 mx-auto mb-2 text-primary" />
+              You've cleared the high-impact gaps for your current band — keep going!
+            </div>
+          ) : (
+            <ul className="space-y-3">
+              {gapList.map((rec) => (
+                <GapCard key={rec.id} rec={rec} expanded={expanded.has(rec.id)} onToggle={() => toggleExpand(rec.id)} onMarkDone={() => markDone(rec)} completed={done.has(rec.id)} />
+              ))}
+            </ul>
           )}
-        </div>
-      </main>
-    </div>
+        </section>
+      </TabsContent>
+    </Tabs>
   );
 };
 

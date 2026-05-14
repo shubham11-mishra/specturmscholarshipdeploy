@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Heart, Loader2, Search, ExternalLink, Lock, Sparkles, MapPin, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
-import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useShortlist } from "@/hooks/useShortlist";
@@ -70,8 +69,6 @@ const Scholarships = () => {
           arts_creative: x.arts_creative_self ?? x.arts_self ?? 5,
           sports_fitness: x.sports_self ?? 5,
           leadership: x.leadership_self ?? 5,
-          service_community: x.service_community_self ?? 5,
-          interview: x.interview_self ?? 5,
           test_readiness: x.test_readiness_self ?? 5,
         });
       } else {
@@ -157,8 +154,8 @@ const Scholarships = () => {
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="pt-32 flex items-center justify-center text-muted-foreground">
+
+        <div className="pt-2 flex items-center justify-center text-muted-foreground">
           <Loader2 className="w-5 h-5 animate-spin mr-2" /> Finding your scholarships…
         </div>
       </div>
@@ -167,8 +164,8 @@ const Scholarships = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="pt-28 pb-20 px-4 md:px-8">
+
+      <main className="pt-2 pb-20 px-4 md:px-8">
         <div className="max-w-[1200px] mx-auto">
           {/* Header */}
           <div className="mb-6">

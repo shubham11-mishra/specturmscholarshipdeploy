@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import Navbar from "@/components/Navbar";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Send, Sparkles, Loader2 } from "lucide-react";
@@ -109,8 +108,8 @@ const Copilot = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="max-w-3xl mx-auto pt-28 pb-8 px-4 flex flex-col h-screen">
+
+      <main className="max-w-3xl mx-auto pt-2 pb-8 px-4 flex flex-col h-screen">
         <header className="mb-4">
           <div className="flex items-center gap-2 text-primary">
             <Sparkles className="w-5 h-5" />

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import Navbar from "@/components/Navbar";
 import { toast } from "sonner";
 import { CheckCircle2, MapPin, GraduationCap, Heart, User as UserIcon, Save } from "lucide-react";
 import {
@@ -107,16 +106,16 @@ const ProfileEdit = () => {
   if (loading || initializing) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="pt-32 text-center text-muted-foreground">Loading…</div>
+
+        <div className="pt-2 text-center text-muted-foreground">Loading…</div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="pt-28 pb-16 px-4 md:px-8">
+
+      <main className="pt-2 pb-16 px-4 md:px-8">
         <div className="max-w-2xl mx-auto">
           <div className="mb-8">
             <h1 className="font-display text-3xl md:text-4xl font-extrabold text-foreground mb-2">
