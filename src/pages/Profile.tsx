@@ -65,8 +65,6 @@ const Profile = () => {
           arts_creative: w.arts_creative_self ?? w.arts_self ?? 5,
           sports_fitness: w.sports_self ?? 5,
           leadership: w.leadership_self ?? 5,
-          service_community: w.service_community_self ?? 5,
-          interview: w.interview_self ?? 5,
           test_readiness: w.test_readiness_self ?? 5,
         });
         setHasWheel(true);

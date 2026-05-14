@@ -64,8 +64,6 @@ const Readiness = () => {
           arts_creative: x.arts_creative_self ?? x.arts_self ?? 5,
           sports_fitness: x.sports_self ?? 5,
           leadership: x.leadership_self ?? 5,
-          service_community: x.service_community_self ?? 5,
-          interview: x.interview_self ?? 5,
           test_readiness: x.test_readiness_self ?? 5,
         });
       }
