@@ -46,14 +46,14 @@ const Profile = () => {
     if (!user) return;
     (async () => {
       setHydrating(true);
-      const scholarshipQuery = supabase
-        .from("scholarships")
-        .select("*", { count: "exact", head: true });
-      if (location.state) scholarshipQuery.eq("state", location.state);
-      const [{ data: wheel }, { data: progress }, { count }] = await Promise.all([
+      const [{ data: wheel }, { data: progress }, { data: profileRow }, { data: scholarRows }] = await Promise.all([
         supabase.from("wheel_scores").select("*").eq("user_id", user.id).maybeSingle(),
         supabase.from("student_progress").select("*").eq("user_id", user.id).maybeSingle(),
-        scholarshipQuery,
+        supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+        supabase
+          .from("scholarships")
+          .select("id, school_name, program_name, category, sub_type, state, sector, gender_eligibility, year_levels, application_close_date, days_left, is_active")
+          .limit(5000),
       ]);
 
       if (wheel) {
