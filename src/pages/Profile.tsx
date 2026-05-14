@@ -24,6 +24,7 @@ import {
   type WheelScores,
 } from "@/lib/navigator";
 import { wheelAverageToScore } from "@/lib/readiness";
+import { isEligible, type Student, type ScholarshipRow } from "@/lib/matchingEngine";
 import ElementJourney from "@/components/ElementJourney";
 
 const Profile = () => {
@@ -46,14 +47,14 @@ const Profile = () => {
     if (!user) return;
     (async () => {
       setHydrating(true);
-      const scholarshipQuery = supabase
-        .from("scholarships")
-        .select("*", { count: "exact", head: true });
-      if (location.state) scholarshipQuery.eq("state", location.state);
-      const [{ data: wheel }, { data: progress }, { count }] = await Promise.all([
+      const [{ data: wheel }, { data: progress }, { data: profileRow }, { data: scholarRows }] = await Promise.all([
         supabase.from("wheel_scores").select("*").eq("user_id", user.id).maybeSingle(),
         supabase.from("student_progress").select("*").eq("user_id", user.id).maybeSingle(),
-        scholarshipQuery,
+        supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+        supabase
+          .from("scholarships")
+          .select("id, school_name, program_name, category, sub_type, state, sector, gender_eligibility, year_levels, application_close_date, days_left, is_active")
+          .limit(5000),
       ]);
 
       if (wheel) {
@@ -72,7 +73,38 @@ const Profile = () => {
         setPoints(progress.total_points ?? 0);
         setBandKey(progress.current_band ?? "Earth");
       }
-      setEligibleCount(count ?? 0);
+      // Compute eligible count via the new matching engine using profile data
+      try {
+        const w: WheelScores = wheel
+          ? {
+              academic: (wheel as any).academic_self ?? 5,
+              stem: (wheel as any).stem_self ?? 5,
+              arts_creative: (wheel as any).arts_creative_self ?? (wheel as any).arts_self ?? 5,
+              sports_fitness: (wheel as any).sports_self ?? 5,
+              leadership: (wheel as any).leadership_self ?? 5,
+              test_readiness: (wheel as any).test_readiness_self ?? 5,
+            }
+          : DEFAULT_WHEEL_SCORES;
+        const p = (profileRow ?? {}) as any;
+        const studentForEngine: Student = {
+          state: p.state ?? location.state ?? null,
+          gender: (p.gender ?? null) as Student["gender"],
+          applyingYearLevel: p.applying_year_level ?? null,
+          preferredSectors: p.preferred_sectors ?? [],
+          willingToBoard: (p.willing_to_board ?? null) as Student["willingToBoard"],
+          isIndigenous: !!p.is_indigenous,
+          isRural: !!p.is_rural,
+          financialNeedIndicator: (p.financial_need ?? null) as Student["financialNeedIndicator"],
+          hasSiblingEnrolled: !!p.has_sibling_enrolled,
+          dreamSchools: p.dream_schools ?? "",
+          scholarshipCategoriesInterested: p.scholarship_categories ?? [],
+          wheelScores: w,
+        };
+        const eligible = (scholarRows ?? []).filter((r) => isEligible(studentForEngine, r as ScholarshipRow));
+        setEligibleCount(eligible.length);
+      } catch {
+        setEligibleCount(scholarRows?.length ?? 0);
+      }
       setHydrating(false);
     })();
   }, [user, location.state]);

@@ -1,35 +1,83 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Eye, EyeOff, Sparkles, Check, ChevronLeft, ChevronRight, User, BookOpen, Palette, Target, PartyPopper } from "lucide-react";
+import {
+  Eye, EyeOff, Sparkles, Check, ChevronLeft, ChevronRight,
+  User, Compass, Palette, Target, PartyPopper, Loader2,
+} from "lucide-react";
 import logoMark from "@/assets/logo-mark.svg";
 import { stateFromPostcode, lookupSuburbsForPostcode } from "@/lib/postcode";
+import { Slider } from "@/components/ui/slider";
+import SpectrumWheel from "@/components/navigator/SpectrumWheel";
+import {
+  WHEEL_DIMENSIONS, DEFAULT_WHEEL_SCORES, type WheelScores,
+} from "@/lib/navigator";
+import {
+  rankEligible, dedupeBySchool, getMatchBand,
+  type Student, type ScholarshipRow,
+} from "@/lib/matchingEngine";
 
 const AU_STATES = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"];
 const YEAR_LEVELS = ["Year 5", "Year 6", "Year 7", "Year 8", "Year 9", "Year 10", "Year 11", "Year 12"];
-const SCHOOL_TYPES = ["Government", "Catholic", "Independent", "Other"];
-const GRADES = ["HD", "A", "B", "C", "D"] as const;
-const GRADE_LABELS: Record<string, string> = { HD: "High Distinction (HD)", A: "Distinction (A)", B: "Credit (B)", C: "Pass (C)", D: "Below (D)" };
-const SUBJECTS = ["English", "Mathematics", "Science", "History", "Geography", "PDHPE", "Visual Arts", "Music", "Drama", "Languages", "Computing/IT"];
-const EXTRACURRICULARS = [
-  "Music (instrument)", "Music (vocal)", "Drama / Theatre", "Visual Arts",
-  "Dance", "Sport (team)", "Sport (individual)", "Debating / Public Speaking",
-  "Student Leadership", "Community Volunteering", "STEM Club / Robotics", "Environmental Groups",
-  "Cultural Groups",
+const APPLY_YEAR_LEVELS = ["Year 6", "Year 7", "Year 8", "Year 9", "Year 10", "Year 11", "Year 12"];
+const SCHOOL_TYPES = [
+  { value: "government", label: "Government" },
+  { value: "catholic", label: "Catholic" },
+  { value: "independent", label: "Independent" },
+  { value: "other", label: "Other" },
 ];
-const FINANCIAL_OPTIONS = ["Prefer not to say", "No financial need", "Some financial need", "Significant financial need"];
+const GENDERS = [
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+  { value: "non_binary", label: "Non-binary" },
+  { value: "prefer_not_to_say", label: "Prefer not to say" },
+];
+const FAITHS = ["None", "Catholic", "Anglican", "Christian (other)", "Jewish", "Islamic", "Hindu", "Buddhist", "Other", "Prefer not to say"];
+const SECTORS = [
+  { value: "independent", label: "Independent" },
+  { value: "catholic", label: "Catholic" },
+  { value: "government", label: "Government" },
+  { value: "anglican", label: "Anglican" },
+  { value: "open_to_all", label: "Open to all" },
+];
+const BOARDING = [
+  { value: "day_only", label: "Day only" },
+  { value: "boarding_only", label: "Boarding only" },
+  { value: "either", label: "Either" },
+];
+const TRAVEL_OPTIONS = [
+  { value: 5, label: "5 km" }, { value: 10, label: "10 km" },
+  { value: 25, label: "25 km" }, { value: 50, label: "50 km" },
+  { value: 100, label: "100 km" }, { value: 999, label: "Any distance" },
+];
+const EXTRACURRICULARS = [
+  "Music (instrument)", "Music (vocal)", "Drama", "Theatre", "Visual Arts",
+  "Dance", "Sport (team)", "Sport (individual)", "Debating", "Public Speaking",
+  "Student Leadership", "Community Volunteering", "STEM Club", "Robotics",
+  "Environmental Groups", "Cultural Groups",
+];
+const FINANCIAL_OPTIONS = [
+  { value: "prefer_not_to_say", label: "Prefer not to say" },
+  { value: "none", label: "No financial need" },
+  { value: "some", label: "Some financial need" },
+  { value: "significant", label: "Significant financial need" },
+];
 const SCHOLARSHIP_CATEGORIES = ["Academic Merit", "Music", "Sports", "STEM", "Arts", "Community Service", "All-Rounder", "Financial Need"];
 
 const STEPS = [
   { label: "About You", icon: User, color: "hsl(var(--gold))" },
-  { label: "Academic", icon: BookOpen, color: "hsl(var(--spec-green))" },
-  { label: "Extracurriculars", icon: Palette, color: "hsl(var(--spec-blue))" },
+  { label: "Your Wheel", icon: Compass, color: "hsl(var(--spec-green))" },
+  { label: "Background", icon: Palette, color: "hsl(var(--spec-blue))" },
   { label: "Goals", icon: Target, color: "hsl(var(--spec-red))" },
   { label: "Your Matches", icon: PartyPopper, color: "hsl(var(--spec-orange))" },
 ];
+
+const yearNum = (s: string) => {
+  const m = (s || "").match(/\d+/);
+  return m ? parseInt(m[0], 10) : null;
+};
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -40,27 +88,40 @@ const Auth = () => {
   // Auth fields
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [parentEmail, setParentEmail] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   // Step 1 — About You
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [gender, setGender] = useState<string>("");
   const [yearLevel, setYearLevel] = useState("");
+  const [currentSchoolName, setCurrentSchoolName] = useState("");
   const [schoolType, setSchoolType] = useState("");
   const [suburb, setSuburb] = useState("");
   const [postcode, setPostcode] = useState("");
   const [stateCode, setStateCode] = useState("");
 
-  // Step 2 — Academic grades { subject: grade }
-  const [grades, setGrades] = useState<Record<string, string>>({});
+  // Step 2 — Wheel
+  const [wheel, setWheel] = useState<WheelScores>(DEFAULT_WHEEL_SCORES);
 
-  // Step 3 — Extracurriculars
+  // Step 3 — Background
   const [extras, setExtras] = useState<string[]>([]);
-  const [financial, setFinancial] = useState("Prefer not to say");
+  const [isIndigenous, setIsIndigenous] = useState(false);
+  const [isRural, setIsRural] = useState(false);
+  const [faithToggle, setFaithToggle] = useState(false);
+  const [faith, setFaith] = useState("");
+  const [financial, setFinancial] = useState("prefer_not_to_say");
 
   // Step 4 — Goals
-  const [targetYear, setTargetYear] = useState("Year 10");
-  const [targetSchools, setTargetSchools] = useState<string[]>([]);
+  const currentYear = new Date().getFullYear();
+  const [applyingYearLevel, setApplyingYearLevel] = useState("");
+  const [targetStartYear, setTargetStartYear] = useState<number>(currentYear + 1);
+  const [dreamSchools, setDreamSchools] = useState("");
+  const [preferredSectors, setPreferredSectors] = useState<string[]>([]);
+  const [willingToBoard, setWillingToBoard] = useState("");
+  const [maxTravelKm, setMaxTravelKm] = useState<number>(999);
+  const [hasSibling, setHasSibling] = useState(false);
   const [scholarshipCats, setScholarshipCats] = useState<string[]>([]);
 
   const [error, setError] = useState("");
@@ -68,12 +129,26 @@ const Auth = () => {
   const [suburbOptions, setSuburbOptions] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
-  // Step 5 — computed matches from DB
+  // Step 5 — match results
   const [matchLoading, setMatchLoading] = useState(false);
   const [eligibleCount, setEligibleCount] = useState(0);
-  const [competitiveCount, setCompetitiveCount] = useState(0);
-  const [matchPercent, setMatchPercent] = useState(0);
-  const [topMatches, setTopMatches] = useState<Array<{ id: string; school_name: string; program_name: string | null; category: string | null; state: string | null }>>([]);
+  const [topMatches, setTopMatches] = useState<Array<ScholarshipRow & { matchScore: number }>>([]);
+
+  // ----- step 5: load + score -----
+  const buildStudent = (): Student => ({
+    state: stateCode || null,
+    gender: (gender || null) as Student["gender"],
+    applyingYearLevel: yearNum(applyingYearLevel),
+    preferredSectors,
+    willingToBoard: (willingToBoard || null) as Student["willingToBoard"],
+    isIndigenous,
+    isRural,
+    financialNeedIndicator: financial as Student["financialNeedIndicator"],
+    hasSiblingEnrolled: hasSibling,
+    dreamSchools,
+    scholarshipCategoriesInterested: scholarshipCats,
+    wheelScores: wheel,
+  });
 
   useEffect(() => {
     if (step !== 4) return;
@@ -82,53 +157,43 @@ const Auth = () => {
       setMatchLoading(true);
       const { data } = await supabase
         .from("scholarships")
-        .select("id, school_name, program_name, category, state, year_levels, gender_eligibility, is_active")
-        .limit(2000);
+        .select("id, school_name, program_name, category, sub_type, state, sector, gender_eligibility, year_levels, application_close_date, days_left, is_active")
+        .limit(5000);
       if (cancelled || !data) { setMatchLoading(false); return; }
 
-      const norm = (s: string | null | undefined) => (s ?? "").toLowerCase();
-      const cats = scholarshipCats.map((c) => norm(c));
-      const yearNum = (yearLevel.match(/\d+/) || [""])[0];
-      const targetYearNum = (targetYear.match(/\d+/) || [""])[0];
-
-      const eligible = data.filter((s) => {
-        // state match (or unspecified)
-        const stateOk = !s.state || norm(s.state) === norm(stateCode);
-        // year match (or unspecified)
-        const yl = norm(s.year_levels);
-        const yearOk = !yl || (!!yearNum && yl.includes(yearNum)) || (!!targetYearNum && yl.includes(targetYearNum));
-        return stateOk && yearOk;
-      });
-
-      const matchesCategory = (s: typeof eligible[number]) => {
-        if (!cats.length) return false;
-        const c = norm(s.category);
-        return cats.some((cat) => c.includes(cat) || cat.includes(c));
-      };
-
-      const competitive = eligible.filter((s) => {
-        if (!matchesCategory(s)) return false;
-        // bonus competitiveness: has grades or extras
-        const hasStrengths = Object.values(grades).some((g) => g === "HD" || g === "A") || extras.length >= 2;
-        return hasStrengths;
-      });
-
-      const pct = eligible.length
-        ? Math.min(100, Math.round((competitive.length / eligible.length) * 100))
-        : 0;
-
-      setEligibleCount(eligible.length);
-      setCompetitiveCount(competitive.length);
-      setMatchPercent(pct);
-      setTopMatches(
-        (competitive.length ? competitive : eligible)
-          .slice(0, 5)
-          .map((s) => ({ id: s.id, school_name: s.school_name, program_name: s.program_name, category: s.category, state: s.state })),
-      );
+      const ranked = rankEligible(buildStudent(), data as ScholarshipRow[]);
+      const top = dedupeBySchool(ranked, 5);
+      setEligibleCount(ranked.length);
+      setTopMatches(top);
       setMatchLoading(false);
     })();
     return () => { cancelled = true; };
-  }, [step, scholarshipCats, stateCode, yearLevel, targetYear, grades, extras]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
+  // Profile completeness — 0..100
+  const completeness = useMemo(() => {
+    let pts = 0; let total = 0;
+    const inc = (cond: boolean, w = 1) => { total += w; if (cond) pts += w; };
+    // step 1 required
+    inc(!!firstName); inc(!!lastName); inc(!!gender); inc(!!yearLevel);
+    inc(!!schoolType); inc(/^\d{4}$/.test(postcode)); inc(!!stateCode); inc(!!suburb);
+    // step 1 optional
+    inc(!!currentSchoolName, 0.5); inc(!!parentEmail, 0.5);
+    // step 2 — wheel always present (default 5); reward if any non-5
+    inc(Object.values(wheel).some((v) => v !== 5));
+    // step 3
+    inc(extras.length > 0); inc(isIndigenous || isRural || faithToggle, 0.5);
+    inc(financial !== "prefer_not_to_say", 0.5);
+    // step 4 required
+    inc(!!applyingYearLevel); inc(!!targetStartYear); inc(preferredSectors.length > 0); inc(!!willingToBoard);
+    // step 4 optional
+    inc(!!dreamSchools, 0.5); inc(scholarshipCats.length > 0, 0.5);
+    return Math.round((pts / total) * 100);
+  }, [firstName, lastName, gender, yearLevel, schoolType, postcode, stateCode, suburb,
+      currentSchoolName, parentEmail, wheel, extras, isIndigenous, isRural, faithToggle,
+      financial, applyingYearLevel, targetStartYear, preferredSectors, willingToBoard,
+      dreamSchools, scholarshipCats]);
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -139,12 +204,9 @@ const Auth = () => {
     if (new URLSearchParams(window.location.search).get("mode") === "signup") setIsLogin(false);
   }, []);
 
-  // Autofill state + suburb suggestions from postcode
+  // postcode → suburb + state
   useEffect(() => {
-    if (!/^\d{4}$/.test(postcode)) {
-      setSuburbOptions([]);
-      return;
-    }
+    if (!/^\d{4}$/.test(postcode)) { setSuburbOptions([]); return; }
     const inferred = stateFromPostcode(postcode);
     if (inferred && !stateCode) setStateCode(inferred);
     let cancelled = false;
@@ -153,29 +215,17 @@ const Auth = () => {
       setSuburbOptions(subs);
       if (subs.length === 1 && !suburb) setSuburb(subs[0]);
     });
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postcode]);
 
-  // Debounced check for already-registered email (signup only)
+  // email already-registered check
   useEffect(() => {
-    if (isLogin) {
-      setEmailTaken(false);
-      return;
-    }
+    if (isLogin) { setEmailTaken(false); return; }
     const trimmed = email.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-      setEmailTaken(false);
-      return;
-    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) { setEmailTaken(false); return; }
     const t = setTimeout(async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("email", trimmed)
-        .maybeSingle();
+      const { data } = await supabase.from("profiles").select("id").eq("email", trimmed).maybeSingle();
       setEmailTaken(!!data);
     }, 500);
     return () => clearTimeout(t);
@@ -185,24 +235,14 @@ const Auth = () => {
     setter(list.includes(val) ? list.filter((x) => x !== val) : [...list, val]);
 
   const handleGoogle = async () => {
-    setError("");
-    setSubmitting(true);
+    setError(""); setSubmitting(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth`,
-        },
+        options: { redirectTo: `${window.location.origin}/auth` },
       });
-      if (error) {
-        setError(error.message || "Google sign-in failed");
-        setSubmitting(false);
-        return;
-      }
-    } catch (err: any) {
-      setError(err.message || "Google sign-in failed");
-      setSubmitting(false);
-    }
+      if (error) { setError(error.message || "Google sign-in failed"); setSubmitting(false); }
+    } catch (err: any) { setError(err.message || "Google sign-in failed"); setSubmitting(false); }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -217,28 +257,45 @@ const Auth = () => {
     finally { setSubmitting(false); }
   };
 
+  // ----- validation -----
+  const step0Valid =
+    firstName.trim() && lastName.trim() && gender && yearLevel && schoolType &&
+    /^\d{4}$/.test(postcode.trim()) && stateCode && suburb.trim() &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) && !emailTaken && password.length >= 8;
+  const step3Valid = applyingYearLevel && targetStartYear && preferredSectors.length > 0 && willingToBoard;
+
   const validateStep = (s: number): string | null => {
     if (s === 0) {
       if (!firstName.trim() || !lastName.trim()) return "Please enter your first and last name.";
+      if (!gender) return "Please select a gender option.";
       if (!yearLevel) return "Please select your current year level.";
       if (!schoolType) return "Please select your school type.";
-      if (!stateCode) return "Please select your state.";
       if (!/^\d{4}$/.test(postcode.trim())) return "Please enter a valid 4-digit postcode.";
+      if (!stateCode) return "Please select your state.";
+      if (!suburb.trim()) return "Please enter your suburb.";
       if (!email.trim()) return "Please enter your email.";
       if (emailTaken) return "That email is already registered. Please sign in instead.";
-      if (password.length < 6) return "Password must be at least 6 characters.";
+      if (password.length < 8) return "Password must be at least 8 characters.";
+    }
+    if (s === 3) {
+      if (!applyingYearLevel) return "Please choose the year level you're applying for.";
+      if (!targetStartYear) return "Please choose a target start year.";
+      if (preferredSectors.length === 0) return "Please choose at least one preferred sector.";
+      if (!willingToBoard) return "Please choose a boarding preference.";
     }
     return null;
   };
 
-  const goNext = async () => {
+  const goNext = () => {
     const err = validateStep(step);
     if (err) { setError(err); return; }
     setError("");
     if (step < STEPS.length - 1) setStep(step + 1);
   };
-
   const goBack = () => { setError(""); setStep(Math.max(0, step - 1)); };
+
+  const continueDisabled =
+    (step === 0 && !step0Valid) || (step === 3 && !step3Valid);
 
   const handleFinalSubmit = async () => {
     setError(""); setSubmitting(true);
@@ -253,27 +310,60 @@ const Auth = () => {
             suburb: suburb.trim(),
             year_level: yearLevel,
             school_type: schoolType,
-            grades,
+            scholarship_categories: scholarshipCats,
             extracurriculars: extras,
             financial_need: financial,
-            target_year: targetYear,
-            target_schools: targetSchools,
-            scholarship_categories: scholarshipCats,
+            target_year: `Year ${yearNum(applyingYearLevel) ?? ""}`,
           },
         },
       });
       if (error && !error.message.toLowerCase().includes("rate limit")) throw error;
 
       const userId = data?.session?.user?.id ?? data?.user?.id;
-      if (userId && scholarshipCats.length) {
-        await supabase.from("user_interests").insert(
-          scholarshipCats.map((category) => ({ user_id: userId, category }))
-        );
+      if (userId) {
+        await supabase.from("profiles").update({
+          last_name: lastName,
+          gender: gender || null,
+          parent_email: parentEmail || null,
+          current_school_name: currentSchoolName || null,
+          current_school_type: schoolType.toLowerCase(),
+          is_indigenous: isIndigenous,
+          is_rural: isRural,
+          faith_background: faithToggle ? faith || null : null,
+          preferred_sectors: preferredSectors,
+          willing_to_board: willingToBoard,
+          max_travel_km: maxTravelKm,
+          has_sibling_enrolled: hasSibling,
+          target_start_year: targetStartYear,
+          applying_year_level: yearNum(applyingYearLevel),
+          dream_schools: dreamSchools || null,
+          onboarding_completed: true,
+        }).eq("id", userId);
+
+        await supabase.from("wheel_scores").upsert({
+          user_id: userId,
+          academic_self: wheel.academic,
+          stem_self: wheel.stem,
+          arts_self: wheel.arts_creative,
+          arts_creative_self: wheel.arts_creative,
+          sports_self: wheel.sports_fitness,
+          leadership_self: wheel.leadership,
+          test_readiness_self: wheel.test_readiness,
+          completed_at: new Date().toISOString(),
+        }, { onConflict: "user_id" });
+
+        if (scholarshipCats.length) {
+          await supabase.from("user_interests").insert(
+            scholarshipCats.map((category) => ({ user_id: userId, category })),
+          );
+        }
       }
-      toast.success("Welcome to Spectrum Tuition!");
-      navigate("/");
-    } catch (err: any) { setError(err.message || "Something went wrong"); }
-    finally { setSubmitting(false); }
+      toast.success(`Welcome to Spectrum Navigator, ${firstName}! 🎉`);
+      navigate("/dashboard");
+    } catch (err: any) {
+      setError(err.message || "Something went wrong");
+      toast.error(err.message || "Could not save your profile.");
+    } finally { setSubmitting(false); }
   };
 
   // ---------- LOGIN VIEW ----------
@@ -283,21 +373,18 @@ const Auth = () => {
         <div className="w-full max-w-md">
           <div className="flex flex-col items-center mb-6">
             <div className="flex items-center gap-2 mb-3">
-              <img src={logoMark} alt="Spectrum Tuition" className="w-10 h-10" />
-              <span className="font-display text-xl font-extrabold tracking-tight text-foreground">SPECTRUM <span className="text-muted-foreground text-xs tracking-[0.3em]">TUITION</span></span>
+              <img src={logoMark} alt="Spectrum Navigator" className="w-10 h-10" />
+              <span className="font-display text-xl font-extrabold tracking-tight text-foreground">SPECTRUM <span className="text-muted-foreground text-xs tracking-[0.3em]">NAVIGATOR</span></span>
             </div>
             <h1 className="font-display text-3xl font-extrabold text-foreground text-center">Welcome back</h1>
             <p className="text-sm text-muted-foreground mt-1">Sign in to access your scholarship matches.</p>
           </div>
-
           <div className="bg-card border border-border rounded-2xl p-6 shadow-md">
             {error && <div className="bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-xl px-4 py-2.5 mb-4">{error}</div>}
             <form onSubmit={handleLogin} className="space-y-4">
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="Email"
-                className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/30 transition-all" />
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="Email" className={inputCls} />
               <div className="relative">
-                <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} placeholder="Password"
-                  className="w-full rounded-xl border border-border bg-secondary px-4 py-3 pr-12 text-sm text-foreground outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/30 transition-all" />
+                <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} placeholder="Password" className={`${inputCls} pr-12`} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground bg-transparent border-none cursor-pointer">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -306,6 +393,9 @@ const Auth = () => {
                 <Sparkles className="w-4 h-4" />{submitting ? "Please wait..." : "Sign In"}
               </button>
             </form>
+            <button onClick={handleGoogle} className="mt-3 w-full bg-card border border-border text-foreground rounded-xl px-4 py-3 text-sm font-semibold cursor-pointer hover:bg-secondary transition">
+              Continue with Google
+            </button>
             <div className="mt-5 text-center text-sm">
               <span className="text-muted-foreground">Don't have an account? </span>
               <button onClick={() => { setIsLogin(false); setStep(0); setError(""); }} className="text-accent font-semibold hover:text-accent/80 bg-transparent border-none cursor-pointer">Sign Up</button>
@@ -352,27 +442,25 @@ const Auth = () => {
   return (
     <div className="min-h-screen px-4 py-10" style={{ background: "var(--gradient-canvas)" }}>
       <div className="max-w-3xl mx-auto">
-        {/* Header */}
         <div className="flex flex-col items-center mb-6">
           <div className="flex items-center gap-2 mb-4">
-            <img src={logoMark} alt="Spectrum Tuition" className="w-10 h-10" />
+            <img src={logoMark} alt="Spectrum Navigator" className="w-10 h-10" />
             <span className="font-display text-xl font-extrabold tracking-tight text-foreground">
-              SPECTRUM <span className="text-muted-foreground text-[10px] tracking-[0.3em] align-middle">TUITION</span>
+              SPECTRUM <span className="text-muted-foreground text-[10px] tracking-[0.3em] align-middle">NAVIGATOR</span>
             </span>
           </div>
           <h1 className="font-display text-3xl md:text-4xl font-extrabold text-foreground text-center">
-            {step === 4 ? "Finding your matches…" : "Let's build your scholarship profile"}
+            {step === 4 ? "Your matches are ready" : "Let's build your scholarship profile"}
           </h1>
           <p className="text-sm text-muted-foreground mt-1.5">Step {step + 1} of 5 · Takes less than 3 minutes</p>
         </div>
 
         <StepIndicator />
 
-        {/* Card */}
         <div className="bg-card border border-border rounded-2xl p-6 md:p-8 shadow-md">
           {error && <div className="bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-xl px-4 py-2.5 mb-4">{error}</div>}
 
-          {/* STEP 1 — About You */}
+          {/* STEP 1 */}
           {step === 0 && (
             <div className="space-y-5">
               <div className="flex items-center gap-2 text-foreground font-display text-xl font-bold">
@@ -380,41 +468,38 @@ const Auth = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field label="Student's First Name">
+                <Field label="Student's First Name *">
                   <input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Mia" className={inputCls} />
                 </Field>
-                <Field label="Last Name">
+                <Field label="Last Name *">
                   <input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Chen" className={inputCls} />
                 </Field>
-                <Field label="Current Year Level">
+
+                <Field label="Gender *">
+                  <div className="flex flex-wrap gap-2">
+                    {GENDERS.map((g) => (
+                      <Chip key={g.value} active={gender === g.value} onClick={() => setGender(g.value)}>{g.label}</Chip>
+                    ))}
+                  </div>
+                </Field>
+                <Field label="Current Year Level *">
                   <select value={yearLevel} onChange={(e) => setYearLevel(e.target.value)} className={inputCls}>
                     <option value="">Select…</option>
                     {YEAR_LEVELS.map((y) => <option key={y} value={y}>{y}</option>)}
                   </select>
                 </Field>
-                <Field label="School Type">
+
+                <Field label="Current School Name">
+                  <input value={currentSchoolName} onChange={(e) => setCurrentSchoolName(e.target.value)} placeholder="e.g. Glen Waverley Primary" className={inputCls} />
+                </Field>
+                <Field label="School Type *">
                   <select value={schoolType} onChange={(e) => setSchoolType(e.target.value)} className={inputCls}>
                     <option value="">Select…</option>
-                    {SCHOOL_TYPES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    {SCHOOL_TYPES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                   </select>
                 </Field>
-                <Field label="Suburb">
-                  <input
-                    value={suburb}
-                    onChange={(e) => setSuburb(e.target.value)}
-                    placeholder={suburbOptions.length ? "Choose or type your suburb" : "Chatswood"}
-                    list="suburb-options"
-                    className={inputCls}
-                  />
-                  {suburbOptions.length > 0 && (
-                    <datalist id="suburb-options">
-                      {suburbOptions.map((s) => (
-                        <option key={s} value={s} />
-                      ))}
-                    </datalist>
-                  )}
-                </Field>
-                <Field label="Postcode">
+
+                <Field label="Postcode *">
                   <input value={postcode} onChange={(e) => setPostcode(e.target.value.replace(/\D/g, "").slice(0, 4))} inputMode="numeric" placeholder="2067" className={inputCls} />
                   {postcode.length === 4 && stateFromPostcode(postcode) && (
                     <p className="text-[11px] text-muted-foreground mt-1">
@@ -422,15 +507,20 @@ const Auth = () => {
                     </p>
                   )}
                 </Field>
+                <Field label="Suburb *">
+                  <input value={suburb} onChange={(e) => setSuburb(e.target.value)} placeholder={suburbOptions.length ? "Choose or type your suburb" : "Chatswood"} list="suburb-options" className={inputCls} />
+                  {suburbOptions.length > 0 && (
+                    <datalist id="suburb-options">
+                      {suburbOptions.map((s) => <option key={s} value={s} />)}
+                    </datalist>
+                  )}
+                </Field>
               </div>
 
-              <Field label="State / Territory">
+              <Field label="State / Territory *">
                 <div className="flex flex-wrap gap-2">
                   {AU_STATES.map((s) => (
-                    <button key={s} type="button" onClick={() => setStateCode(s)}
-                      className={`px-4 py-2 rounded-lg border text-sm font-semibold transition-all cursor-pointer ${stateCode === s ? "border-primary bg-primary/10 text-foreground shadow-sm" : "border-border bg-card text-muted-foreground hover:border-primary/40"}`}>
-                      {s}
-                    </button>
+                    <Chip key={s} active={stateCode === s} onClick={() => setStateCode(s)}>{s}</Chip>
                   ))}
                 </div>
               </Field>
@@ -438,174 +528,258 @@ const Auth = () => {
               <div className="border-t border-border pt-5">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Account</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Field label="Email">
+                  <Field label="Email *">
                     <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className={`${inputCls} ${emailTaken ? "border-destructive" : ""}`} />
                     {emailTaken && (
                       <p className="text-[11px] text-destructive mt-1">
                         Already registered.{" "}
-                        <button type="button" onClick={() => { setIsLogin(true); setError(""); }} className="underline font-semibold bg-transparent border-none cursor-pointer text-destructive">
-                          Sign in instead
-                        </button>
+                        <button type="button" onClick={() => { setIsLogin(true); setError(""); }} className="underline font-semibold bg-transparent border-none cursor-pointer text-destructive">Sign in instead</button>
                       </p>
                     )}
                   </Field>
-                  <Field label="Password">
+                  <Field label="Password *">
                     <div className="relative">
-                      <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" className={`${inputCls} pr-12`} />
+                      <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 8 characters" className={`${inputCls} pr-12`} />
                       <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground bg-transparent border-none cursor-pointer">
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
                   </Field>
                 </div>
+                <div className="mt-4">
+                  <Field label="Parent Email">
+                    <input type="email" value={parentEmail} onChange={(e) => setParentEmail(e.target.value)} placeholder="e.g. parent@email.com — for progress updates" className={inputCls} />
+                    <p className="text-[11px] text-muted-foreground mt-1">We'll send your parents occasional progress updates if you provide their email.</p>
+                  </Field>
+                </div>
               </div>
             </div>
           )}
 
-          {/* STEP 2 — Academic */}
+          {/* STEP 2 — Spectrum Wheel */}
           {step === 1 && (
             <div className="space-y-5">
-              <div className="flex items-center gap-2 text-foreground font-display text-xl font-bold">
-                <BookOpen className="w-5 h-5" style={{ color: "hsl(var(--spec-green))" }} /> Academic
+              <div className="text-center">
+                <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]"
+                  style={{ background: "hsl(35, 50%, 90%)", color: "hsl(35, 50%, 30%)" }}>
+                  🌱 Earth · Assess
+                </div>
+                <h2 className="font-display text-2xl font-extrabold mt-2 text-foreground">Your Spectrum Wheel</h2>
+                <p className="text-sm text-muted-foreground mt-1 max-w-xl mx-auto">
+                  Rate yourself across 6 dimensions. Your Wheel powers personalised matches and your readiness journey through the 5 elements.
+                </p>
               </div>
-              <p className="text-sm text-muted-foreground">Set your current grade for each subject you study. This powers your match score.</p>
-              <div className="space-y-2">
-                {SUBJECTS.map((subj) => (
-                  <div key={subj} className="flex items-center gap-3 py-1">
-                    <div className="w-32 text-sm font-medium text-foreground shrink-0">{subj}</div>
-                    <div className="flex gap-1.5 flex-wrap">
-                      {GRADES.map((g) => {
-                        const sel = grades[subj] === g;
-                        return (
-                          <button key={g} type="button" onClick={() => setGrades({ ...grades, [subj]: g })}
-                            className={`w-9 h-9 rounded-md border text-xs font-bold transition-all cursor-pointer ${sel ? "bg-foreground text-background border-foreground" : "bg-card text-muted-foreground border-border hover:border-foreground/40"}`}>
-                            {g}
-                          </button>
-                        );
-                      })}
+
+              <div className="grid lg:grid-cols-5 gap-5">
+                <div className="lg:col-span-2 rounded-2xl bg-secondary/40 border border-border p-4 flex items-center justify-center">
+                  <SpectrumWheel selfScores={wheel} verifiedScores={{}} />
+                </div>
+                <div className="lg:col-span-3 space-y-4">
+                  {WHEEL_DIMENSIONS.map((d) => (
+                    <div key={d.key} className="rounded-xl bg-secondary/40 border border-border p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                          <span className="text-base">{d.emoji}</span> {d.label}
+                        </label>
+                        <span className="text-sm font-bold tabular-nums px-2 py-0.5 rounded-md" style={{ background: `${d.color}22`, color: d.color }}>
+                          {wheel[d.key]}/10
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-2">{d.prompt}</p>
+                      <Slider value={[wheel[d.key]]} min={1} max={10} step={1}
+                        onValueChange={(v) => setWheel((s) => ({ ...s, [d.key]: v[0] }))} />
+                      <p className="text-[10px] text-muted-foreground/80 mt-1.5">{d.scaleHint}</p>
                     </div>
-                    {grades[subj] && <div className="text-xs text-muted-foreground ml-2">{GRADE_LABELS[grades[subj]]}</div>}
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           )}
 
-          {/* STEP 3 — Extracurriculars */}
+          {/* STEP 3 — Background */}
           {step === 2 && (
-            <div className="space-y-5">
+            <div className="space-y-6">
               <div className="flex items-center gap-2 text-foreground font-display text-xl font-bold">
-                <Palette className="w-5 h-5" style={{ color: "hsl(var(--spec-blue))" }} /> Extracurriculars
+                <Palette className="w-5 h-5" style={{ color: "hsl(var(--spec-blue))" }} /> Extracurriculars & Background
               </div>
-              <p className="text-sm text-muted-foreground">Select all that apply — include anything in the last 2 years.</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {EXTRACURRICULARS.map((x) => {
-                  const sel = extras.includes(x);
-                  return (
-                    <button key={x} type="button" onClick={() => toggleIn(extras, setExtras, x)}
-                      className={`text-left px-4 py-3 rounded-lg border text-sm font-medium transition-all cursor-pointer ${sel ? "border-primary bg-primary/10 text-foreground" : "border-border bg-card text-muted-foreground hover:border-primary/40"}`}>
-                      {x}
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="pt-2">
-                <p className="text-sm font-semibold text-foreground mb-2">Financial need indicator <span className="text-muted-foreground font-normal">(optional)</span></p>
-                <div className="flex flex-wrap gap-2">
-                  {FINANCIAL_OPTIONS.map((opt) => (
-                    <button key={opt} type="button" onClick={() => setFinancial(opt)}
-                      className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all cursor-pointer ${financial === opt ? "border-primary bg-primary/10 text-foreground" : "border-border bg-card text-muted-foreground hover:border-primary/40"}`}>
-                      {opt}
-                    </button>
+
+              <div>
+                <p className="font-semibold text-foreground mb-1">🎨 Extracurriculars</p>
+                <p className="text-sm text-muted-foreground mb-3">Select all that apply — include anything in the last 2 years.</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {EXTRACURRICULARS.map((x) => (
+                    <Chip key={x} active={extras.includes(x)} onClick={() => toggleIn(extras, setExtras, x)} block>{x}</Chip>
                   ))}
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">This unlocks means-tested and equity scholarships. Never shown to schools.</p>
+              </div>
+
+              <div className="border-t border-border pt-5">
+                <p className="font-semibold text-foreground mb-1">💛 Background <span className="text-muted-foreground font-normal">(optional)</span></p>
+                <p className="text-sm text-muted-foreground mb-3">These unlock additional scholarships you may not know about. Never shown to schools.</p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <CheckboxRow label="Indigenous / First Nations" checked={isIndigenous} onChange={setIsIndigenous} />
+                  <CheckboxRow label="Rural or regional area" checked={isRural} onChange={setIsRural} />
+                  <CheckboxRow label="Faith-affiliated school preference" checked={faithToggle} onChange={setFaithToggle} />
+                </div>
+                {faithToggle && (
+                  <div className="mt-3">
+                    <Field label="Faith background">
+                      <select value={faith} onChange={(e) => setFaith(e.target.value)} className={inputCls}>
+                        <option value="">Select…</option>
+                        {FAITHS.map((f) => <option key={f} value={f}>{f}</option>)}
+                      </select>
+                    </Field>
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t border-border pt-5">
+                <p className="font-semibold text-foreground mb-1">💰 Financial need indicator <span className="text-muted-foreground font-normal">(optional)</span></p>
+                <p className="text-sm text-muted-foreground mb-3">This unlocks means-tested and equity scholarships. Never shown to schools.</p>
+                <div className="flex flex-wrap gap-2">
+                  {FINANCIAL_OPTIONS.map((opt) => (
+                    <Chip key={opt.value} active={financial === opt.value} onClick={() => setFinancial(opt.value)}>{opt.label}</Chip>
+                  ))}
+                </div>
               </div>
             </div>
           )}
 
           {/* STEP 4 — Goals */}
           {step === 3 && (
-            <div className="space-y-5">
+            <div className="space-y-6">
               <div className="flex items-center gap-2 text-foreground font-display text-xl font-bold">
-                <Target className="w-5 h-5" style={{ color: "hsl(var(--spec-red))" }} /> Goals
+                <Target className="w-5 h-5" style={{ color: "hsl(var(--spec-red))" }} /> Goals & Preferences
               </div>
-              <Field label="Target entry year level">
-                <select value={targetYear} onChange={(e) => setTargetYear(e.target.value)} className={inputCls}>
-                  {YEAR_LEVELS.map((y) => <option key={y} value={y}>{y}</option>)}
-                </select>
-                <p className="text-xs text-muted-foreground mt-1">We'll prioritise scholarships for this entry point.</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Field label="Applying for year level *">
+                  <select value={applyingYearLevel} onChange={(e) => setApplyingYearLevel(e.target.value)} className={inputCls}>
+                    <option value="">Select…</option>
+                    {APPLY_YEAR_LEVELS.map((y) => <option key={y} value={y}>{y}</option>)}
+                  </select>
+                  <p className="text-xs text-muted-foreground mt-1">Which year level are you applying for?</p>
+                </Field>
+                <Field label="Target start year *">
+                  <select value={targetStartYear} onChange={(e) => setTargetStartYear(parseInt(e.target.value, 10))} className={inputCls}>
+                    {[currentYear, currentYear + 1, currentYear + 2, currentYear + 3].map((y) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+
+              <Field label="Dream schools (optional)">
+                <input value={dreamSchools} onChange={(e) => setDreamSchools(e.target.value)} placeholder="Type any school name you're aiming for — comma separated" className={inputCls} />
               </Field>
-              <Field label="🎯 Dream schools (optional)">
-                <input
-                  value={targetSchools.join(", ")}
-                  onChange={(e) => setTargetSchools(e.target.value.split(",").map((s) => s.trim()).filter(Boolean))}
-                  placeholder="Type any school name you're aiming for — we'll watch for their scholarships"
-                  className={inputCls}
-                />
-              </Field>
-              <Field label="Scholarship categories you're interested in">
-                <div className="flex flex-wrap gap-2">
-                  {SCHOLARSHIP_CATEGORIES.map((c) => {
-                    const sel = scholarshipCats.includes(c);
-                    return (
-                      <button key={c} type="button" onClick={() => toggleIn(scholarshipCats, setScholarshipCats, c)}
-                        className={`px-4 py-2 rounded-lg border text-sm font-semibold transition-all cursor-pointer ${sel ? "border-primary bg-primary/10 text-foreground" : "border-border bg-card text-muted-foreground hover:border-primary/40"}`}>
-                        {c}
-                      </button>
-                    );
-                  })}
+
+              <div className="border-t border-border pt-5">
+                <p className="font-semibold text-foreground mb-3">Preferences</p>
+                <Field label="Preferred sectors *">
+                  <div className="flex flex-wrap gap-2">
+                    {SECTORS.map((s) => (
+                      <Chip key={s.value} active={preferredSectors.includes(s.value)} onClick={() => toggleIn(preferredSectors, setPreferredSectors, s.value)}>{s.label}</Chip>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Which school sectors are you considering?</p>
+                </Field>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <Field label="Willing to board *">
+                    <div className="flex flex-wrap gap-2">
+                      {BOARDING.map((b) => (
+                        <Chip key={b.value} active={willingToBoard === b.value} onClick={() => setWillingToBoard(b.value)}>{b.label}</Chip>
+                      ))}
+                    </div>
+                  </Field>
+                  <Field label="Max travel distance">
+                    <select value={maxTravelKm} onChange={(e) => setMaxTravelKm(parseInt(e.target.value, 10))} className={inputCls}>
+                      {TRAVEL_OPTIONS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                    </select>
+                    <p className="text-xs text-muted-foreground mt-1">How far are you willing to travel daily?</p>
+                  </Field>
                 </div>
-              </Field>
+
+                <div className="mt-4">
+                  <CheckboxRow label="I have a sibling already enrolled at one of my target schools" checked={hasSibling} onChange={setHasSibling} />
+                  <p className="text-xs text-muted-foreground mt-1 ml-7">Sibling enrolment can unlock sibling discount scholarships.</p>
+                </div>
+              </div>
+
+              <div className="border-t border-border pt-5">
+                <Field label="🎯 Scholarship categories you're interested in">
+                  <div className="flex flex-wrap gap-2">
+                    {SCHOLARSHIP_CATEGORIES.map((c) => (
+                      <Chip key={c} active={scholarshipCats.includes(c)} onClick={() => toggleIn(scholarshipCats, setScholarshipCats, c)}>{c}</Chip>
+                    ))}
+                  </div>
+                </Field>
+              </div>
             </div>
           )}
 
-          {/* STEP 5 — Your Matches */}
+          {/* STEP 5 — Matches */}
           {step === 4 && (
-            <div className="text-center py-6">
-              <div className="flex items-center justify-center gap-2 text-foreground font-display text-xl font-bold mb-6">
+            <div className="text-center py-2">
+              <div className="flex items-center justify-center gap-2 text-foreground font-display text-xl font-bold mb-4">
                 <PartyPopper className="w-5 h-5" style={{ color: "hsl(var(--spec-orange))" }} /> Your Matches
               </div>
-              <div className="relative w-44 h-44 mx-auto mb-6">
+
+              <div className="relative w-44 h-44 mx-auto mb-4">
                 <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
                   <circle cx="50" cy="50" r="44" fill="none" stroke="hsl(var(--secondary))" strokeWidth="6" />
                   <circle cx="50" cy="50" r="44" fill="none" stroke="hsl(var(--primary))" strokeWidth="6"
-                    strokeDasharray={`${(2 * Math.PI * 44 * matchPercent) / 100} ${2 * Math.PI * 44}`}
+                    strokeDasharray={`${(2 * Math.PI * 44 * completeness) / 100} ${2 * Math.PI * 44}`}
                     strokeLinecap="round"
                     style={{ transition: "stroke-dasharray 600ms ease" }} />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <div className="font-display text-4xl font-extrabold text-foreground">{matchLoading ? "…" : matchPercent}</div>
-                  <div className="text-xs text-muted-foreground">%</div>
+                  <div className="font-display text-4xl font-extrabold text-foreground">{completeness}%</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Profile complete</div>
                 </div>
               </div>
-              <p className="text-muted-foreground mb-4">{matchLoading ? "Building your results…" : "Based on your profile, here's what we found."}</p>
-              <div className="text-3xl mb-2">🎉</div>
-              <p className="text-foreground font-semibold mb-1">
-                You're eligible for <span className="bg-foreground text-background rounded-md px-3 py-1 ml-1 font-bold">{eligibleCount} scholarship{eligibleCount === 1 ? "" : "s"}</span>
-              </p>
-              <p className="text-sm text-muted-foreground mb-4">
-                {competitiveCount > 0
-                  ? `You're strongly competitive for ${competitiveCount} right now.`
-                  : "Add more strengths to boost your competitiveness."}
-              </p>
+              <p className="text-muted-foreground mb-4 text-sm">Based on your profile, here's what we found.</p>
 
-              {topMatches.length > 0 && (
-                <div className="text-left bg-secondary/40 border border-border rounded-xl p-3 mb-6 max-h-52 overflow-y-auto">
-                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2 px-1">Top matches</div>
-                  <ul className="space-y-1.5">
-                    {topMatches.map((m) => (
-                      <li key={m.id} className="text-sm text-foreground flex items-start gap-2 px-1">
-                        <Check className="w-3.5 h-3.5 text-primary mt-1 shrink-0" />
-                        <span>
-                          <span className="font-semibold">{m.school_name}</span>
-                          {m.program_name ? <span className="text-muted-foreground"> · {m.program_name}</span> : null}
-                          {m.category ? <span className="text-muted-foreground"> · {m.category}</span> : null}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              {matchLoading ? (
+                <div className="flex items-center justify-center py-8 text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin mr-2" /> Finding your matches…</div>
+              ) : (
+                <>
+                  <p className="text-foreground font-semibold mb-1">
+                    You're eligible for <span className="bg-foreground text-background rounded-md px-3 py-1 ml-1 font-bold">{eligibleCount} scholarship{eligibleCount === 1 ? "" : "s"}</span>
+                  </p>
+                  <p className="text-sm text-muted-foreground mb-5">
+                    {eligibleCount === 0
+                      ? "Your profile is just getting started — head to your dashboard to explore all scholarships and update your Wheel for personalised matches."
+                      : eligibleCount >= 20
+                      ? `You're strongly competitive for ${topMatches.length} right now.`
+                      : eligibleCount >= 5
+                      ? "A good start — keep building your profile to unlock more."
+                      : "We found some matches. Complete more sections in your dashboard to discover more."}
+                  </p>
+
+                  {topMatches.length > 0 && (
+                    <div className="text-left bg-secondary/40 border border-border rounded-xl p-3 mb-6 max-h-72 overflow-y-auto">
+                      <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2 px-1">Top matches</div>
+                      <ul className="space-y-2">
+                        {topMatches.map((m) => {
+                          const band = getMatchBand(m.matchScore);
+                          const display = m.program_name && m.program_name.length <= 80 ? m.program_name : (m.category || "Scholarship");
+                          return (
+                            <li key={m.id} className="text-sm text-foreground flex items-start gap-2 px-1">
+                              <Check className="w-3.5 h-3.5 text-primary mt-1 shrink-0" />
+                              <span className="flex-1">
+                                <span className="font-semibold">{m.school_name}</span>
+                                <span className="text-muted-foreground"> · {display}</span>
+                                {m.category && m.category !== display && <span className="text-muted-foreground"> · {m.category}</span>}
+                              </span>
+                              <span className="font-bold tabular-nums" style={{ color: band.color }}>{m.matchScore}%</span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )}
+                </>
               )}
 
               <div className="flex items-center justify-center gap-3 flex-wrap">
@@ -622,15 +796,14 @@ const Auth = () => {
           )}
         </div>
 
-        {/* Nav buttons */}
         {step < 4 && (
           <div className="flex items-center justify-between mt-6">
             <button type="button" onClick={goBack} disabled={step === 0}
               className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground bg-transparent border-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
               <ChevronLeft className="w-4 h-4" /> Back
             </button>
-            <button type="button" onClick={goNext}
-              className="bg-primary text-primary-foreground rounded-xl px-6 py-3 text-sm font-bold cursor-pointer hover:opacity-95 transition-all inline-flex items-center gap-2 border-none shadow-brand">
+            <button type="button" onClick={goNext} disabled={continueDisabled}
+              className="bg-primary text-primary-foreground rounded-xl px-6 py-3 text-sm font-bold cursor-pointer hover:opacity-95 transition-all inline-flex items-center gap-2 border-none shadow-brand disabled:opacity-40 disabled:cursor-not-allowed">
               Continue <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -652,6 +825,20 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
     <label className="text-xs font-semibold text-foreground mb-1.5 block">{label}</label>
     {children}
   </div>
+);
+
+const Chip = ({ active, onClick, children, block }: { active: boolean; onClick: () => void; children: React.ReactNode; block?: boolean }) => (
+  <button type="button" onClick={onClick}
+    className={`${block ? "text-left w-full" : ""} px-4 py-2 rounded-lg border text-sm font-semibold transition-all cursor-pointer ${active ? "border-primary bg-primary/10 text-foreground shadow-sm" : "border-border bg-card text-muted-foreground hover:border-primary/40"}`}>
+    {children}
+  </button>
+);
+
+const CheckboxRow = ({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) => (
+  <label className="inline-flex items-center gap-2 text-sm text-foreground cursor-pointer select-none">
+    <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="w-4 h-4 accent-primary cursor-pointer" />
+    {label}
+  </label>
 );
 
 export default Auth;
