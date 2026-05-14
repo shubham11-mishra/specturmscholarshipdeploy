@@ -47,8 +47,6 @@ const Navigator = () => {
           arts_creative: w.arts_creative_self ?? w.arts_self ?? 5,
           sports_fitness: w.sports_self ?? 5,
           leadership: w.leadership_self ?? 5,
-          service_community: w.service_community_self ?? 5,
-          interview: w.interview_self ?? 5,
           test_readiness: w.test_readiness_self ?? 5,
         });
         setVerified({
@@ -57,15 +55,10 @@ const Navigator = () => {
           arts_creative: w.arts_creative_verified ?? w.arts_verified ?? undefined,
           sports_fitness: w.sports_verified ?? undefined,
           leadership: w.leadership_verified ?? undefined,
-          service_community: w.service_community_verified ?? undefined,
-          interview: w.interview_verified ?? undefined,
           test_readiness: w.test_readiness_verified ?? undefined,
         });
         setCompletedAt(wheel.completed_at);
-        setNeedsNewDims(
-          w.completed_at != null &&
-            (w.service_community_self == null || w.interview_self == null),
-        );
+        setNeedsNewDims(false);
       }
       if (progress) setPoints(progress.total_points ?? 0);
       setHydrating(false);
@@ -98,8 +91,6 @@ const Navigator = () => {
       arts_creative_self: scores.arts_creative,
       sports_self: scores.sports_fitness,
       leadership_self: scores.leadership,
-      service_community_self: scores.service_community,
-      interview_self: scores.interview,
       test_readiness_self: scores.test_readiness,
       completed_at: new Date().toISOString(),
     };
