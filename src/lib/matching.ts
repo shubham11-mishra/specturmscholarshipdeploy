@@ -57,10 +57,10 @@ const CATEGORY_TO_DIM: Record<string, WheelDimensionKey> = {
   "sports & fitness": "sports_fitness",
   leadership: "leadership",
   "all-rounder": "leadership",
-  service: "service_community",
-  "community service": "service_community",
-  cultural: "service_community",
-  interview: "interview",
+  service: "leadership",
+  "community service": "leadership",
+  cultural: "leadership",
+  interview: "leadership",
   "test readiness": "test_readiness",
 };
 
