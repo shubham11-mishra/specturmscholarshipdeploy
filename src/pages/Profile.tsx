@@ -24,6 +24,7 @@ import {
   type WheelScores,
 } from "@/lib/navigator";
 import { wheelAverageToScore } from "@/lib/readiness";
+import { isEligible, type Student, type ScholarshipRow } from "@/lib/matchingEngine";
 import ElementJourney from "@/components/ElementJourney";
 
 const Profile = () => {
