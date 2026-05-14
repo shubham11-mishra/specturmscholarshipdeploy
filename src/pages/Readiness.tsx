@@ -255,8 +255,6 @@ const Readiness = () => {
     </Tabs>
   );
 };
-  );
-};
 
 const RingGauge = ({ value, label, emoji }: { value: number; label: string; emoji: string }) => {
   const c = scoreColor(value);
