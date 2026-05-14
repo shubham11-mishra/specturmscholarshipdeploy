@@ -35,6 +35,7 @@ const EFFORT_ORDER = { low: 0, medium: 1, high: 2 } as const;
 const Readiness = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [wheel, setWheel] = useState<WheelScores>(DEFAULT_WHEEL_SCORES);
   const [recs, setRecs] = useState<GapRec[]>([]);
   const [done, setDone] = useState<Set<string>>(new Set());
