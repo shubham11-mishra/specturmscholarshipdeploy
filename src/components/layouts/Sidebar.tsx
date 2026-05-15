@@ -31,7 +31,7 @@ const Sidebar = () => {
     <aside className="w-60 flex-shrink-0 flex flex-col h-screen sticky top-0" style={{ background: "hsl(var(--hero-dark))", color: "white" }}>
       {/* Logo */}
       <div className="px-6 py-5 border-b border-white/10">
-        <Link to="/dashboard" className="flex items-center gap-2.5 no-underline">
+        <Link to="/" className="flex items-center gap-2.5 no-underline">
           <img src={logoMark} alt="" className="w-8 h-8" />
           <div className="leading-tight">
             <div className="text-white font-bold text-[15px] tracking-wide" style={{ fontFamily: "var(--font-display)" }}>SPECTRUM</div>
