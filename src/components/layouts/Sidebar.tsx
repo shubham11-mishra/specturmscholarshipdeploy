@@ -86,6 +86,11 @@ const Sidebar = () => {
             <>
               <span className="text-base">{item.icon}</span>
               <span className="flex-1">{item.label}</span>
+              {item.label === "Shortlist" && shortlistCount > 0 && (
+                <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center", active ? "bg-foreground/15 text-foreground" : "text-white")} style={!active ? { background: "hsl(var(--spec-red))" } : undefined}>
+                  {shortlistCount}
+                </span>
+              )}
               {item.badge && (
                 <span className="text-[9px] font-bold text-white px-1.5 py-0.5 rounded-full" style={{ background: "hsl(var(--spec-red))" }}>
                   {item.badge}
