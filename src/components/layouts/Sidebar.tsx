@@ -27,6 +27,7 @@ const getInitials = (name?: string | null) =>
 
 const Sidebar = () => {
   const { fullName, location: loc, yearLevel } = useAuth();
+  const { count: shortlistCount } = useShortlist();
   const location = useLocation();
 
   return (
