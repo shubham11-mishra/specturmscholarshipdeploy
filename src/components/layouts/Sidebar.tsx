@@ -71,7 +71,6 @@ const Sidebar = () => {
       <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
         {navItems.map((item) => {
           const active = location.pathname === item.path || (item.path !== "/dashboard" && location.pathname.startsWith(item.path));
-          return (
           const isHash = item.path.startsWith("/#");
           const commonProps = {
             className: cn(
@@ -95,7 +94,6 @@ const Sidebar = () => {
             <a key={item.path} href={item.path} {...commonProps}>{inner}</a>
           ) : (
             <Link key={item.path} to={item.path} {...commonProps}>{inner}</Link>
-          );
           );
         })}
       </nav>
