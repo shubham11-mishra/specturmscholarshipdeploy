@@ -156,7 +156,7 @@ const Scholarships = () => {
       <div className="min-h-screen bg-background">
 
         <div className="pt-2 flex items-center justify-center text-muted-foreground">
-          <Loader2 className="w-5 h-5 animate-spin mr-2" /> Finding your scholarships…
+          <Loader2 className="w-5 h-5 animate-spin mr-2" /> Finding your opportunities…
         </div>
       </div>
     );
@@ -170,7 +170,7 @@ const Scholarships = () => {
           {/* Header */}
           <div className="mb-6">
             <div className="text-[11px] font-bold tracking-[0.14em] uppercase text-primary mb-2">
-              Find Scholarships
+              Find Opportunities
             </div>
             <h1 className="font-display font-extrabold text-3xl md:text-4xl text-foreground">
               Your personalised matches

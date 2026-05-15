@@ -3,7 +3,7 @@ import { Sparkles, LogOut, User, Heart, MessageCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useShortlist } from "@/hooks/useShortlist";
 import { useNavigate } from "react-router-dom";
-import logoHorizontal from "@/assets/logo-horizontal.svg";
+import logoHorizontal from "@/assets/searcher-navbar-light.png";
 import NotificationsBell from "@/components/NotificationsBell";
 
 const Navbar = () => {
@@ -30,11 +30,11 @@ const Navbar = () => {
       <a
         href="/"
         className="flex items-center no-underline"
-        aria-label="Spectrum Navigator — Navigate every educational opportunity"
+        aria-label="Scholarship Searcher — Every school. Every opportunity."
       >
         <img
           src={logoHorizontal}
-          alt="Spectrum Navigator"
+          alt="Scholarship Searcher"
           className="h-12 md:h-14 w-auto"
           draggable={false}
         />
@@ -44,7 +44,7 @@ const Navbar = () => {
         {(user
           ? [
               { label: "Home", to: "/" },
-              { label: "Find Scholarships", to: "/scholarships" },
+              { label: "Find Opportunities", to: "/" },
               { label: "My Wheel", to: "/wheel" },
               { label: "Parent", to: "/parent" },
               { label: "My Profile", to: "/profile" },
