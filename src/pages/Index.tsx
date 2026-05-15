@@ -355,12 +355,12 @@ const Index = () => {
             {loading ? (
               <div className="text-center py-16">
                 <div className="text-5xl mb-4 animate-spin">⏳</div>
-                <h3 className="font-display text-xl mb-2">Loading scholarships...</h3>
+                <h3 className="font-display text-xl mb-2">Loading opportunities...</h3>
               </div>
             ) : rows.length === 0 ? (
               <div className="text-center py-16">
                 <div className="text-5xl mb-4">🔍</div>
-                <h3 className="font-display text-xl mb-2">No scholarships found</h3>
+                <h3 className="font-display text-xl mb-2">No opportunities found</h3>
                 <p className="text-muted-foreground text-sm">Try adjusting your filters or search term.</p>
               </div>
             ) : (

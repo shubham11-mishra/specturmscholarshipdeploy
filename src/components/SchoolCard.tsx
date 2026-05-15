@@ -160,10 +160,11 @@ const SchoolCard = ({ school, index, onOpenDetail }: SchoolCardProps) => {
               href={school.scholarship_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 inline-flex items-center justify-center gap-1.5 gradient-brand text-primary-foreground rounded-xl px-3.5 py-2.5 text-[11.5px] font-bold uppercase tracking-[0.06em] cursor-pointer hover:opacity-95 transition-all border-none no-underline"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl px-3.5 py-2.5 text-[11.5px] font-bold uppercase tracking-[0.06em] cursor-pointer hover:opacity-95 transition-all border-none no-underline text-white"
+              style={{ backgroundColor: "#1B2A4A" }}
               onClick={(e) => e.stopPropagation()}
             >
-              View Scholarship <ExternalLink className="w-3 h-3" />
+              View Opportunity <ExternalLink className="w-3 h-3" />
             </a>
           )}
           {school.website_url && (
