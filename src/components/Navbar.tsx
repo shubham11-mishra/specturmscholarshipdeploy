@@ -44,7 +44,7 @@ const Navbar = () => {
         {(user
           ? [
               { label: "Home", to: "/" },
-              { label: "Find Opportunities", to: "/scholarships" },
+              { label: "Find Opportunities", to: "/" },
               { label: "My Wheel", to: "/wheel" },
               { label: "Parent", to: "/parent" },
               { label: "My Profile", to: "/profile" },
