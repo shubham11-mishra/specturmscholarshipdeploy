@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useShortlist } from "@/hooks/useShortlist";
 import { cn } from "@/lib/utils";
 import logoMark from "@/assets/logo-mark.svg";
 
