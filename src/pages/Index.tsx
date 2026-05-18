@@ -265,27 +265,6 @@ const Index = () => {
         onSelect={toggleCategoryBucket}
       />
 
-      {showResults && user && interests.length > 0 && (
-        <div className="max-w-[1200px] mx-auto px-4 md:px-8 pb-3 animate-fade-up">
-          <div className="glass rounded-xl px-4 py-2.5 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-sm">
-              <Sparkles className="w-4 h-4 text-primary shrink-0" />
-              <span className="text-muted-foreground">
-                Showing scholarships matching your interests:{" "}
-                <span className="text-foreground font-semibold">{interests.join(", ")}</span>
-              </span>
-            </div>
-            <button
-              onClick={() => setShowPersonalized(!showPersonalized)}
-              className={`text-xs font-medium px-3 py-1 rounded-lg cursor-pointer border-none transition-all ${
-                showPersonalized ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground"
-              }`}
-            >
-              {showPersonalized ? "Show All" : "My Interests"}
-            </button>
-          </div>
-        </div>
-      )}
 
       {showResults && (
 
