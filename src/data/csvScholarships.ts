@@ -104,6 +104,8 @@ export interface ScholarshipQuery {
   sortBy?: "closing" | "name" | "suburb" | "confidence" | "value";
   page?: number;
   pageSize?: number;
+  /** When true, include scholarships whose application_close_date has passed. */
+  includeClosed?: boolean;
 }
 
 export interface ScholarshipPage {
