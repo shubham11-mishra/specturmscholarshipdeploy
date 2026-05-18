@@ -330,13 +330,19 @@ const Index = () => {
 
           <div>
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2.5">
-              <div className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
-                <span>
-                  Showing <strong className="text-foreground font-bold">{total.toLocaleString()}</strong> {total === 1 ? "opportunity" : "opportunities"}
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="inline-flex items-baseline gap-2 rounded-full border border-border bg-card/60 px-3.5 py-1.5 shadow-sm">
+                  <span className="text-base font-bold text-foreground tabular-nums">{total.toLocaleString()}</span>
+                  <span className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                    {total === 1 ? "Opportunity" : "Opportunities"}
+                  </span>
                   {counts.all > 0 && total < counts.all && (
-                    <> matching your filters · <strong className="text-foreground font-bold">{counts.all.toLocaleString()}</strong> total available</>
+                    <>
+                      <span className="text-muted-foreground/40">/</span>
+                      <span className="text-xs text-muted-foreground tabular-nums">{counts.all.toLocaleString()} total</span>
+                    </>
                   )}
-                </span>
+                </div>
                 {counts.all > 0 && total < counts.all && (
                   <button
                     onClick={() => {
@@ -345,9 +351,9 @@ const Index = () => {
                       setSearchInput("");
                       setSearchQuery("");
                     }}
-                    className="text-xs font-semibold uppercase tracking-wider text-primary hover:underline"
+                    className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary hover:text-primary/80 transition-colors"
                   >
-                    Show all
+                    View all
                   </button>
                 )}
               </div>
