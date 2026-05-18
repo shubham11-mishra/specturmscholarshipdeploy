@@ -265,27 +265,6 @@ const Index = () => {
         onSelect={toggleCategoryBucket}
       />
 
-      {showResults && user && interests.length > 0 && (
-        <div className="max-w-[1200px] mx-auto px-4 md:px-8 pb-3 animate-fade-up">
-          <div className="glass rounded-xl px-4 py-2.5 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-sm">
-              <Sparkles className="w-4 h-4 text-primary shrink-0" />
-              <span className="text-muted-foreground">
-                Showing scholarships matching your interests:{" "}
-                <span className="text-foreground font-semibold">{interests.join(", ")}</span>
-              </span>
-            </div>
-            <button
-              onClick={() => setShowPersonalized(!showPersonalized)}
-              className={`text-xs font-medium px-3 py-1 rounded-lg cursor-pointer border-none transition-all ${
-                showPersonalized ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground"
-              }`}
-            >
-              {showPersonalized ? "Show All" : "My Interests"}
-            </button>
-          </div>
-        </div>
-      )}
 
       {showResults && (
 
@@ -343,18 +322,38 @@ const Index = () => {
                     </>
                   )}
                 </div>
-                {counts.all > 0 && total < counts.all && (
-                  <button
-                    onClick={() => {
-                      clearAllFilters();
-                      setShowPersonalized(false);
-                      setSearchInput("");
-                      setSearchQuery("");
-                    }}
-                    className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary hover:text-primary/80 transition-colors"
+                {user && interests.length > 0 && (
+                  <div
+                    role="tablist"
+                    aria-label="Opportunity scope"
+                    className="inline-flex items-center rounded-full border border-border bg-card/60 p-0.5 shadow-sm"
                   >
-                    View all
-                  </button>
+                    <button
+                      role="tab"
+                      aria-selected={showPersonalized}
+                      onClick={() => setShowPersonalized(true)}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] cursor-pointer border-none transition-all ${
+                        showPersonalized
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "bg-transparent text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      My Interests
+                    </button>
+                    <button
+                      role="tab"
+                      aria-selected={!showPersonalized}
+                      onClick={() => setShowPersonalized(false)}
+                      className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] cursor-pointer border-none transition-all ${
+                        !showPersonalized
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "bg-transparent text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      All Opportunities
+                    </button>
+                  </div>
                 )}
               </div>
               <div className="flex items-center gap-2">
