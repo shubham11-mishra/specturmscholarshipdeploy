@@ -322,18 +322,38 @@ const Index = () => {
                     </>
                   )}
                 </div>
-                {counts.all > 0 && total < counts.all && (
-                  <button
-                    onClick={() => {
-                      clearAllFilters();
-                      setShowPersonalized(false);
-                      setSearchInput("");
-                      setSearchQuery("");
-                    }}
-                    className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary hover:text-primary/80 transition-colors"
+                {user && interests.length > 0 && (
+                  <div
+                    role="tablist"
+                    aria-label="Opportunity scope"
+                    className="inline-flex items-center rounded-full border border-border bg-card/60 p-0.5 shadow-sm"
                   >
-                    View all
-                  </button>
+                    <button
+                      role="tab"
+                      aria-selected={showPersonalized}
+                      onClick={() => setShowPersonalized(true)}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] cursor-pointer border-none transition-all ${
+                        showPersonalized
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "bg-transparent text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      My Interests
+                    </button>
+                    <button
+                      role="tab"
+                      aria-selected={!showPersonalized}
+                      onClick={() => setShowPersonalized(false)}
+                      className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] cursor-pointer border-none transition-all ${
+                        !showPersonalized
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "bg-transparent text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      All Opportunities
+                    </button>
+                  </div>
                 )}
               </div>
               <div className="flex items-center gap-2">
