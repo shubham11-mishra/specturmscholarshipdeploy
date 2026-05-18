@@ -330,8 +330,26 @@ const Index = () => {
 
           <div>
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2.5">
-              <div className="text-sm text-muted-foreground">
-                Showing <strong className="text-foreground font-bold">{total.toLocaleString()}</strong> {total === 1 ? "opportunity" : "opportunities"}
+              <div className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
+                <span>
+                  Showing <strong className="text-foreground font-bold">{total.toLocaleString()}</strong> {total === 1 ? "opportunity" : "opportunities"}
+                  {counts.all > 0 && total < counts.all && (
+                    <> matching your filters · <strong className="text-foreground font-bold">{counts.all.toLocaleString()}</strong> total available</>
+                  )}
+                </span>
+                {counts.all > 0 && total < counts.all && (
+                  <button
+                    onClick={() => {
+                      clearAllFilters();
+                      setShowPersonalized(false);
+                      setSearchInput("");
+                      setSearchQuery("");
+                    }}
+                    className="text-xs font-semibold uppercase tracking-wider text-primary hover:underline"
+                  >
+                    Show all
+                  </button>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <label htmlFor="sort-by" className="text-[11px] font-semibold tracking-[0.12em] uppercase text-muted-foreground">
