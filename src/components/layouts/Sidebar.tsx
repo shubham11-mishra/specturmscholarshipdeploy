@@ -12,7 +12,7 @@ const navItems = [
   { label: "AI Copilot", icon: "✨", path: "/copilot", badge: "AI" },
   { label: "Applications", icon: "📝", path: "/applications" },
   { label: "Wins", icon: "🏆", path: "/wins" },
-  { label: "Parent", icon: "👥", path: "/parent" },
+  
   { label: "Profile", icon: "👤", path: "/profile" },
 ];
 
