@@ -171,6 +171,7 @@ const Index = () => {
       sortBy,
       page,
       pageSize: PAGE_SIZE,
+      includeClosed: !showPersonalized,
     }).then((res) => {
       if (cancelled) return;
       setRows(res.rows);
