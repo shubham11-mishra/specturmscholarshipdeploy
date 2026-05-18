@@ -195,8 +195,10 @@ function applyFilters(query: any, q: ScholarshipQuery) {
   // Exclude scholarships whose application close date has already passed.
   // `getTodayLocal()` runs on every query, so the cutoff is always current.
   // Rows with NULL close dates remain visible (deadline unknown / rolling).
-  const today = getTodayLocal();
-  query = query.or(`application_close_date.is.null,application_close_date.gte.${today}`);
+  if (!q.includeClosed) {
+    const today = getTodayLocal();
+    query = query.or(`application_close_date.is.null,application_close_date.gte.${today}`);
+  }
   if (q.states?.length) query = query.in("state", q.states);
   if (q.sectors?.length) query = query.in("sector", q.sectors);
   if (q.categories?.length) query = query.in("category", q.categories);
