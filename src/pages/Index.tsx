@@ -1,5 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import Navbar from "@/components/Navbar";
+import AppLayout from "@/components/layouts/AppLayout";
+
 import HeroSection from "@/components/HeroSection";
 import InterestSetupBanner from "@/components/InterestSetupBanner";
 import SchoolCard from "@/components/SchoolCard";
@@ -227,9 +229,9 @@ const Index = () => {
     });
   };
 
-  return (
-    <div className="min-h-screen">
-      <Navbar />
+  const mainContent = (
+    <>
+
       <HeroSection
         searchQuery={searchInput}
         onSearchChange={setSearchInput}
@@ -459,9 +461,16 @@ const Index = () => {
       </footer>
 
       <SchoolDetailModal school={selected} onClose={() => setSelected(null)} />
-    </div>
+    </>
   );
+
+  if (user) {
+    return <AppLayout pageTitle="Opportunities">{mainContent}</AppLayout>;
+  }
+
+  return <div className="min-h-screen"><Navbar />{mainContent}</div>;
 };
+
 
 const toggleInArray = (value: string, current: string[], setter: (v: string[]) => void) => {
   setter(current.includes(value) ? current.filter((v) => v !== value) : [...current, value]);
