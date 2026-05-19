@@ -1,5 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import Navbar from "@/components/Navbar";
+import AppLayout from "@/components/layouts/AppLayout";
+
 import HeroSection from "@/components/HeroSection";
 import InterestSetupBanner from "@/components/InterestSetupBanner";
 import SchoolCard from "@/components/SchoolCard";
