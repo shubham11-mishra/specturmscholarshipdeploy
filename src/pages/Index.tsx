@@ -316,12 +316,6 @@ const Index = () => {
                   <span className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
                     {total === 1 ? "Opportunity" : "Opportunities"}
                   </span>
-                  {counts.all > 0 && total < counts.all && (
-                    <>
-                      <span className="text-muted-foreground/40">/</span>
-                      <span className="text-xs text-muted-foreground tabular-nums">{counts.all.toLocaleString()} total</span>
-                    </>
-                  )}
                 </div>
                 {user && interests.length > 0 && (
                   <div
