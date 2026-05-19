@@ -227,9 +227,9 @@ const Index = () => {
     });
   };
 
-  return (
-    <div className="min-h-screen">
-      <Navbar />
+  const mainContent = (
+    <>
+
       <HeroSection
         searchQuery={searchInput}
         onSearchChange={setSearchInput}
