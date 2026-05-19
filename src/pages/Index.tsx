@@ -459,9 +459,16 @@ const Index = () => {
       </footer>
 
       <SchoolDetailModal school={selected} onClose={() => setSelected(null)} />
-    </div>
+    </>
   );
+
+  if (user) {
+    return <AppLayout pageTitle="Opportunities">{mainContent}</AppLayout>;
+  }
+
+  return <div className="min-h-screen"><Navbar />{mainContent}</div>;
 };
+
 
 const toggleInArray = (value: string, current: string[], setter: (v: string[]) => void) => {
   setter(current.includes(value) ? current.filter((v) => v !== value) : [...current, value]);
