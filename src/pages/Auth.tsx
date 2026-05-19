@@ -323,7 +323,7 @@ const Auth = () => {
     setError("");
     if (step < STEPS.length - 1) setStep(step + 1);
   };
-  const goBack = () => { setError(""); setStep(Math.max(0, step - 1)); };
+  const goBack = () => { setError(""); setStep(Math.max(needsOnboarding ? 1 : 0, step - 1)); };
 
   const continueDisabled =
     (step === 0 && !needsOnboarding && !step0Valid) || (step === 3 && !step3Valid);
