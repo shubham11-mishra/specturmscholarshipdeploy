@@ -195,9 +195,40 @@ const Auth = () => {
       financial, applyingYearLevel, targetStartYear, preferredSectors, willingToBoard,
       dreamSchools, scholarshipCats]);
 
+  // When a user lands here authenticated (e.g. via Google), check if they still
+  // need to complete onboarding. If yes, drop them into the wizard starting at
+  // the Wheel step so their data ends up in the DB (not the static 50/100).
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
   useEffect(() => {
     const hash = window.location.hash;
-    if (user && !hash.includes("type=recovery")) navigate("/");
+    if (!user || hash.includes("type=recovery")) return;
+    (async () => {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("onboarding_completed, full_name, last_name, year_level, state, postcode, suburb, school_type")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (profile?.onboarding_completed) {
+        navigate("/");
+        return;
+      }
+      // Prefill what we have, jump into wizard at Wheel step
+      const fullName = profile?.full_name || (user.user_metadata as any)?.full_name || "";
+      const [fn, ...rest] = fullName.split(" ");
+      if (fn && !firstName) setFirstName(fn);
+      const ln = profile?.last_name || rest.join(" ");
+      if (ln && !lastName) setLastName(ln);
+      if (profile?.year_level && !yearLevel) setYearLevel(profile.year_level);
+      if (profile?.state && !stateCode) setStateCode(profile.state);
+      if (profile?.postcode && !postcode) setPostcode(profile.postcode);
+      if (profile?.suburb && !suburb) setSuburb(profile.suburb);
+      if (profile?.school_type && !schoolType) setSchoolType(profile.school_type);
+      if (user.email && !email) setEmail(user.email);
+      setIsLogin(false);
+      setNeedsOnboarding(true);
+      setStep((s) => (s === 0 ? 1 : s));
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, navigate]);
 
   useEffect(() => {
@@ -292,41 +323,56 @@ const Auth = () => {
     setError("");
     if (step < STEPS.length - 1) setStep(step + 1);
   };
-  const goBack = () => { setError(""); setStep(Math.max(0, step - 1)); };
+  const goBack = () => { setError(""); setStep(Math.max(needsOnboarding ? 1 : 0, step - 1)); };
 
   const continueDisabled =
-    (step === 0 && !step0Valid) || (step === 3 && !step3Valid);
+    (step === 0 && !needsOnboarding && !step0Valid) || (step === 3 && !step3Valid);
 
   const handleFinalSubmit = async () => {
     setError(""); setSubmitting(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email, password,
-        options: {
-          data: {
-            full_name: `${firstName} ${lastName}`.trim(),
-            state: stateCode,
-            postcode: postcode.trim(),
-            suburb: suburb.trim(),
-            year_level: yearLevel,
-            school_type: schoolType,
-            scholarship_categories: scholarshipCats,
-            extracurriculars: extras,
-            financial_need: financial,
-            target_year: `Year ${yearNum(applyingYearLevel) ?? ""}`,
-          },
-        },
-      });
-      if (error && !error.message.toLowerCase().includes("rate limit")) throw error;
+      let userId: string | undefined = user?.id;
 
-      const userId = data?.session?.user?.id ?? data?.user?.id;
+      // Only run signUp for brand-new email/password signups.
+      if (!userId) {
+        const { data, error } = await supabase.auth.signUp({
+          email, password,
+          options: {
+            data: {
+              full_name: `${firstName} ${lastName}`.trim(),
+              state: stateCode,
+              postcode: postcode.trim(),
+              suburb: suburb.trim(),
+              year_level: yearLevel,
+              school_type: schoolType,
+              scholarship_categories: scholarshipCats,
+              extracurriculars: extras,
+              financial_need: financial,
+              target_year: `Year ${yearNum(applyingYearLevel) ?? ""}`,
+            },
+          },
+        });
+        if (error && !error.message.toLowerCase().includes("rate limit")) throw error;
+        userId = data?.session?.user?.id ?? data?.user?.id;
+      }
+
       if (userId) {
         await supabase.from("profiles").update({
-          last_name: lastName,
+          full_name: `${firstName} ${lastName}`.trim() || null,
+          last_name: lastName || null,
           gender: gender || null,
+          year_level: yearLevel || null,
+          state: stateCode || undefined,
+          postcode: postcode.trim() || undefined,
+          suburb: suburb.trim() || null,
+          school_type: schoolType || null,
+          extracurriculars: extras,
+          financial_need: financial,
+          scholarship_categories: scholarshipCats,
+          target_year: `Year ${yearNum(applyingYearLevel) ?? ""}`,
           parent_email: parentEmail || null,
           current_school_name: currentSchoolName || null,
-          current_school_type: schoolType.toLowerCase(),
+          current_school_type: schoolType ? schoolType.toLowerCase() : null,
           is_indigenous: isIndigenous,
           is_rural: isRural,
           faith_background: faithToggle ? faith || null : null,
