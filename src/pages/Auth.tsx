@@ -326,38 +326,53 @@ const Auth = () => {
   const goBack = () => { setError(""); setStep(Math.max(0, step - 1)); };
 
   const continueDisabled =
-    (step === 0 && !step0Valid) || (step === 3 && !step3Valid);
+    (step === 0 && !needsOnboarding && !step0Valid) || (step === 3 && !step3Valid);
 
   const handleFinalSubmit = async () => {
     setError(""); setSubmitting(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email, password,
-        options: {
-          data: {
-            full_name: `${firstName} ${lastName}`.trim(),
-            state: stateCode,
-            postcode: postcode.trim(),
-            suburb: suburb.trim(),
-            year_level: yearLevel,
-            school_type: schoolType,
-            scholarship_categories: scholarshipCats,
-            extracurriculars: extras,
-            financial_need: financial,
-            target_year: `Year ${yearNum(applyingYearLevel) ?? ""}`,
-          },
-        },
-      });
-      if (error && !error.message.toLowerCase().includes("rate limit")) throw error;
+      let userId: string | undefined = user?.id;
 
-      const userId = data?.session?.user?.id ?? data?.user?.id;
+      // Only run signUp for brand-new email/password signups.
+      if (!userId) {
+        const { data, error } = await supabase.auth.signUp({
+          email, password,
+          options: {
+            data: {
+              full_name: `${firstName} ${lastName}`.trim(),
+              state: stateCode,
+              postcode: postcode.trim(),
+              suburb: suburb.trim(),
+              year_level: yearLevel,
+              school_type: schoolType,
+              scholarship_categories: scholarshipCats,
+              extracurriculars: extras,
+              financial_need: financial,
+              target_year: `Year ${yearNum(applyingYearLevel) ?? ""}`,
+            },
+          },
+        });
+        if (error && !error.message.toLowerCase().includes("rate limit")) throw error;
+        userId = data?.session?.user?.id ?? data?.user?.id;
+      }
+
       if (userId) {
         await supabase.from("profiles").update({
-          last_name: lastName,
+          full_name: `${firstName} ${lastName}`.trim() || null,
+          last_name: lastName || null,
           gender: gender || null,
+          year_level: yearLevel || null,
+          state: stateCode || undefined,
+          postcode: postcode.trim() || undefined,
+          suburb: suburb.trim() || null,
+          school_type: schoolType || null,
+          extracurriculars: extras,
+          financial_need: financial,
+          scholarship_categories: scholarshipCats,
+          target_year: `Year ${yearNum(applyingYearLevel) ?? ""}`,
           parent_email: parentEmail || null,
           current_school_name: currentSchoolName || null,
-          current_school_type: schoolType.toLowerCase(),
+          current_school_type: schoolType ? schoolType.toLowerCase() : null,
           is_indigenous: isIndigenous,
           is_rural: isRural,
           faith_background: faithToggle ? faith || null : null,
