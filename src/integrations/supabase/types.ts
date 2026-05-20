@@ -122,6 +122,7 @@ export type Database = {
       }
       gap_recommendations: {
         Row: {
+          badge_name: string | null
           band_relevance: string[] | null
           category: string | null
           created_at: string
@@ -135,13 +136,18 @@ export type Database = {
           icon_emoji: string | null
           id: string
           is_active: boolean | null
+          pathway: string | null
           priority: string
           spectrum_product_name: string | null
           spectrum_product_url: string | null
           title: string
           trigger_score_max: number
+          verifies_evidence: boolean
+          why_template: string | null
+          xp_reward: number
         }
         Insert: {
+          badge_name?: string | null
           band_relevance?: string[] | null
           category?: string | null
           created_at?: string
@@ -155,13 +161,18 @@ export type Database = {
           icon_emoji?: string | null
           id?: string
           is_active?: boolean | null
+          pathway?: string | null
           priority: string
           spectrum_product_name?: string | null
           spectrum_product_url?: string | null
           title: string
           trigger_score_max: number
+          verifies_evidence?: boolean
+          why_template?: string | null
+          xp_reward?: number
         }
         Update: {
+          badge_name?: string | null
           band_relevance?: string[] | null
           category?: string | null
           created_at?: string
@@ -175,11 +186,15 @@ export type Database = {
           icon_emoji?: string | null
           id?: string
           is_active?: boolean | null
+          pathway?: string | null
           priority?: string
           spectrum_product_name?: string | null
           spectrum_product_url?: string | null
           title?: string
           trigger_score_max?: number
+          verifies_evidence?: boolean
+          why_template?: string | null
+          xp_reward?: number
         }
         Relationships: []
       }
