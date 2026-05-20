@@ -77,5 +77,5 @@ export function rankTopActions(
 
 export function renderWhy(template: string | null, pathway: PathwayKey, pathwayLabel: string): string {
   if (!template) return "";
-  return template.replaceAll("{pathway}", pathwayLabel);
+  return template.split("{pathway}").join(pathwayLabel);
 }
