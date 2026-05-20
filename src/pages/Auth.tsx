@@ -7,7 +7,8 @@ import {
   Eye, EyeOff, Sparkles, Check, ChevronLeft, ChevronRight,
   User, Compass, Palette, Target, PartyPopper, Loader2,
 } from "lucide-react";
-import logoMark from "@/assets/logo-mark.svg";
+import logoHorizontal from "@/assets/searcher-navbar-light.png";
+import { Link } from "react-router-dom";
 import { stateFromPostcode, lookupSuburbsForPostcode } from "@/lib/postcode";
 import { Slider } from "@/components/ui/slider";
 import SpectrumWheel from "@/components/navigator/SpectrumWheel";
@@ -418,10 +419,9 @@ const Auth = () => {
       <div className="min-h-screen flex items-center justify-center px-4 py-10" style={{ background: "var(--gradient-canvas)" }}>
         <div className="w-full max-w-md">
           <div className="flex flex-col items-center mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <img src={logoMark} alt="Spectrum Navigator" className="w-10 h-10" />
-              <span className="font-display text-xl font-extrabold tracking-tight text-foreground">SPECTRUM <span className="text-muted-foreground text-xs tracking-[0.3em]">NAVIGATOR</span></span>
-            </div>
+            <Link to="/" aria-label="Back to home" className="mb-3 no-underline">
+              <img src={logoHorizontal} alt="Scholarship Searcher" className="h-12 w-auto" draggable={false} />
+            </Link>
             <h1 className="font-display text-3xl font-extrabold text-foreground text-center">Welcome back</h1>
             <p className="text-sm text-muted-foreground mt-1">Sign in to access your scholarship matches.</p>
           </div>
@@ -489,12 +489,9 @@ const Auth = () => {
     <div className="min-h-screen px-4 py-10" style={{ background: "var(--gradient-canvas)" }}>
       <div className="max-w-3xl mx-auto">
         <div className="flex flex-col items-center mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <img src={logoMark} alt="Spectrum Navigator" className="w-10 h-10" />
-            <span className="font-display text-xl font-extrabold tracking-tight text-foreground">
-              SPECTRUM <span className="text-muted-foreground text-[10px] tracking-[0.3em] align-middle">NAVIGATOR</span>
-            </span>
-          </div>
+          <Link to="/" aria-label="Back to home" className="mb-4 no-underline">
+            <img src={logoHorizontal} alt="Scholarship Searcher" className="h-12 w-auto" draggable={false} />
+          </Link>
           <h1 className="font-display text-3xl md:text-4xl font-extrabold text-foreground text-center">
             {step === 4 ? "Your matches are ready" : "Let's build your scholarship profile"}
           </h1>
