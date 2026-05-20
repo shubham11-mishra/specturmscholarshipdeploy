@@ -23,6 +23,10 @@ import Copilot from "./pages/Copilot.tsx";
 import Achievements from "./pages/Achievements.tsx";
 import Parent from "./pages/Parent.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import AssessmentHub from "./pages/AssessmentHub.tsx";
+import AssessmentYearBand from "./pages/AssessmentYearBand.tsx";
+import AssessmentTake from "./pages/AssessmentTake.tsx";
+import AssessmentResults from "./pages/AssessmentResults.tsx";
 
 const queryClient = new QueryClient();
 
