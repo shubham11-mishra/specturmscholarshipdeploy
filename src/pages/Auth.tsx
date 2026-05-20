@@ -489,12 +489,9 @@ const Auth = () => {
     <div className="min-h-screen px-4 py-10" style={{ background: "var(--gradient-canvas)" }}>
       <div className="max-w-3xl mx-auto">
         <div className="flex flex-col items-center mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <img src={logoMark} alt="Spectrum Navigator" className="w-10 h-10" />
-            <span className="font-display text-xl font-extrabold tracking-tight text-foreground">
-              SPECTRUM <span className="text-muted-foreground text-[10px] tracking-[0.3em] align-middle">NAVIGATOR</span>
-            </span>
-          </div>
+          <Link to="/" aria-label="Back to home" className="mb-4 no-underline">
+            <img src={logoHorizontal} alt="Scholarship Searcher" className="h-12 w-auto" draggable={false} />
+          </Link>
           <h1 className="font-display text-3xl md:text-4xl font-extrabold text-foreground text-center">
             {step === 4 ? "Your matches are ready" : "Let's build your scholarship profile"}
           </h1>
