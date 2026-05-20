@@ -23,6 +23,10 @@ import Copilot from "./pages/Copilot.tsx";
 import Achievements from "./pages/Achievements.tsx";
 import Parent from "./pages/Parent.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import AssessmentHub from "./pages/AssessmentHub.tsx";
+import AssessmentYearBand from "./pages/AssessmentYearBand.tsx";
+import AssessmentTake from "./pages/AssessmentTake.tsx";
+import AssessmentResults from "./pages/AssessmentResults.tsx";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +59,11 @@ const Root = () => (
               <Route path="/copilot" element={<App title="AI Copilot"><Copilot /></App>} />
               <Route path="/achievements" element={<App title="Achievements"><Achievements /></App>} />
               <Route path="/parent" element={<App title="Parent Dashboard"><Parent /></App>} />
+
+              <Route path="/assessments" element={<App title="Assessments"><AssessmentHub /></App>} />
+              <Route path="/assessments/:subject/select" element={<App title="Choose Year Band"><AssessmentYearBand /></App>} />
+              <Route path="/assessments/:subject/:yearBand/take" element={<App title="Assessment"><AssessmentTake /></App>} />
+              <Route path="/assessments/results/:id" element={<App title="Results"><AssessmentResults /></App>} />
 
               {/* Backwards compat: /wheel + /navigator → Readiness with My Wheel tab */}
               <Route path="/wheel" element={<Navigate to="/readiness?tab=my-wheel" replace />} />

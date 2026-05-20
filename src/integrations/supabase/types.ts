@@ -91,6 +91,134 @@ export type Database = {
         }
         Relationships: []
       }
+      assessment_attempts: {
+        Row: {
+          answers: Json
+          completed_at: string | null
+          current_question: number
+          flagged_questions: Json
+          id: string
+          level_scores: Json | null
+          section_scores: Json | null
+          started_at: string
+          status: string
+          student_id: string
+          subject: string
+          total_score: number | null
+          updated_at: string
+          year_band: string
+        }
+        Insert: {
+          answers?: Json
+          completed_at?: string | null
+          current_question?: number
+          flagged_questions?: Json
+          id?: string
+          level_scores?: Json | null
+          section_scores?: Json | null
+          started_at?: string
+          status?: string
+          student_id: string
+          subject: string
+          total_score?: number | null
+          updated_at?: string
+          year_band: string
+        }
+        Update: {
+          answers?: Json
+          completed_at?: string | null
+          current_question?: number
+          flagged_questions?: Json
+          id?: string
+          level_scores?: Json | null
+          section_scores?: Json | null
+          started_at?: string
+          status?: string
+          student_id?: string
+          subject?: string
+          total_score?: number | null
+          updated_at?: string
+          year_band?: string
+        }
+        Relationships: []
+      }
+      assessment_questions: {
+        Row: {
+          correct_answer: string
+          created_at: string
+          explanation: string | null
+          id: string
+          level: number
+          options: Json
+          passage_text: string | null
+          question_image_url: string | null
+          question_number: number
+          question_text: string
+          section_id: string
+        }
+        Insert: {
+          correct_answer: string
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          level?: number
+          options?: Json
+          passage_text?: string | null
+          question_image_url?: string | null
+          question_number: number
+          question_text: string
+          section_id: string
+        }
+        Update: {
+          correct_answer?: string
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          level?: number
+          options?: Json
+          passage_text?: string | null
+          question_image_url?: string | null
+          question_number?: number
+          question_text?: string
+          section_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_questions_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_sections: {
+        Row: {
+          created_at: string
+          id: string
+          section_name: string
+          section_order: number
+          subject: string
+          year_band: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          section_name: string
+          section_order?: number
+          subject: string
+          year_band: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          section_name?: string
+          section_order?: number
+          subject?: string
+          year_band?: string
+        }
+        Relationships: []
+      }
       gap_actions_completed: {
         Row: {
           id: string
