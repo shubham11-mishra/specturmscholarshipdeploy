@@ -6,92 +6,96 @@
 
 @layer base {
   :root {
-    /* Spectrum Tuition palette — Gold #FAC82C, Charcoal #20242C, Slate #334155 */
+    /* Scholarship Searcher — Spectrum Blue #003DA5, Green #2ECC71, Gold #D4A843, Red #E74C3C, Charcoal #2D2D2D */
     --background: 0 0% 100%;
-    --foreground: 220 17% 15%;       /* charcoal #20242C */
+    --foreground: 0 0% 18%;          /* charcoal #2D2D2D */
     --card: 0 0% 100%;
-    --card-foreground: 220 17% 15%;
+    --card-foreground: 0 0% 18%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 17% 15%;
+    --popover-foreground: 0 0% 18%;
 
-    /* Primary = Spectrum Gold (CTA color) */
-    --primary: 43 96% 58%;           /* #FAC82C */
-    --primary-foreground: 220 17% 15%;
-    --primary-light: 43 96% 70%;
+    /* Primary = Spectrum Blue (trust/authority) */
+    --primary: 217 100% 32%;         /* #003DA5 */
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 217 80% 50%;
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 220 17% 15%;
-    --muted: 210 30% 95%;
-    --muted-foreground: 215 25% 35%;
+    --secondary: 210 33% 96%;        /* #F8F9FA */
+    --secondary-foreground: 0 0% 18%;
+    --muted: 210 25% 95%;
+    --muted-foreground: 0 0% 35%;
 
-    /* Accent = Spectrum Blue */
-    --accent: 199 99% 50%;           /* #02B2FC */
-    --accent-foreground: 0 0% 100%;
-    --accent-dark: 199 99% 40%;
+    /* Accent = Spectrum Gold (CTA highlights, achievement) */
+    --accent: 43 63% 55%;            /* #D4A843 */
+    --accent-foreground: 0 0% 18%;
+    --accent-dark: 43 63% 45%;
 
-    --destructive: 351 100% 53%;     /* #FF0F3B Spectrum Red */
+    --destructive: 6 78% 57%;        /* #E74C3C Spectrum Red */
     --destructive-foreground: 0 0% 100%;
-    --border: 210 20% 88%;
-    --input: 210 20% 88%;
-    --ring: 43 96% 58%;
+    --border: 210 16% 88%;
+    --input: 210 16% 88%;
+    --ring: 217 100% 32%;
     --radius: 0.5rem;
 
-    /* Spectrum Tuition tokens */
-    --ink: 220 17% 15%;              /* #20242C */
+    /* Brand tokens */
+    --ink: 0 0% 18%;                 /* #2D2D2D */
     --canvas: 0 0% 100%;
-    --hero-dark: 222 18% 21%;        /* #2C323F */
-    --slate: 215 25% 27%;            /* #334155 */
+    --hero-dark: 232 39% 14%;        /* #1a1a2e */
+    --slate: 215 25% 27%;
+    --navy-metallic: 220 47% 20%;    /* #1B2A4A */
 
-    /* Rainbow accents */
-    --gold: 43 96% 58%;              /* #FAC82C */
-    --gold-light: 49 100% 95%;       /* #FFFAE7 */
-    --spec-blue: 199 99% 50%;        /* #02B2FC */
-    --spec-blue-light: 200 80% 94%;  /* #EDF8FD */
-    --spec-green: 76 70% 45%;        /* #8FC225 */
-    --spec-green-light: 75 50% 95%;  /* #F6FAEB */
-    --spec-orange: 28 100% 57%;      /* #FF8822 */
-    --spec-orange-light: 30 75% 95%; /* #FCF5ED */
-    --spec-red: 351 100% 53%;        /* #FF0F3B */
+    /* Spectrum brand accents */
+    --gold: 43 63% 55%;              /* #D4A843 */
+    --gold-light: 43 80% 94%;
+    --spec-blue: 217 100% 32%;       /* #003DA5 */
+    --spec-blue-light: 217 60% 94%;
+    --spec-green: 145 63% 49%;       /* #2ECC71 */
+    --spec-green-light: 145 60% 94%;
+    --spec-red: 6 78% 57%;           /* #E74C3C */
+    --spec-red-light: 6 80% 95%;
+    --spec-orange: 6 78% 57%;        /* alias to red for legacy */
+    --spec-orange-light: 6 80% 95%;
 
     /* Legacy aliases kept for component compatibility */
-    --cream: 49 100% 95%;
-    --teal: 199 99% 50%;
-    --teal-light: 200 80% 94%;
-    --coral: 351 100% 53%;
-    --coral-light: 0 80% 95%;
+    --cream: 43 80% 94%;
+    --teal: 145 63% 49%;
+    --teal-light: 145 60% 94%;
+    --coral: 6 78% 57%;
+    --coral-light: 6 80% 95%;
 
     --font-display: 'Century Gothic', 'Nunito', 'Trebuchet MS', sans-serif;
     --font-body: 'Century Gothic', 'Nunito', Arial, Helvetica, sans-serif;
 
-    --shadow-sm: 0 1px 3px rgba(32,36,44,0.06);
-    --shadow-md: 0 4px 20px rgba(32,36,44,0.08);
-    --shadow-lg: 0 12px 50px rgba(32,36,44,0.12);
-    --shadow-brand: 0 8px 24px rgba(250,200,44,0.45);
+    --shadow-sm: 0 1px 3px rgba(45,45,45,0.06);
+    --shadow-md: 0 4px 20px rgba(45,45,45,0.08);
+    --shadow-lg: 0 12px 50px rgba(45,45,45,0.12);
+    --shadow-brand: 0 8px 24px rgba(0,61,165,0.35);
 
-    /* Brand gradient = gold (CTA-style); rainbow used only for divider bar */
-    --gradient-brand: linear-gradient(135deg, hsl(43 96% 58%) 0%, hsl(43 96% 50%) 100%);
-    --gradient-text: linear-gradient(90deg, hsl(220 17% 15%) 0%, hsl(43 96% 50%) 100%);
-    --gradient-canvas: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(200 80% 98%) 100%);
+    /* Brand gradient = Spectrum Blue (primary CTA); rainbow used for divider/wordmark */
+    --gradient-brand: linear-gradient(135deg, hsl(217 100% 32%) 0%, hsl(217 100% 24%) 100%);
+    --gradient-text: linear-gradient(90deg,
+      hsl(217 100% 32%) 0%,
+      hsl(145 63% 49%) 35%,
+      hsl(43 63% 55%) 70%,
+      hsl(6 78% 57%) 100%);
+    --gradient-canvas: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(210 33% 98%) 100%);
     --gradient-rainbow: linear-gradient(90deg,
-      hsl(199 99% 50%) 0%,
-      hsl(180 80% 50%) 20%,
-      hsl(76 70% 45%) 40%,
-      hsl(43 96% 58%) 60%,
-      hsl(28 100% 57%) 80%,
-      hsl(351 100% 53%) 100%);
+      hsl(217 100% 32%) 0%,
+      hsl(145 63% 49%) 33%,
+      hsl(43 63% 55%) 66%,
+      hsl(6 78% 57%) 100%);
 
-    --glow-primary: 0 0 30px hsl(43 96% 58% / 0.30);
-    --glow-accent: 0 0 30px hsl(199 99% 50% / 0.22);
-    --glow-gold: 0 0 30px hsl(43 96% 58% / 0.30);
+    --glow-primary: 0 0 30px hsl(217 100% 32% / 0.28);
+    --glow-accent: 0 0 30px hsl(43 63% 55% / 0.28);
+    --glow-gold: 0 0 30px hsl(43 63% 55% / 0.30);
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 220 17% 15%;
-    --sidebar-primary: 43 96% 58%;
-    --sidebar-primary-foreground: 220 17% 15%;
-    --sidebar-accent: 210 40% 96%;
-    --sidebar-accent-foreground: 220 17% 15%;
-    --sidebar-border: 210 20% 88%;
-    --sidebar-ring: 43 96% 58%;
+    --sidebar-foreground: 0 0% 18%;
+    --sidebar-primary: 217 100% 32%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 33% 96%;
+    --sidebar-accent-foreground: 0 0% 18%;
+    --sidebar-border: 210 16% 88%;
+    --sidebar-ring: 217 100% 32%;
   }
 }
 
@@ -156,12 +160,12 @@
   .glass {
     background: hsl(0 0% 100% / 0.92);
     backdrop-filter: blur(20px);
-    border: 1px solid hsl(210 20% 88% / 0.9);
+    border: 1px solid hsl(210 16% 88% / 0.9);
   }
   .glass-strong {
     background: hsl(0 0% 100% / 0.98);
     backdrop-filter: blur(24px);
-    border: 1px solid hsl(210 20% 88%);
+    border: 1px solid hsl(210 16% 88%);
   }
 
   /* Spectrum signature gradient bar — use between hero and content */
@@ -171,15 +175,42 @@
     background: var(--gradient-rainbow);
   }
 
+  /* Frosted glass button — Spectrum Tuition style with rainbow bottom accent */
+  .btn-frosted {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: background 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
+  }
+  .btn-frosted:hover { background: rgba(255, 255, 255, 0.25); }
+  .btn-frosted::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 3px;
+    background: var(--gradient-rainbow);
+  }
+
   /* Hero dot grid */
   .hero-dot-grid {
-    background-image: radial-gradient(rgba(32,36,44,0.10) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(45,45,45,0.10) 1px, transparent 1px);
     background-size: 32px 32px;
     -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 0%, transparent 100%);
             mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 0%, transparent 100%);
   }
   .hero-radial {
-    background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(2,178,252,0.10) 0%, rgba(250,200,44,0.08) 50%, transparent 80%);
+    background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(0,61,165,0.10) 0%, rgba(212,168,67,0.08) 50%, transparent 80%);
   }
 
   .card-shine { position: relative; overflow: hidden; }
@@ -188,7 +219,7 @@
     position: absolute;
     top: 0; left: -75%;
     width: 50%; height: 100%;
-    background: linear-gradient(90deg, transparent, hsl(43 96% 58% / 0.10), transparent);
+    background: linear-gradient(90deg, transparent, hsl(217 100% 32% / 0.10), transparent);
     transform: skewX(-20deg);
     transition: left 0.6s ease;
   }
