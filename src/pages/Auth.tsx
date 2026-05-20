@@ -7,7 +7,8 @@ import {
   Eye, EyeOff, Sparkles, Check, ChevronLeft, ChevronRight,
   User, Compass, Palette, Target, PartyPopper, Loader2,
 } from "lucide-react";
-import logoMark from "@/assets/logo-mark.svg";
+import logoHorizontal from "@/assets/searcher-navbar-light.png";
+import { Link } from "react-router-dom";
 import { stateFromPostcode, lookupSuburbsForPostcode } from "@/lib/postcode";
 import { Slider } from "@/components/ui/slider";
 import SpectrumWheel from "@/components/navigator/SpectrumWheel";
