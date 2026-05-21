@@ -182,9 +182,28 @@ const StudentDashboard = () => {
 
       {/* Quick links */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <QuickCard icon={BookOpen} title="Assessments" desc="Verify your academic readiness." href="/assessments" />
-        <QuickCard icon={Sparkles} title="AI Copilot" desc="Personalised guidance & gap fixes." href="/copilot" badge="AI" />
-        <QuickCard icon={TrendingUp} title="Readiness Score" desc="See what's driving your number." href="/readiness" />
+        <QuickCard
+          icon={BookOpen}
+          title="Assessments"
+          desc="Verify your academic readiness."
+          href="/assessments"
+          tip="Short timed quizzes per subject and year band. Each completion adds points to your Readiness Score and unlocks better scholarship matches."
+        />
+        <QuickCard
+          icon={Sparkles}
+          title="AI Copilot"
+          desc="Personalised guidance & gap fixes."
+          href="/copilot"
+          badge="AI"
+          tip="Your private coach. It already knows your wheel, shortlist and applications — ask it to pick priorities, draft personal statements, or explain what's blocking your next band."
+        />
+        <QuickCard
+          icon={TrendingUp}
+          title="Readiness Score"
+          desc="See what's driving your number."
+          href="/readiness"
+          tip="A 0–100 score made from your wheel ratings, completed assessments and profile completeness. Hit thresholds to climb from Earth → Aether and unlock elite scholarships."
+        />
       </div>
 
       {/* Personal profile */}
