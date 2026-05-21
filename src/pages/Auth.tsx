@@ -310,10 +310,7 @@ const Auth = () => {
       if (password.length < 8) return "Password must be at least 8 characters.";
     }
     if (s === 3) {
-      if (!applyingYearLevel) return "Please choose the year level you're applying for.";
-      if (!targetStartYear) return "Please choose a target start year.";
-      if (preferredSectors.length === 0) return "Please choose at least one preferred sector.";
-      if (!willingToBoard) return "Please choose a boarding preference.";
+      return null;
     }
     return null;
   };
