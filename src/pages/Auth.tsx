@@ -492,9 +492,9 @@ const Auth = () => {
             <img src={logoHorizontal} alt="Opportunity Searcher" className="h-12 w-auto" draggable={false} />
           </Link>
           <h1 className="font-display text-3xl md:text-4xl font-extrabold text-foreground text-center">
-            {step === 4 ? "Your matches are ready" : "Let's build your opportunity profile"}
+            {step === 3 ? "Your matches are ready" : "Let's build your opportunity profile"}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1.5">Step {step + 1} of 5 · Takes less than 3 minutes</p>
+          <p className="text-sm text-muted-foreground mt-1.5">Step {step + 1} of 4 · Takes less than 3 minutes</p>
         </div>
 
         <StepIndicator />
