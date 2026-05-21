@@ -603,12 +603,6 @@ const Auth = () => {
                     </div>
                   </Field>
                 </div>
-                <div className="mt-4">
-                  <Field label="Parent Email">
-                    <input type="email" value={parentEmail} onChange={(e) => setParentEmail(e.target.value)} placeholder="e.g. parent@email.com — for progress updates" className={inputCls} />
-                    <p className="text-[11px] text-muted-foreground mt-1">We'll send your parents occasional progress updates if you provide their email.</p>
-                  </Field>
-                </div>
               </div>
             </div>
           )}
