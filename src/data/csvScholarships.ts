@@ -366,25 +366,32 @@ export async function fetchCategoryCounts(): Promise<Record<string, number>> {
   return counts;
 }
 
-// Kept for Shortlist page — loads only the user's shortlisted ids
+// Kept for Shortlist page — loads only the user's shortlisted ids.
+// Supports two id formats stored historically:
+//   - UUID primary key from `scholarships.id` (current format used by /scholarships)
+//   - Legacy "{acara_id}-{row_number}" composite string (used by SchoolCard)
 export async function fetchScholarshipsByIds(ids: string[]): Promise<SchoolScholarship[]> {
   if (ids.length === 0) return [];
-  // ids look like "{acara_id}-{row_number}". We'll fetch by acara_id list and filter in JS.
-  const acaraIds = Array.from(new Set(ids.map((i) => i.split("-")[0]).filter(Boolean)));
-  const today = getTodayLocal();
-  const { data, error } = await supabase
-    .from("scholarships")
-    .select("*")
-    .in("acara_id", acaraIds)
-    .or(`application_close_date.is.null,application_close_date.gte.${today}`);
-  if (error || !data) {
-    console.error("fetchScholarshipsByIds error:", error);
-    return [];
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const uuidIds = ids.filter((i) => UUID_RE.test(i));
+  const legacyIds = ids.filter((i) => !UUID_RE.test(i));
+  const acaraIds = Array.from(new Set(legacyIds.map((i) => i.split("-")[0]).filter(Boolean)));
+
+  const results: any[] = [];
+  if (uuidIds.length) {
+    const { data, error } = await supabase.from("scholarships").select("*").in("id", uuidIds);
+    if (error) console.error("fetchScholarshipsByIds (uuid) error:", error);
+    else if (data) results.push(...data);
   }
-  const wanted = new Set(ids);
-  return data
-    .map(mapRow)
-    .filter((s) => wanted.has(`${s.acara_id}-${s.row}`));
+  if (acaraIds.length) {
+    const { data, error } = await supabase.from("scholarships").select("*").in("acara_id", acaraIds);
+    if (error) console.error("fetchScholarshipsByIds (legacy) error:", error);
+    else if (data) {
+      const wanted = new Set(legacyIds);
+      results.push(...data.filter((d: any) => wanted.has(`${d.acara_id}-${d.row_number}`)));
+    }
+  }
+  return results.map(mapRow);
 }
 
 export async function loadScholarshipsFromCSV(): Promise<SchoolScholarship[]> {

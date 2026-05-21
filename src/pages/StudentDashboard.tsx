@@ -182,9 +182,28 @@ const StudentDashboard = () => {
 
       {/* Quick links */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <QuickCard icon={BookOpen} title="Assessments" desc="Verify your academic readiness." href="/assessments" />
-        <QuickCard icon={Sparkles} title="AI Copilot" desc="Personalised guidance & gap fixes." href="/copilot" badge="AI" />
-        <QuickCard icon={TrendingUp} title="Readiness Score" desc="See what's driving your number." href="/readiness" />
+        <QuickCard
+          icon={BookOpen}
+          title="Assessments"
+          desc="Verify your academic readiness."
+          href="/assessments"
+          tip="Short timed quizzes per subject and year band. Each completion adds points to your Readiness Score and unlocks better scholarship matches."
+        />
+        <QuickCard
+          icon={Sparkles}
+          title="AI Copilot"
+          desc="Personalised guidance & gap fixes."
+          href="/copilot"
+          badge="AI"
+          tip="Your private coach. It already knows your wheel, shortlist and applications — ask it to pick priorities, draft personal statements, or explain what's blocking your next band."
+        />
+        <QuickCard
+          icon={TrendingUp}
+          title="Readiness Score"
+          desc="See what's driving your number."
+          href="/readiness"
+          tip="A 0–100 score made from your wheel ratings, completed assessments and profile completeness. Hit thresholds to climb from Earth → Aether and unlock elite scholarships."
+        />
       </div>
 
       {/* Personal profile */}
@@ -243,7 +262,7 @@ function StatTile({ icon: Icon, label, value, href, tone }: { icon: any; label: 
   );
 }
 
-function QuickCard({ icon: Icon, title, desc, href, badge }: { icon: any; title: string; desc: string; href: string; badge?: string }) {
+function QuickCard({ icon: Icon, title, desc, href, badge, tip }: { icon: any; title: string; desc: string; href: string; badge?: string; tip?: string }) {
   return (
     <Link to={href} className="no-underline">
       <Card className="p-5 h-full hover:shadow-md transition-shadow">
@@ -255,6 +274,7 @@ function QuickCard({ icon: Icon, title, desc, href, badge }: { icon: any; title:
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-foreground">{title}</h3>
               {badge && <Badge variant="secondary" className="text-[9px]">{badge}</Badge>}
+              {tip && <span onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}><InfoTip content={tip} /></span>}
             </div>
             <p className="text-xs text-muted-foreground mt-1">{desc}</p>
           </div>
