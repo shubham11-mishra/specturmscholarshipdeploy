@@ -32,7 +32,7 @@ const ELEMENTS = [
 ] as const;
 
 const StudentDashboard = () => {
-  const { user, fullName, yearLevel } = useAuth();
+  const { user, fullName, yearLevel, location: loc, interests } = useAuth();
   const { count: shortlistCount, loading: shortlistLoading } = useShortlist();
   const nav = useNavigate();
   const [progress, setProgress] = useState<ProgressRow | null>(null);
