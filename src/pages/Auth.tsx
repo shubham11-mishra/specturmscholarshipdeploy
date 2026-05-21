@@ -294,7 +294,7 @@ const Auth = () => {
     firstName.trim() && lastName.trim() && gender && yearLevel && schoolType &&
     /^\d{4}$/.test(postcode.trim()) && stateCode && suburb.trim() &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) && !emailTaken && password.length >= 8;
-  const step3Valid = applyingYearLevel && targetStartYear && preferredSectors.length > 0 && willingToBoard;
+  const step3Valid = true;
 
   const validateStep = (s: number): string | null => {
     if (s === 0) {
