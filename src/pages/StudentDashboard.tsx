@@ -9,6 +9,8 @@ import {
   Sparkles, ArrowRight, Compass, Pencil, GraduationCap,
   MapPin, Heart, CalendarClock, BookOpen,
 } from "lucide-react";
+import { wheelAverageToScore, bandForScore } from "@/lib/readiness";
+
 
 type ProgressRow = {
   total_points: number | null;
@@ -18,12 +20,13 @@ type ProgressRow = {
 type WheelRow = Record<string, number | null>;
 
 const BANDS = [
-  { key: "earth",  label: "Earth",  stage: "ASSESS",   range: "0–20",   min: 0,  max: 20,  emoji: "🌱" },
-  { key: "water",  label: "Water",  stage: "DISCOVER", range: "21–40",  min: 21, max: 40,  emoji: "💧" },
-  { key: "fire",   label: "Fire",   stage: "PREPARE",  range: "41–60",  min: 41, max: 60,  emoji: "🔥" },
-  { key: "air",    label: "Air",    stage: "ENRICH",   range: "61–80",  min: 61, max: 80,  emoji: "💨" },
-  { key: "aether", label: "Aether", stage: "APPLY",    range: "81–100", min: 81, max: 100, emoji: "✨" },
+  { key: "earth",  label: "Earth",  stage: "ASSESS",   range: "0–20",   min: 0,  max: 20,  emoji: "🌱", color: "#8B6914" },
+  { key: "water",  label: "Water",  stage: "DISCOVER", range: "21–40",  min: 21, max: 40,  emoji: "💧", color: "#02B2FC" },
+  { key: "fire",   label: "Fire",   stage: "PREPARE",  range: "41–60",  min: 41, max: 60,  emoji: "🔥", color: "#FF0F3B" },
+  { key: "air",    label: "Air",    stage: "ENRICH",   range: "61–80",  min: 61, max: 80,  emoji: "💨", color: "#7ECFED" },
+  { key: "aether", label: "Aether", stage: "APPLY",    range: "81–100", min: 81, max: 100, emoji: "✨", color: "#FAC82C" },
 ] as const;
+
 
 const SELF_FIELDS = [
   "academic_self", "stem_self", "arts_creative_self",
@@ -65,20 +68,20 @@ const StudentDashboard = () => {
     return () => { cancelled = true; };
   }, [user]);
 
-  const readiness = Math.max(0, Math.min(100, progress?.total_points ?? 0));
+  const wheelVals = useMemo(() => {
+    if (!wheel) return [] as number[];
+    return SELF_FIELDS
+      .map(f => (typeof wheel[f] === "number" ? (wheel[f] as number) : null))
+      .filter((v): v is number => v !== null);
+  }, [wheel]);
+
+  const wheelAvg = wheelVals.length ? wheelVals.reduce((a, b) => a + b, 0) / wheelVals.length : null;
+  const readiness = useMemo(() => wheelVals.length ? wheelAverageToScore(wheelVals) : 0, [wheelVals]);
   const currentBand = useMemo(
     () => BANDS.find(b => readiness >= b.min && readiness <= b.max) ?? BANDS[0],
     [readiness]
   );
 
-  const wheelAvg = useMemo(() => {
-    if (!wheel) return null;
-    const vals = SELF_FIELDS
-      .map(f => (typeof wheel[f] === "number" ? (wheel[f] as number) : null))
-      .filter((v): v is number => v !== null);
-    if (!vals.length) return null;
-    return vals.reduce((a, b) => a + b, 0) / vals.length;
-  }, [wheel]);
 
   const firstName = fullName?.split(" ")[0] || "there";
   const locText = [loc.suburb, loc.state].filter(Boolean).join(", ");
@@ -125,10 +128,13 @@ const StudentDashboard = () => {
               Five-element journey
             </div>
             <h2 className="mt-1 font-display font-bold text-lg">
-              Readiness score · <span className="text-[hsl(var(--spec-red,0_70%_55%))] text-[hsl(0,72%,55%)]">{readiness}/100</span>
+              Readiness score · <span style={{ color: currentBand.color }}>{readiness}/100</span>
             </h2>
           </div>
-          <span className="inline-flex items-center rounded-full bg-[hsl(0,72%,55%)] text-white text-[10px] font-bold uppercase tracking-[0.14em] px-3 py-1">
+          <span
+            className="inline-flex items-center rounded-full text-white text-[10px] font-bold uppercase tracking-[0.14em] px-3 py-1"
+            style={{ background: currentBand.color }}
+          >
             You are here
           </span>
         </div>
@@ -139,12 +145,12 @@ const StudentDashboard = () => {
             return (
               <div
                 key={b.key}
-                className={[
-                  "rounded-2xl border text-center px-3 py-4 transition-all",
+                className="rounded-2xl border text-center px-3 py-4 transition-all"
+                style={
                   active
-                    ? "bg-[hsl(0,72%,55%)] text-white border-transparent shadow-md"
-                    : "bg-card hover:border-primary/40",
-                ].join(" ")}
+                    ? { background: b.color, color: "white", borderColor: "transparent" }
+                    : undefined
+                }
               >
                 <div className="text-2xl">{b.emoji}</div>
                 <div className="mt-1 font-semibold text-sm">{b.label}</div>
@@ -155,6 +161,7 @@ const StudentDashboard = () => {
             );
           })}
         </div>
+
       </Card>
 
       {/* Action shortcuts */}
