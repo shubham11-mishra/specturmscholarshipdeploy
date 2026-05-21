@@ -30,11 +30,7 @@ const AppLayout = ({ children, pageTitle }: { children: ReactNode; pageTitle: st
     if (!loading && !user) navigate("/auth");
   }, [loading, user, navigate]);
 
-  // Role-aware redirect: admins landing on /dashboard get the admin panel.
-  useEffect(() => {
-    if (loading || roleLoading || !user) return;
-    if (pathname === "/dashboard" && role === "admin") navigate("/admin", { replace: true });
-  }, [loading, roleLoading, user, role, pathname, navigate]);
+  // Admins can browse the student portal freely; access /admin via sidebar.
 
   if (loading || !user) {
     return (
