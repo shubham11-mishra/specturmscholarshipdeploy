@@ -68,20 +68,20 @@ const StudentDashboard = () => {
     return () => { cancelled = true; };
   }, [user]);
 
-  const readiness = Math.max(0, Math.min(100, progress?.total_points ?? 0));
+  const wheelVals = useMemo(() => {
+    if (!wheel) return [] as number[];
+    return SELF_FIELDS
+      .map(f => (typeof wheel[f] === "number" ? (wheel[f] as number) : null))
+      .filter((v): v is number => v !== null);
+  }, [wheel]);
+
+  const wheelAvg = wheelVals.length ? wheelVals.reduce((a, b) => a + b, 0) / wheelVals.length : null;
+  const readiness = useMemo(() => wheelVals.length ? wheelAverageToScore(wheelVals) : 0, [wheelVals]);
   const currentBand = useMemo(
     () => BANDS.find(b => readiness >= b.min && readiness <= b.max) ?? BANDS[0],
     [readiness]
   );
 
-  const wheelAvg = useMemo(() => {
-    if (!wheel) return null;
-    const vals = SELF_FIELDS
-      .map(f => (typeof wheel[f] === "number" ? (wheel[f] as number) : null))
-      .filter((v): v is number => v !== null);
-    if (!vals.length) return null;
-    return vals.reduce((a, b) => a + b, 0) / vals.length;
-  }, [wheel]);
 
   const firstName = fullName?.split(" ")[0] || "there";
   const locText = [loc.suburb, loc.state].filter(Boolean).join(", ");
