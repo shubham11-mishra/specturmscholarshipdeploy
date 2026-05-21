@@ -13,7 +13,6 @@ const navItems = [
   { label: "AI Copilot", icon: "✨", path: "/copilot", badge: "AI" },
   { label: "Applications", icon: "📝", path: "/applications" },
   { label: "Wins", icon: "🏆", path: "/wins" },
-  
   { label: "Profile", icon: "👤", path: "/profile" },
 ];
 
@@ -32,9 +31,7 @@ const Sidebar = () => {
   const { isAdmin } = useIsAdmin();
   const location = useLocation();
 
-  const items = isAdmin
-    ? [...navItems, { label: "Assessment Editor", icon: "🛠️", path: "/admin/assessments", badge: "ADMIN" }]
-    : navItems;
+  const items = navItems;
 
   return (
     <aside className="w-60 flex-shrink-0 flex flex-col h-screen sticky top-0" style={{ background: "hsl(var(--hero-dark))", color: "white" }}>
@@ -111,6 +108,21 @@ const Sidebar = () => {
           );
         })}
       </nav>
+
+      {isAdmin && (
+        <div className="px-3 pb-2">
+          <Link
+            to="/admin"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-semibold no-underline text-white/75 hover:bg-white/5 hover:text-white"
+          >
+            <span className="text-base">🛠️</span>
+            <span className="flex-1">Admin Panel</span>
+            <span className="text-[9px] font-bold text-white px-1.5 py-0.5 rounded-full" style={{ background: "hsl(var(--spec-red))" }}>
+              ADMIN
+            </span>
+          </Link>
+        </div>
+      )}
 
       <div className="px-6 py-3 text-[10px] text-white/35">
         Spectrum Navigator · v1.0
