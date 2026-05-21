@@ -783,7 +783,7 @@ const Auth = () => {
               className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground bg-transparent border-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
               <ChevronLeft className="w-4 h-4" /> Back
             </button>
-            <button type="button" onClick={goNext} disabled={continueDisabled}
+            <button type="button" onClick={goNext}
               className="bg-primary text-primary-foreground rounded-xl px-6 py-3 text-sm font-bold cursor-pointer hover:opacity-95 transition-all inline-flex items-center gap-2 border-none shadow-brand disabled:opacity-40 disabled:cursor-not-allowed">
               Continue <ChevronRight className="w-4 h-4" />
             </button>
