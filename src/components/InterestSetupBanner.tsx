@@ -53,7 +53,7 @@ const InterestSetupBanner = () => {
               Set your interests
             </div>
             <p className="text-sm text-muted-foreground">
-              Pick a few categories to show personalized scholarship matches.
+              Pick a few categories to show personalized opportunity matches.
             </p>
           </div>
 

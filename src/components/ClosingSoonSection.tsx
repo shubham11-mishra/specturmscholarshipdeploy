@@ -26,7 +26,7 @@ const ClosingSoonSection = ({ onViewAll }: Props) => {
         <div>
           <div className="text-[10px] font-bold tracking-[0.2em] text-accent uppercase mb-2">Featured</div>
           <h2 className="font-display font-extrabold text-foreground text-[28px] md:text-[40px] leading-tight">
-            Explore Scholarship
+            Explore Opportunities
           </h2>
         </div>
         <button

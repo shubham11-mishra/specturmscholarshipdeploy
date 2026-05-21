@@ -426,7 +426,7 @@ const Index = () => {
             Ready to Find Your Match?
           </h2>
           <p className="text-primary-foreground/80 text-[15px] font-light tracking-wide mb-8 max-w-[480px] mx-auto">
-            Create a free account and start discovering scholarships in minutes.
+            Create a free account and start discovering opportunities in minutes.
           </p>
           <button
             onClick={() => navigate("/auth")}

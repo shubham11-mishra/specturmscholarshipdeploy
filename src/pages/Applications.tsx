@@ -155,7 +155,7 @@ const Applications = () => {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" asChild>
-              <a href="https://scholarshipsearcher.com.au/#results-grid">Browse scholarships</a>
+              <a href="https://scholarshipsearcher.com.au/#results-grid">Browse opportunities</a>
             </Button>
             <Button asChild className="gradient-brand text-primary-foreground">
               <Link to="/wins">

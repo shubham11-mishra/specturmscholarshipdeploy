@@ -111,7 +111,7 @@ const StudentDashboard = () => {
         </p>
 
         <div className="mt-7 grid grid-cols-3 gap-6 max-w-xl">
-          <HeroStat value={scholarshipCount} label="Eligible scholarships" />
+          <HeroStat value={scholarshipCount} label="Eligible opportunities" />
           <HeroStat value={shortlistCount} label="Shortlisted" />
           <HeroStat value={wheelAvg !== null ? `${wheelAvg.toFixed(1)}/10` : "—"} label="Wheel average" />
         </div>
@@ -159,7 +159,7 @@ const StudentDashboard = () => {
 
       {/* Action shortcuts */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <ActionCard icon={Compass} title="Browse scholarships" desc="Find your next opportunity" onClick={() => { window.location.href = "https://scholarshipsearcher.com.au/#results-grid"; }} />
+        <ActionCard icon={Compass} title="Browse opportunities" desc="Find your next opportunity" onClick={() => { window.location.href = "https://scholarshipsearcher.com.au/#results-grid"; }} />
         <ActionCard icon={Sparkles} title="Open Navigator" desc="Update your Spectrum Wheel" onClick={() => nav("/navigator")} />
         <ActionCard icon={Pencil} title="Edit profile" desc="Year level, location, interests" onClick={() => nav("/profile/edit")} />
       </div>

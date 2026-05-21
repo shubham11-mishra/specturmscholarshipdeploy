@@ -57,7 +57,7 @@ const CategoryQuickLinks = ({ active, counts, onSelect }: Props) => (
                 {label}
               </div>
               <div className="text-[12px] text-foreground/45 tracking-[0.04em]">
-                {(counts[label] ?? 0).toLocaleString()} scholarships
+                {(counts[label] ?? 0).toLocaleString()} opportunities
               </div>
             </div>
             <ChevronRight
