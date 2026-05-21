@@ -7,14 +7,13 @@ import logoMark from "@/assets/logo-mark.svg";
 
 const navItems = [
   { label: "Dashboard", icon: "📋", path: "/dashboard", end: true },
-  { label: "Scholarships", icon: "🎯", path: "/scholarships" },
+  { label: "Scholarships", icon: "🎯", path: "/" },
   { label: "Shortlist", icon: "❤️", path: "/shortlist" },
   { label: "Readiness", icon: "📊", path: "/readiness" },
   { label: "AI Copilot", icon: "✨", path: "/copilot", badge: "AI" },
   { label: "Assessments", icon: "📚", path: "/assessments" },
   { label: "Applications", icon: "📝", path: "/applications" },
   { label: "Wins", icon: "🏆", path: "/wins" },
-  { label: "Profile", icon: "👤", path: "/profile" },
 ];
 
 const getInitials = (name?: string | null) =>
