@@ -63,8 +63,8 @@ const Root = () => (
               <Route path="/dashboard" element={<App title="Dashboard"><StudentDashboard /></App>} />
               <Route path="/profile" element={<App title="My Profile"><Profile /></App>} />
               <Route path="/profile/edit" element={<App title="Edit Profile"><ProfileEdit /></App>} />
-              <Route path="/scholarships" element={<App title="Scholarships"><Scholarships /></App>} />
-              <Route path="/scholarships/:id" element={<App title="Scholarship Detail"><ScholarshipDetail /></App>} />
+              <Route path="/scholarships" element={<App title="Opportunities"><Scholarships /></App>} />
+              <Route path="/scholarships/:id" element={<App title="Opportunity Detail"><ScholarshipDetail /></App>} />
               <Route path="/shortlist" element={<App title="My Shortlist"><Shortlist /></App>} />
               <Route path="/applications" element={<App title="Applications"><Applications /></App>} />
               <Route path="/wins" element={<App title="Wins"><Wins /></App>} />

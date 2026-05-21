@@ -7,7 +7,7 @@ import logoMark from "@/assets/logo-mark.svg";
 
 const navItems = [
   { label: "Dashboard", icon: "📋", path: "/dashboard", end: true },
-  { label: "Scholarships", icon: "🎯", path: "https://scholarshipsearcher.com.au/#results-grid", external: true },
+  { label: "Opportunities", icon: "🎯", path: "https://scholarshipsearcher.com.au/#results-grid", external: true },
   { label: "Shortlist", icon: "❤️", path: "/shortlist" },
   { label: "Readiness", icon: "📊", path: "/readiness" },
   { label: "AI Copilot", icon: "✨", path: "/copilot", badge: "AI" },

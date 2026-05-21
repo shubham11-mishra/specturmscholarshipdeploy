@@ -423,10 +423,10 @@ const Auth = () => {
         <div className="w-full max-w-md">
           <div className="flex flex-col items-center mb-6">
             <Link to="/" aria-label="Back to home" className="mb-3 no-underline">
-              <img src={logoHorizontal} alt="Scholarship Searcher" className="h-12 w-auto" draggable={false} />
+              <img src={logoHorizontal} alt="Opportunity Searcher" className="h-12 w-auto" draggable={false} />
             </Link>
             <h1 className="font-display text-3xl font-extrabold text-foreground text-center">Welcome back</h1>
-            <p className="text-sm text-muted-foreground mt-1">Sign in to access your scholarship matches.</p>
+            <p className="text-sm text-muted-foreground mt-1">Sign in to access your opportunity matches.</p>
           </div>
           <div className="bg-card border border-border rounded-2xl p-6 shadow-md">
             {error && <div className="bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-xl px-4 py-2.5 mb-4">{error}</div>}
@@ -490,10 +490,10 @@ const Auth = () => {
       <div className="max-w-3xl mx-auto">
         <div className="flex flex-col items-center mb-6">
           <Link to="/" aria-label="Back to home" className="mb-4 no-underline">
-            <img src={logoHorizontal} alt="Scholarship Searcher" className="h-12 w-auto" draggable={false} />
+            <img src={logoHorizontal} alt="Opportunity Searcher" className="h-12 w-auto" draggable={false} />
           </Link>
           <h1 className="font-display text-3xl md:text-4xl font-extrabold text-foreground text-center">
-            {step === 4 ? "Your matches are ready" : "Let's build your scholarship profile"}
+            {step === 4 ? "Your matches are ready" : "Let's build your opportunity profile"}
           </h1>
           <p className="text-sm text-muted-foreground mt-1.5">Step {step + 1} of 5 · Takes less than 3 minutes</p>
         </div>
@@ -690,7 +690,7 @@ const Auth = () => {
               </div>
 
               <div>
-                <Field label="🎯 Scholarship categories you're interested in">
+                <Field label="🎯 Opportunity categories you're interested in">
                   <div className="flex flex-wrap gap-2">
                     {SCHOLARSHIP_CATEGORIES.map((c) => (
                       <Chip key={c} active={scholarshipCats.includes(c)} onClick={() => toggleIn(scholarshipCats, setScholarshipCats, c)}>{c}</Chip>
@@ -729,11 +729,11 @@ const Auth = () => {
               ) : (
                 <>
                   <p className="text-foreground font-semibold mb-1">
-                    You're eligible for <span className="bg-foreground text-background rounded-md px-3 py-1 ml-1 font-bold">{eligibleCount} scholarship{eligibleCount === 1 ? "" : "s"}</span>
+                    You're eligible for <span className="bg-foreground text-background rounded-md px-3 py-1 ml-1 font-bold">{eligibleCount} opportunit{eligibleCount === 1 ? "y" : "ies"}</span>
                   </p>
                   <p className="text-sm text-muted-foreground mb-5">
                     {eligibleCount === 0
-                      ? "Your profile is just getting started — head to your dashboard to explore all scholarships and update your Wheel for personalised matches."
+                      ? "Your profile is just getting started — head to your dashboard to explore all opportunities and update your Wheel for personalised matches."
                       : eligibleCount >= 20
                       ? `You're strongly competitive for ${topMatches.length} right now.`
                       : eligibleCount >= 5

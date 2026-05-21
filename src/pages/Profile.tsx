@@ -178,7 +178,7 @@ const Profile = () => {
               </p>
 
               <div className="grid grid-cols-3 gap-4 md:gap-8 mt-7 max-w-[640px]">
-                <Stat value={eligibleCount ?? 0} label="Eligible scholarships" />
+                <Stat value={eligibleCount ?? 0} label="Eligible opportunities" />
                 <Stat value={shortlistCount} label="Shortlisted" />
                 <Stat value={hasWheel ? `${wheelAvg}/10` : "—"} label="Wheel average" />
               </div>
@@ -195,7 +195,7 @@ const Profile = () => {
             <ActionCard
               to="https://scholarshipsearcher.com.au/#results-grid"
               icon={<Target className="w-4 h-4" />}
-              title="Browse scholarships"
+              title="Browse opportunities"
               hint="Find your next opportunity"
             />
             <ActionCard

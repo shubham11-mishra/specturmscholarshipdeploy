@@ -42,8 +42,8 @@ const HeroSection = ({ searchQuery, onSearchChange, onSearch }: HeroSectionProps
         </h1>
 
         <p className="mx-auto max-w-[620px] text-[15px] md:text-[17px] text-white/85 leading-relaxed mb-10">
-          Discover scholarships, selective entry programs, gifted programs,
-          and accelerated learning opportunities across Australia.
+          Discover opportunities, selective entry programs, gifted programs,
+          and accelerated learning pathways across Australia.
         </p>
 
         {/* Search bar */}
@@ -58,7 +58,7 @@ const HeroSection = ({ searchQuery, onSearchChange, onSearch }: HeroSectionProps
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Search by school name or keyword..."
-              aria-label="Search scholarships"
+              aria-label="Search opportunities"
               className="w-full bg-transparent border-0 pl-12 pr-3 py-3.5 text-[15px] text-foreground placeholder:text-foreground/40 outline-none"
             />
           </div>

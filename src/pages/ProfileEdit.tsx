@@ -122,7 +122,7 @@ const ProfileEdit = () => {
               Your Profile
             </h1>
             <p className="text-sm text-muted-foreground">
-              Update your details so we can personalize your scholarship matches.
+              Update your details so we can personalize your opportunity matches.
             </p>
           </div>
 
@@ -244,7 +244,7 @@ const ProfileEdit = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Save changes?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will update your profile details and personalize your scholarship matches.
+              This will update your profile details and personalize your opportunity matches.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
