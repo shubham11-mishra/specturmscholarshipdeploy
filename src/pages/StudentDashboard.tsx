@@ -1,286 +1,242 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useShortlist } from "@/hooks/useShortlist";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import InfoTip from "@/components/InfoTip";
 import {
-  Sparkles, Target, Heart, BookOpen, Trophy, ClipboardCheck,
-  ArrowRight, TrendingUp, AlertCircle, Pencil, GraduationCap, MapPin, Mail, CalendarClock,
+  Sparkles, ArrowRight, Compass, Pencil, GraduationCap,
+  MapPin, Heart, CalendarClock, BookOpen,
 } from "lucide-react";
 
 type ProgressRow = {
-  total_points: number;
-  current_band: string;
-  element_points_earth: number;
-  element_points_water: number;
-  element_points_fire: number;
-  element_points_air: number;
-  element_points_aether: number;
+  total_points: number | null;
+  current_band: string | null;
 };
 
-const ELEMENTS = [
-  { key: "earth", label: "Earth", color: "#8B6F47" },
-  { key: "water", label: "Water", color: "#2EC4B6" },
-  { key: "fire", label: "Fire", color: "#E85D3A" },
-  { key: "air", label: "Air", color: "#A8C0FF" },
-  { key: "aether", label: "Aether", color: "#7B2D8E" },
+type WheelRow = Record<string, number | null>;
+
+const BANDS = [
+  { key: "earth",  label: "Earth",  stage: "ASSESS",   range: "0–20",   min: 0,  max: 20,  emoji: "🌱" },
+  { key: "water",  label: "Water",  stage: "DISCOVER", range: "21–40",  min: 21, max: 40,  emoji: "💧" },
+  { key: "fire",   label: "Fire",   stage: "PREPARE",  range: "41–60",  min: 41, max: 60,  emoji: "🔥" },
+  { key: "air",    label: "Air",    stage: "ENRICH",   range: "61–80",  min: 61, max: 80,  emoji: "💨" },
+  { key: "aether", label: "Aether", stage: "APPLY",    range: "81–100", min: 81, max: 100, emoji: "✨" },
 ] as const;
+
+const SELF_FIELDS = [
+  "academic_self", "stem_self", "arts_creative_self",
+  "sports_self", "leadership_self", "test_readiness_self",
+];
+
+const greeting = () => {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 18) return "Good afternoon";
+  return "Good evening";
+};
 
 const StudentDashboard = () => {
   const { user, fullName, yearLevel, location: loc, interests } = useAuth();
-  const { count: shortlistCount, loading: shortlistLoading } = useShortlist();
+  const { count: shortlistCount } = useShortlist();
   const nav = useNavigate();
+
   const [progress, setProgress] = useState<ProgressRow | null>(null);
-  const [applications, setApplications] = useState<{ status: string; outcome: string | null }[]>([]);
-  const [recentAttempt, setRecentAttempt] = useState<any>(null);
-  const [onboarded, setOnboarded] = useState<boolean | null>(null);
+  const [wheel, setWheel] = useState<WheelRow | null>(null);
+  const [scholarshipCount, setScholarshipCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
     (async () => {
-      try {
-        const [progressRes, appsRes, attemptRes, profileRes] = await Promise.all([
-          supabase.from("student_progress").select("*").eq("user_id", user.id).maybeSingle(),
-          supabase.from("applications").select("status,outcome").eq("user_id", user.id),
-          supabase.from("assessment_attempts").select("id,subject,total_score,completed_at,status")
-            .eq("student_id", user.id).order("updated_at", { ascending: false }).limit(1),
-          supabase.from("profiles").select("onboarding_completed").eq("id", user.id).maybeSingle(),
-        ]);
-        if (cancelled) return;
-        setProgress((progressRes.data as ProgressRow) ?? null);
-        setApplications(appsRes.data ?? []);
-        setRecentAttempt(attemptRes.data?.[0] ?? null);
-        setOnboarded(profileRes.data?.onboarding_completed ?? false);
-      } catch (e: any) {
-        if (!cancelled) setError(e.message ?? "Could not load dashboard");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+      const [progressRes, wheelRes, schoRes] = await Promise.all([
+        supabase.from("student_progress").select("total_points,current_band").eq("user_id", user.id).maybeSingle(),
+        supabase.from("wheel_scores").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("scholarships").select("*", { count: "exact", head: true }),
+      ]);
+      if (cancelled) return;
+      setProgress((progressRes.data as ProgressRow) ?? null);
+      setWheel((wheelRes.data as unknown as WheelRow) ?? null);
+      setScholarshipCount(schoRes.count ?? 0);
+      setLoading(false);
     })();
     return () => { cancelled = true; };
   }, [user]);
 
-  const totalPoints = progress?.total_points ?? 0;
-  const readinessPct = Math.min(100, Math.round((totalPoints / 100) * 100));
-  const winsCount = applications.filter(a => a.outcome === "won").length;
-  const inProgressApps = applications.filter(a => !a.outcome && a.status !== "not_started").length;
+  const readiness = Math.max(0, Math.min(100, progress?.total_points ?? 0));
+  const currentBand = useMemo(
+    () => BANDS.find(b => readiness >= b.min && readiness <= b.max) ?? BANDS[0],
+    [readiness]
+  );
 
-  // Smart next step
-  const nextStep = (() => {
-    if (onboarded === false) return { label: "Finish your profile", href: "/profile/edit", desc: "Spend 2 minutes so we can match scholarships." };
-    if (!recentAttempt || recentAttempt.status !== "completed") return { label: "Take an assessment", href: "/assessments", desc: "Earn +15 Readiness Points and unlock matches." };
-    if (shortlistCount === 0) return { label: "Browse scholarships", href: "/scholarships", desc: "Shortlist 3 to focus your applications." };
-    if (inProgressApps === 0) return { label: "Start your first application", href: "/applications", desc: "Turn a shortlist pick into a real application." };
-    return { label: "Open AI Copilot", href: "/copilot", desc: "Get personalised next actions." };
-  })();
+  const wheelAvg = useMemo(() => {
+    if (!wheel) return null;
+    const vals = SELF_FIELDS
+      .map(f => (typeof wheel[f] === "number" ? (wheel[f] as number) : null))
+      .filter((v): v is number => v !== null);
+    if (!vals.length) return null;
+    return vals.reduce((a, b) => a + b, 0) / vals.length;
+  }, [wheel]);
+
+  const firstName = fullName?.split(" ")[0] || "there";
+  const locText = [loc.suburb, loc.state].filter(Boolean).join(", ");
 
   if (loading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-48 w-full rounded-3xl" />
+        <Skeleton className="h-56 w-full rounded-3xl" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[0,1,2].map(i => <Skeleton key={i} className="h-40" />)}
+          {[0,1,2].map(i => <Skeleton key={i} className="h-20 rounded-2xl" />)}
         </div>
       </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card className="p-8 text-center">
-        <AlertCircle className="w-10 h-10 mx-auto text-destructive mb-3" />
-        <h2 className="font-bold">Couldn't load dashboard</h2>
-        <p className="text-sm text-muted-foreground mt-1">{error}</p>
-      </Card>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Hero / Next step */}
-      <Card className="p-6 md:p-8 bg-gradient-to-br from-primary/10 via-background to-accent/10 border-2">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div className="flex-1 min-w-0">
-            <div className="text-sm text-muted-foreground">Welcome back</div>
-            <h1 className="text-2xl md:text-3xl font-display font-bold mt-1">
-              {fullName?.split(" ")[0] || "Hello"} 👋
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {yearLevel ? `Year ${yearLevel}` : "Student"} · Band: {progress?.current_band ?? "Earth"}
-            </p>
-
-            <div className="mt-5 p-4 rounded-xl bg-card border">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
-                <Sparkles className="w-3.5 h-3.5" /> Next step
-              </div>
-              <div className="mt-1 font-semibold">{nextStep.label}</div>
-              <p className="text-sm text-muted-foreground mt-1">{nextStep.desc}</p>
-              <Button onClick={() => nav(nextStep.href)} className="mt-3" size="sm">
-                Continue <ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Readiness ring */}
-          <div className="flex flex-col items-center gap-2 shrink-0">
-            <div className="relative w-32 h-32">
-              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="44" stroke="hsl(var(--muted))" strokeWidth="10" fill="none" />
-                <circle cx="50" cy="50" r="44" stroke="hsl(var(--primary))" strokeWidth="10" fill="none"
-                  strokeDasharray={`${(readinessPct/100) * 276.46} 276.46`} strokeLinecap="round" />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <div className="text-3xl font-bold">{readinessPct}</div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">of 100</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-              Readiness <InfoTip content="Your 0–100 readiness score. Earn points by completing assessments, building your profile, and submitting applications." />
-            </div>
-          </div>
+      {/* Gradient hero */}
+      <div className="relative overflow-hidden rounded-3xl p-8 md:p-10 text-white shadow-lg
+        bg-[linear-gradient(110deg,#2547a8_0%,#3a5fb8_35%,#8a8a5e_70%,#c9a44c_100%)]">
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em]">
+          <Sparkles className="w-3 h-3" /> Your Spectrum Dashboard
         </div>
-      </Card>
+        <h1 className="mt-4 font-display text-3xl md:text-4xl font-bold">
+          {greeting()}, {firstName} <span className="ml-1">👋</span>
+        </h1>
+        <p className="mt-2 text-sm text-white/80">
+          {yearLevel ? `Year ${yearLevel}` : "Student"}{locText ? ` · ${locText}` : ""}
+        </p>
 
-      {/* Stat tiles */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatTile icon={Target} label="Total points" value={totalPoints} href="/readiness" tone="primary" />
-        <StatTile icon={Heart} label="Shortlist" value={shortlistLoading ? "…" : shortlistCount} href="/shortlist" tone="red" />
-        <StatTile icon={ClipboardCheck} label="Applications" value={applications.length} href="/applications" tone="teal" />
-        <StatTile icon={Trophy} label="Wins" value={winsCount} href="/wins" tone="gold" />
+        <div className="mt-7 grid grid-cols-3 gap-6 max-w-xl">
+          <HeroStat value={scholarshipCount} label="Eligible scholarships" />
+          <HeroStat value={shortlistCount} label="Shortlisted" />
+          <HeroStat value={wheelAvg !== null ? `${wheelAvg.toFixed(1)}/10` : "—"} label="Wheel average" />
+        </div>
       </div>
 
-      {/* Element bands */}
-      <Card className="p-5">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-bold">Your 5-element journey</h2>
-          <Link to="/readiness" className="text-xs font-semibold text-primary hover:underline">View detail →</Link>
+      {/* Five-element journey */}
+      <Card className="p-6 rounded-3xl">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-muted-foreground">
+              Five-element journey
+            </div>
+            <h2 className="mt-1 font-display font-bold text-lg">
+              Readiness score · <span className="text-[hsl(var(--spec-red,0_70%_55%))] text-[hsl(0,72%,55%)]">{readiness}/100</span>
+            </h2>
+          </div>
+          <span className="inline-flex items-center rounded-full bg-[hsl(0,72%,55%)] text-white text-[10px] font-bold uppercase tracking-[0.14em] px-3 py-1">
+            You are here
+          </span>
         </div>
-        <div className="grid grid-cols-5 gap-3">
-          {ELEMENTS.map(el => {
-            const pts = (progress as any)?.[`element_points_${el.key}`] ?? 0;
-            const pct = Math.min(100, (pts / 20) * 100);
+
+        <div className="mt-5 grid grid-cols-2 sm:grid-cols-5 gap-3">
+          {BANDS.map(b => {
+            const active = b.key === currentBand.key;
             return (
-              <div key={el.key} className="text-center">
-                <div className="h-20 bg-muted rounded-lg relative overflow-hidden">
-                  <div className="absolute bottom-0 left-0 right-0" style={{ height: `${pct}%`, background: el.color }} />
-                </div>
-                <div className="text-xs font-semibold mt-1.5">{el.label}</div>
-                <div className="text-[10px] text-muted-foreground">{pts} pts</div>
+              <div
+                key={b.key}
+                className={[
+                  "rounded-2xl border text-center px-3 py-4 transition-all",
+                  active
+                    ? "bg-[hsl(0,72%,55%)] text-white border-transparent shadow-md"
+                    : "bg-card hover:border-primary/40",
+                ].join(" ")}
+              >
+                <div className="text-2xl">{b.emoji}</div>
+                <div className="mt-1 font-semibold text-sm">{b.label}</div>
+                <div className={["text-[10px] font-bold tracking-[0.14em] uppercase mt-0.5",
+                  active ? "text-white/90" : "text-muted-foreground"].join(" ")}>{b.stage}</div>
+                <div className={["text-[10px] mt-0.5", active ? "text-white/80" : "text-muted-foreground"].join(" ")}>{b.range}</div>
               </div>
             );
           })}
         </div>
       </Card>
 
-      {/* Quick links */}
+      {/* Action shortcuts */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <QuickCard
-          icon={BookOpen}
-          title="Assessments"
-          desc="Verify your academic readiness."
-          href="/assessments"
-          tip="Short timed quizzes per subject and year band. Each completion adds points to your Readiness Score and unlocks better scholarship matches."
-        />
-        <QuickCard
-          icon={Sparkles}
-          title="AI Copilot"
-          desc="Personalised guidance & gap fixes."
-          href="/copilot"
-          badge="AI"
-          tip="Your private coach. It already knows your wheel, shortlist and applications — ask it to pick priorities, draft personal statements, or explain what's blocking your next band."
-        />
-        <QuickCard
-          icon={TrendingUp}
-          title="Readiness Score"
-          desc="See what's driving your number."
-          href="/readiness"
-          tip="A 0–100 score made from your wheel ratings, completed assessments and profile completeness. Hit thresholds to climb from Earth → Aether and unlock elite scholarships."
-        />
+        <ActionCard icon={Compass} title="Browse scholarships" desc="Find your next opportunity" onClick={() => nav("/scholarships")} />
+        <ActionCard icon={Sparkles} title="Open Navigator" desc="Update your Spectrum Wheel" onClick={() => nav("/navigator")} />
+        <ActionCard icon={Pencil} title="Edit profile" desc="Year level, location, interests" onClick={() => nav("/profile/edit")} />
       </div>
 
-      {/* Personal profile */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
+      {/* Profile snapshot */}
+      <Card className="p-6 rounded-3xl">
+        <div className="flex items-center justify-between">
           <div>
-            <div className="text-[11px] font-bold tracking-[0.14em] uppercase text-muted-foreground">
-              Personal profile
+            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-muted-foreground">
+              Profile snapshot
             </div>
-            <h2 className="font-display font-bold text-xl mt-0.5">{fullName || "Student"}</h2>
+            <h2 className="mt-1 font-display font-bold text-xl">{fullName || "Student"}</h2>
           </div>
           <Link to="/profile/edit" className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline">
             <Pencil className="w-3.5 h-3.5" /> Edit
           </Link>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <ProfileItem icon={GraduationCap} label="Year level" value={yearLevel || "Not set"} />
-          <ProfileItem icon={MapPin} label="Location" value={[loc.suburb, loc.state, loc.postcode].filter(Boolean).join(" · ") || "Not set"} />
-          <ProfileItem icon={Heart} label="Interests" value={interests.length > 0 ? interests.join(", ") : "None yet"} />
-          <ProfileItem icon={Mail} label="Email" value={user?.email || "—"} />
-          <ProfileItem icon={CalendarClock} label="Member since" value={user?.created_at ? new Date(user.created_at).toLocaleDateString(undefined, { month: "short", year: "numeric" }) : "—"} />
-          <ProfileItem icon={Trophy} label="Band" value={progress?.current_band ?? "Earth"} />
+
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <SnapItem icon={GraduationCap} label="Year level" value={yearLevel ? `Year ${yearLevel}` : "Not set"} />
+          <SnapItem
+            icon={MapPin}
+            label="Location"
+            value={[loc.suburb, loc.state, loc.postcode].filter(Boolean).join(" · ") || "Not set"}
+          />
+          <SnapItem
+            icon={Heart}
+            label="Interests"
+            value={interests.length ? interests.join(", ") : "None yet"}
+          />
+          <SnapItem
+            icon={CalendarClock}
+            label="Member since"
+            value={user?.created_at ? new Date(user.created_at).toLocaleDateString(undefined, { month: "long", year: "numeric" }) : "—"}
+          />
         </div>
       </Card>
     </div>
   );
 };
 
-function ProfileItem({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+function HeroStat({ value, label }: { value: React.ReactNode; label: string }) {
   return (
-    <div className="rounded-xl bg-secondary/60 border p-4">
-      <div className="flex items-center gap-1.5 text-[11px] font-bold tracking-[0.12em] uppercase text-muted-foreground mb-1.5">
-        <Icon className="w-3.5 h-3.5" /> {label}
-      </div>
-      <div className="text-sm font-semibold text-foreground line-clamp-2">{value}</div>
+    <div>
+      <div className="text-3xl md:text-4xl font-bold leading-none">{value}</div>
+      <div className="mt-2 text-xs text-white/80">{label}</div>
     </div>
   );
 }
 
-const toneClasses: Record<string, string> = {
-  primary: "text-primary",
-  red: "text-[hsl(var(--spec-red))]",
-  teal: "text-[hsl(var(--spec-teal))]",
-  gold: "text-[hsl(var(--gold))]",
-};
-
-function StatTile({ icon: Icon, label, value, href, tone }: { icon: any; label: string; value: any; href: string; tone: string }) {
+function ActionCard({ icon: Icon, title, desc, onClick }: { icon: any; title: string; desc: string; onClick: () => void }) {
   return (
-    <Link to={href} className="no-underline">
-      <Card className="p-4 hover:shadow-md transition-shadow h-full">
-        <Icon className={`w-5 h-5 ${toneClasses[tone]}`} />
-        <div className="mt-2 text-2xl font-bold">{value}</div>
-        <div className="text-xs text-muted-foreground">{label}</div>
-      </Card>
-    </Link>
-  );
-}
-
-function QuickCard({ icon: Icon, title, desc, href, badge, tip }: { icon: any; title: string; desc: string; href: string; badge?: string; tip?: string }) {
-  return (
-    <Link to={href} className="no-underline">
-      <Card className="p-5 h-full hover:shadow-md transition-shadow">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+    <button onClick={onClick} className="text-left group">
+      <Card className="p-5 rounded-2xl hover:shadow-md transition-all hover:-translate-y-0.5 h-full">
+        <div className="flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
             <Icon className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-foreground">{title}</h3>
-              {badge && <Badge variant="secondary" className="text-[9px]">{badge}</Badge>}
-              {tip && <span onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}><InfoTip content={tip} /></span>}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">{desc}</p>
+            <div className="font-semibold text-foreground">{title}</div>
+            <div className="text-xs text-muted-foreground mt-0.5">{desc}</div>
           </div>
+          <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
         </div>
       </Card>
-    </Link>
+    </button>
+  );
+}
+
+function SnapItem({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border bg-secondary/40 p-4">
+      <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-[0.16em] uppercase text-muted-foreground">
+        <Icon className="w-3.5 h-3.5" /> {label}
+      </div>
+      <div className="mt-1.5 text-sm font-semibold text-foreground line-clamp-2">{value}</div>
+    </div>
   );
 }
 
