@@ -13,7 +13,6 @@ const navItems = [
   { label: "AI Copilot", icon: "✨", path: "/copilot", badge: "AI" },
   { label: "Applications", icon: "📝", path: "/applications" },
   { label: "Wins", icon: "🏆", path: "/wins" },
-  
   { label: "Profile", icon: "👤", path: "/profile" },
 ];
 
@@ -32,9 +31,7 @@ const Sidebar = () => {
   const { isAdmin } = useIsAdmin();
   const location = useLocation();
 
-  const items = isAdmin
-    ? [...navItems, { label: "Assessment Editor", icon: "🛠️", path: "/admin/assessments", badge: "ADMIN" }]
-    : navItems;
+  const items = navItems;
 
   return (
     <aside className="w-60 flex-shrink-0 flex flex-col h-screen sticky top-0" style={{ background: "hsl(var(--hero-dark))", color: "white" }}>
