@@ -132,12 +132,28 @@ export async function completeAttempt(attemptId: string, userId: string, subject
     }
   }
 
-  // +30 XP
+  // +15 Readiness Points (gamified contribution toward the 100-point Readiness Score)
   const { data: prog } = await supabase.from("student_progress").select("id, total_points").eq("user_id", userId).maybeSingle();
   if (prog) {
-    await supabase.from("student_progress").update({ total_points: (prog.total_points ?? 0) + 30 }).eq("id", prog.id);
+    await supabase.from("student_progress").update({ total_points: (prog.total_points ?? 0) + READINESS_POINTS_PER_ASSESSMENT }).eq("id", prog.id);
   }
 }
+
+export const READINESS_POINTS_PER_ASSESSMENT = 15;
+
+export async function resetAttempt(attemptId: string) {
+  await supabase.from("assessment_attempts").update({
+    status: "in_progress",
+    answers: {},
+    flagged_questions: [],
+    section_scores: {},
+    level_scores: {},
+    total_score: null,
+    completed_at: null,
+    current_question: 1,
+  }).eq("id", attemptId);
+}
+
 
 export async function listInProgressAttempts(userId: string) {
   const { data } = await supabase.from("assessment_attempts").select("*")
