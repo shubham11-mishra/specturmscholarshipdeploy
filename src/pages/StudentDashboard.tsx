@@ -128,10 +128,13 @@ const StudentDashboard = () => {
               Five-element journey
             </div>
             <h2 className="mt-1 font-display font-bold text-lg">
-              Readiness score · <span className="text-[hsl(var(--spec-red,0_70%_55%))] text-[hsl(0,72%,55%)]">{readiness}/100</span>
+              Readiness score · <span style={{ color: currentBand.color }}>{readiness}/100</span>
             </h2>
           </div>
-          <span className="inline-flex items-center rounded-full bg-[hsl(0,72%,55%)] text-white text-[10px] font-bold uppercase tracking-[0.14em] px-3 py-1">
+          <span
+            className="inline-flex items-center rounded-full text-white text-[10px] font-bold uppercase tracking-[0.14em] px-3 py-1"
+            style={{ background: currentBand.color }}
+          >
             You are here
           </span>
         </div>
@@ -142,12 +145,12 @@ const StudentDashboard = () => {
             return (
               <div
                 key={b.key}
-                className={[
-                  "rounded-2xl border text-center px-3 py-4 transition-all",
+                className="rounded-2xl border text-center px-3 py-4 transition-all"
+                style={
                   active
-                    ? "bg-[hsl(0,72%,55%)] text-white border-transparent shadow-md"
-                    : "bg-card hover:border-primary/40",
-                ].join(" ")}
+                    ? { background: b.color, color: "white", borderColor: "transparent" }
+                    : undefined
+                }
               >
                 <div className="text-2xl">{b.emoji}</div>
                 <div className="mt-1 font-semibold text-sm">{b.label}</div>
@@ -158,6 +161,7 @@ const StudentDashboard = () => {
             );
           })}
         </div>
+
       </Card>
 
       {/* Action shortcuts */}
