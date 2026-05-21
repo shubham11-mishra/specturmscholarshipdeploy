@@ -152,7 +152,7 @@ const Auth = () => {
   });
 
   useEffect(() => {
-    if (step !== 4) return;
+    if (step !== 3) return;
     let cancelled = false;
     (async () => {
       setMatchLoading(true);
