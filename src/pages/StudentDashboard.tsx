@@ -159,7 +159,7 @@ const StudentDashboard = () => {
 
       {/* Action shortcuts */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <ActionCard icon={Compass} title="Browse scholarships" desc="Find your next opportunity" onClick={() => nav("/")} />
+        <ActionCard icon={Compass} title="Browse scholarships" desc="Find your next opportunity" onClick={() => { window.location.href = "https://scholarshipsearcher.com.au/#results-grid"; }} />
         <ActionCard icon={Sparkles} title="Open Navigator" desc="Update your Spectrum Wheel" onClick={() => nav("/navigator")} />
         <ActionCard icon={Pencil} title="Edit profile" desc="Year level, location, interests" onClick={() => nav("/profile/edit")} />
       </div>

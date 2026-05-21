@@ -7,7 +7,7 @@ import logoMark from "@/assets/logo-mark.svg";
 
 const navItems = [
   { label: "Dashboard", icon: "📋", path: "/dashboard", end: true },
-  { label: "Scholarships", icon: "🎯", path: "/" },
+  { label: "Scholarships", icon: "🎯", path: "https://scholarshipsearcher.com.au/#results-grid", external: true },
   { label: "Shortlist", icon: "❤️", path: "/shortlist" },
   { label: "Readiness", icon: "📊", path: "/readiness" },
   { label: "AI Copilot", icon: "✨", path: "/copilot", badge: "AI" },
@@ -78,37 +78,53 @@ const Sidebar = ({ className, onNavigate }: Props) => {
       </div>
 
       <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            end={item.end}
-            onClick={onNavigate}
-            className={({ isActive }) => cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-semibold transition-colors no-underline",
-              isActive ? "text-foreground" : "text-white/75 hover:bg-white/5 hover:text-white",
-            )}
-            style={({ isActive }) => isActive ? { background: "hsl(var(--gold))" } : undefined}
-          >
-            {({ isActive }) => (
-              <>
+        {navItems.map((item) => {
+          if (item.external) {
+            return (
+              <a
+                key={item.path}
+                href={item.path}
+                onClick={onNavigate}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-semibold transition-colors no-underline text-white/75 hover:bg-white/5 hover:text-white"
+              >
                 <span className="text-base">{item.icon}</span>
                 <span className="flex-1">{item.label}</span>
-                {item.label === "Shortlist" && shortlistCount > 0 && (
-                  <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center", isActive ? "bg-foreground/15 text-foreground" : "text-white")}
-                    style={!isActive ? { background: "hsl(var(--spec-red))" } : undefined}>
-                    {shortlistCount}
-                  </span>
-                )}
-                {item.badge && (
-                  <span className="text-[9px] font-bold text-white px-1.5 py-0.5 rounded-full" style={{ background: "hsl(var(--spec-red))" }}>
-                    {item.badge}
-                  </span>
-                )}
-              </>
-            )}
-          </NavLink>
-        ))}
+              </a>
+            );
+          }
+
+          return (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              end={item.end}
+              onClick={onNavigate}
+              className={({ isActive }) => cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-semibold transition-colors no-underline",
+                isActive ? "text-foreground" : "text-white/75 hover:bg-white/5 hover:text-white",
+              )}
+              style={({ isActive }) => isActive ? { background: "hsl(var(--gold))" } : undefined}
+            >
+              {({ isActive }) => (
+                <>
+                  <span className="text-base">{item.icon}</span>
+                  <span className="flex-1">{item.label}</span>
+                  {item.label === "Shortlist" && shortlistCount > 0 && (
+                    <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center", isActive ? "bg-foreground/15 text-foreground" : "text-white")}
+                      style={!isActive ? { background: "hsl(var(--spec-red))" } : undefined}>
+                      {shortlistCount}
+                    </span>
+                  )}
+                  {item.badge && (
+                    <span className="text-[9px] font-bold text-white px-1.5 py-0.5 rounded-full" style={{ background: "hsl(var(--spec-red))" }}>
+                      {item.badge}
+                    </span>
+                  )}
+                </>
+              )}
+            </NavLink>
+          );
+        })}
       </nav>
 
       {isAdmin && (
