@@ -180,21 +180,18 @@ const Auth = () => {
     inc(!!firstName); inc(!!lastName); inc(!!gender); inc(!!yearLevel);
     inc(!!schoolType); inc(/^\d{4}$/.test(postcode)); inc(!!stateCode); inc(!!suburb);
     // step 1 optional
-    inc(!!currentSchoolName, 0.5); inc(!!parentEmail, 0.5);
+    inc(!!currentSchoolName, 0.5);
     // step 2 — wheel always present (default 5); reward if any non-5
     inc(Object.values(wheel).some((v) => v !== 5));
     // step 3
     inc(extras.length > 0); inc(isIndigenous || isRural || faithToggle, 0.5);
     inc(financial !== "prefer_not_to_say", 0.5);
-    // step 4 required
-    inc(!!applyingYearLevel); inc(!!targetStartYear); inc(preferredSectors.length > 0); inc(!!willingToBoard);
     // step 4 optional
-    inc(!!dreamSchools, 0.5); inc(scholarshipCats.length > 0, 0.5);
+    inc(scholarshipCats.length > 0, 0.5);
     return Math.round((pts / total) * 100);
   }, [firstName, lastName, gender, yearLevel, schoolType, postcode, stateCode, suburb,
-      currentSchoolName, parentEmail, wheel, extras, isIndigenous, isRural, faithToggle,
-      financial, applyingYearLevel, targetStartYear, preferredSectors, willingToBoard,
-      dreamSchools, scholarshipCats]);
+      currentSchoolName, wheel, extras, isIndigenous, isRural, faithToggle,
+      financial, scholarshipCats]);
 
   // When a user lands here authenticated (e.g. via Google), check if they still
   // need to complete onboarding. If yes, drop them into the wizard starting at
