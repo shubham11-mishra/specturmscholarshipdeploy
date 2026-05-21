@@ -27,6 +27,7 @@ import AssessmentHub from "./pages/AssessmentHub.tsx";
 import AssessmentYearBand from "./pages/AssessmentYearBand.tsx";
 import AssessmentTake from "./pages/AssessmentTake.tsx";
 import AssessmentResults from "./pages/AssessmentResults.tsx";
+import AdminAssessments from "./pages/AdminAssessments.tsx";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +65,7 @@ const Root = () => (
               <Route path="/assessments/:subject/select" element={<App title="Choose Year Band"><AssessmentYearBand /></App>} />
               <Route path="/assessments/:subject/:yearBand/take" element={<App title="Assessment"><AssessmentTake /></App>} />
               <Route path="/assessments/results/:id" element={<App title="Results"><AssessmentResults /></App>} />
+              <Route path="/admin/assessments" element={<App title="Assessment Editor"><AdminAssessments /></App>} />
 
               {/* Backwards compat: /wheel + /navigator → Readiness with My Wheel tab */}
               <Route path="/wheel" element={<Navigate to="/readiness?tab=my-wheel" replace />} />

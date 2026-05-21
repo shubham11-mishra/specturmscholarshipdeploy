@@ -142,6 +142,36 @@ export type Database = {
         }
         Relationships: []
       }
+      assessment_passages: {
+        Row: {
+          created_at: string
+          id: string
+          passage_text: string
+          subject: string | null
+          title: string
+          updated_at: string
+          year_band: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          passage_text: string
+          subject?: string | null
+          title: string
+          updated_at?: string
+          year_band?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          passage_text?: string
+          subject?: string | null
+          title?: string
+          updated_at?: string
+          year_band?: string | null
+        }
+        Relationships: []
+      }
       assessment_questions: {
         Row: {
           correct_answer: string
@@ -150,11 +180,14 @@ export type Database = {
           id: string
           level: number
           options: Json
+          passage_id: string | null
           passage_text: string | null
           question_image_url: string | null
           question_number: number
           question_text: string
           section_id: string
+          status: string
+          updated_at: string
         }
         Insert: {
           correct_answer: string
@@ -163,11 +196,14 @@ export type Database = {
           id?: string
           level?: number
           options?: Json
+          passage_id?: string | null
           passage_text?: string | null
           question_image_url?: string | null
           question_number: number
           question_text: string
           section_id: string
+          status?: string
+          updated_at?: string
         }
         Update: {
           correct_answer?: string
@@ -176,13 +212,23 @@ export type Database = {
           id?: string
           level?: number
           options?: Json
+          passage_id?: string | null
           passage_text?: string | null
           question_image_url?: string | null
           question_number?: number
           question_text?: string
           section_id?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "assessment_questions_passage_id_fkey"
+            columns: ["passage_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_passages"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "assessment_questions_section_id_fkey"
             columns: ["section_id"]
@@ -848,6 +894,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       wheel_scores: {
         Row: {
           academic_self: number | null
@@ -944,6 +1011,13 @@ export type Database = {
           year_level: string
         }[]
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       redeem_parent_invite: { Args: { _code: string }; Returns: string }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
@@ -955,6 +1029,7 @@ export type Database = {
         | "state"
         | "national"
         | "international"
+      app_role: "admin" | "moderator" | "user"
       readiness_band: "earth" | "water" | "fire" | "air" | "aether"
       readiness_dimension:
         | "academic"
@@ -1099,6 +1174,7 @@ export const Constants = {
         "national",
         "international",
       ],
+      app_role: ["admin", "moderator", "user"],
       readiness_band: ["earth", "water", "fire", "air", "aether"],
       readiness_dimension: [
         "academic",
