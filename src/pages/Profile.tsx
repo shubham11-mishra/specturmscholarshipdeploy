@@ -292,21 +292,27 @@ const ActionCard = ({
   icon: React.ReactNode;
   title: string;
   hint: string;
-}) => (
-  <Link
-    to={to}
-    className="group rounded-2xl bg-card border border-border/60 p-4 flex items-center gap-3 hover:border-primary/40 hover:shadow-md transition"
-  >
-    <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-      {icon}
-    </div>
-    <div className="flex-1 min-w-0">
-      <div className="font-display font-bold text-foreground text-sm">{title}</div>
-      <div className="text-xs text-muted-foreground truncate">{hint}</div>
-    </div>
-    <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition" />
-  </Link>
-);
+}) => {
+  const className = "group rounded-2xl bg-card border border-border/60 p-4 flex items-center gap-3 hover:border-primary/40 hover:shadow-md transition";
+  const content = (
+    <>
+      <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="font-display font-bold text-foreground text-sm">{title}</div>
+        <div className="text-xs text-muted-foreground truncate">{hint}</div>
+      </div>
+      <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition" />
+    </>
+  );
+
+  if (to.startsWith("http")) {
+    return <a href={to} className={className}>{content}</a>;
+  }
+
+  return <Link to={to} className={className}>{content}</Link>;
+};
 
 const SnapshotItem = ({
   icon,
