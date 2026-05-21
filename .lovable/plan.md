@@ -1,77 +1,73 @@
-## Pathway-Aware Gap Analysis Upgrade
+## Scope decision
 
-Transform the Gap Analysis tab into a pathway-aware, brand-aligned experience with exactly 3 dynamically computed recommendations.
+Your request covers ~30 distinct improvements across 3 user roles, the assessment engine, the admin panel, and global UX. Doing all of it in one pass will produce shallow changes. I propose splitting it into **5 focused phases** you can approve one at a time. I'll start with Phase 1 once you confirm — or tell me to jump to a specific phase.
 
-### 1. Database — extend `gap_recommendations`
+Already in place from prior turns:
+- Admin sidebar separated, `/admin/*` behind `AdminGuard` (role check + Access Denied screen)
+- Supabase RLS: `assessment_questions/sections/passages/user_roles` mutations gated by `has_role(auth.uid(),'admin')`
+- Onboarding tour + HelpButton + InfoTip components exist
+- Student sidebar already trimmed to: Dashboard, Scholarships, Shortlist, Readiness, AI Copilot, Applications, Wins, Profile
 
-Add columns (migration):
-- `pathway` text — one of `academic | stem | arts | sports | leadership | test_readiness`
-- `xp_reward` int default 0
-- `why_template` text — sentence with `{pathway}` token used for "Why this matters"
-- `badge_name` text nullable
-- `verifies_evidence` boolean default false
+---
 
-Then seed the action library from the brief (≈25 actions across pathways) via the insert tool. Existing recs without a pathway stay inactive (or get tagged `leadership`).
+## Phase 1 — Access control & role routing (foundational)
 
-No new RPC is needed — the top-3 computation runs client-side from `wheel_scores` + `gap_recommendations` (already loaded) so it stays reactive and zero-cost.
+- Add `useUserRole()` hook returning `'admin' | 'parent' | 'student'` (reads `user_roles` + `profiles.view_mode`).
+- Replace `AppLayout`'s blind "go to /auth if no user" with role-aware redirect:
+  - On `/dashboard`: admin → `/admin`, parent → `/parent`, student → student dashboard.
+- Harden `AdminGuard` (done) + add `ParentGuard` for `/parent`.
+- Top header: show role badge + "Switch to Student/Parent/Admin" only for users who have that role.
 
-### 2. Pathway detection (`src/lib/pathway.ts`, new)
+## Phase 2 — Student dashboard as a true journey hub
 
-```text
-primary  = argmax(academic, stem, arts_creative, sports_fitness)
-secondary = 2nd of the 4 if its score is within 2 of primary, else null
-```
-
-Strict cross-pathway exclusion map:
-- academic → exclude sports, arts (unless secondary)
-- sports → exclude arts, stem (unless secondary)
-- arts → exclude sports, stem (unless secondary)
-- stem → exclude arts, sports (unless secondary)
-- leadership + test_readiness are always allowed as supporting
-
-Pathway theme tokens (label, hex, emoji, gradient class).
-
-### 3. Top-3 scoring (`src/lib/gapRanking.ts`, new)
+Today `/dashboard` just renders `<Profile />`. Replace with a real dashboard:
 
 ```text
-relevance = 1.0 primary | 0.7 secondary | 0.5 leadership/test_readiness | 0
-evidence_boost = 1.5 if verifies_evidence and that dimension is unverified, else 1.0
-priority = (unlocks × relevance × evidence_boost) / effort_cost   // low=1, med=2, high=3
+[ Welcome, {name} · Year {x} ]   [ Readiness Score ring 0–100 ]
+[ Next Step CTA banner ] → smart pick from: complete onboarding → take assessment → review matches → shortlist → start application
+[ 3 cards: Top Scholarship Matches | Upcoming Deadlines | Recent AI Copilot tips ]
+[ Progress bar across the 5 elements (Earth → Aether) ]
+[ Empty / loading / error states for every card ]
 ```
 
-Filter to `score10 <= trigger_score_max` and pathway not excluded; sort desc; take 3. Card 1 = primary pathway color, Card 2 = secondary (or supporting), Card 3 = leadership/test_readiness fallback to ensure variety.
+- Active sidebar item highlighted via `NavLink` (currently uses manual `startsWith` which highlights wrong items).
+- Mobile: collapse sidebar into a Sheet drawer (`use-mobile` hook already exists).
 
-### 4. UI — `src/pages/Readiness.tsx` Gap tab rebuild
+## Phase 3 — Assessment flow polish
 
-Above the cards:
-- **Pathway badge row**: compass-pill `🧭 {Primary} pathway` in pathway color + optional smaller `+ {Secondary}` pill.
-- **Readiness band card**: one line — `{emoji} {BAND} — {description}` using the new copy.
-- **Progression bar**: "You are N actions away from {NextBand}" + rainbow gradient progress (Blue→Green→Gold→Red) showing position toward next band cutoff.
+- Hub: show per-subject status chips (Not started / In progress / Completed · score).
+- Take page: confirm dialog on "Submit" if unanswered > 0; autosave indicator.
+- Results: ✅ score + section breakdown + weakest topic CTA → "Practice this" link to Copilot. Already awards +15 Readiness Points; add toast on first completion.
+- Hook completion → recompute `student_progress` band + emit notification.
+- Empty state when no questions exist for a band (currently silent fail).
 
-Cards:
-- Exactly 3, left accent = pathway color, no "HIGH PRIORITY" pill.
-- Pills: `+X scholarships` (green), `Effort: …` (gray), `+XX XP` (blue), `Earns: {badge}` (gold) when present.
-- "Why this matters" line under title using `why_template` with `{pathway}` substituted.
-- Expanded state shows description + frosted-glass **Start →** button (white/16 + blur-12, rainbow 3px bottom bar).
+## Phase 4 — Admin dashboard (replace placeholders with real value)
 
-Keep: header, tab nav, "Show completed" toggle, Copilot link, expand chevron, mark-done flow.
+- Admin home: KPI tiles fetched live: total questions (published/draft), passages, attempts, completed attempts, avg score, active students last 7d.
+- Question Bank: read-only searchable list of all questions (filter subject/band/status) — reuses existing admin lib.
+- Passage Manager: list/edit passages (the table + RLS already exist).
+- User Management: list profiles + grant/revoke `admin` role via `user_roles`.
+- Gamification Settings: editable JSON for points-per-action + band thresholds, stored in a new `app_settings` table (single row, admin-only RLS).
+- Leave Assessment Editor as-is (already built).
 
-### 5. Brand tokens (`src/index.css`)
+## Phase 5 — Global UX polish
 
-Add HSL tokens:
-- `--spec-blue`, `--spec-green`, `--spec-gold`, `--spec-red`, `--spec-charcoal`
-- `--gradient-rainbow: linear-gradient(90deg, hsl(var(--spec-blue)), hsl(var(--spec-green)), hsl(var(--spec-gold)), hsl(var(--spec-red)))`
-- `.btn-frost` utility class for the frosted-glass button + rainbow underline.
+- Toasts on every save/submit/delete (sonner already wired).
+- `ConfirmDialog` component used before destructive actions (delete shortlist, revoke invite, delete question, retake assessment).
+- `InfoTip` applied to: Readiness Score, Gap Analysis, AI Copilot, Match %.
+- Breadcrumbs component in TopHeader for nested routes (`/assessments/english/...`, `/admin/...`).
+- 404 + offline + generic error boundary.
+- First-time tour already exists; add per-page micro-tours later if needed.
 
-### 6. Test cases (manual, via wheel_scores edit)
+---
 
-Verified by switching wheel scores: academic-heavy → 0 sports cards & blue accent; sports-heavy → 0 arts cards & red accent; arts-heavy → 0 sports cards & gold accent.
+## Technical notes
 
-### Files touched
+- New tables: `app_settings (key text pk, value jsonb)` with admin-only RLS.
+- New hook: `useUserRole`. Existing `useIsAdmin` becomes a thin wrapper.
+- No schema changes to assessment tables.
+- All role checks are server-enforced via RLS; frontend role checks are UX only.
 
-- migration: add 5 columns to `gap_recommendations`
-- insert: seed ~25 actions
-- `src/index.css` (brand tokens + frost util)
-- `src/lib/pathway.ts` (new)
-- `src/lib/gapRanking.ts` (new)
-- `src/pages/Readiness.tsx` (Gap tab rebuilt; My Wheel tab untouched)
+---
+
+**Which phase do you want me to start with?** Reply "1" (or "all in order") and I'll begin. If you'd rather I just dive in, say "go" and I'll execute Phase 1 → 5 sequentially, pausing only if I hit a decision point.
