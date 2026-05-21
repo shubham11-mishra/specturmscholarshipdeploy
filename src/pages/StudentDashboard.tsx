@@ -186,9 +186,43 @@ const StudentDashboard = () => {
         <QuickCard icon={Sparkles} title="AI Copilot" desc="Personalised guidance & gap fixes." href="/copilot" badge="AI" />
         <QuickCard icon={TrendingUp} title="Readiness Score" desc="See what's driving your number." href="/readiness" />
       </div>
+
+      {/* Personal profile */}
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <div className="text-[11px] font-bold tracking-[0.14em] uppercase text-muted-foreground">
+              Personal profile
+            </div>
+            <h2 className="font-display font-bold text-xl mt-0.5">{fullName || "Student"}</h2>
+          </div>
+          <Link to="/profile/edit" className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline">
+            <Pencil className="w-3.5 h-3.5" /> Edit
+          </Link>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <ProfileItem icon={GraduationCap} label="Year level" value={yearLevel || "Not set"} />
+          <ProfileItem icon={MapPin} label="Location" value={[loc.suburb, loc.state, loc.postcode].filter(Boolean).join(" · ") || "Not set"} />
+          <ProfileItem icon={Heart} label="Interests" value={interests.length > 0 ? interests.join(", ") : "None yet"} />
+          <ProfileItem icon={Mail} label="Email" value={user?.email || "—"} />
+          <ProfileItem icon={CalendarClock} label="Member since" value={user?.created_at ? new Date(user.created_at).toLocaleDateString(undefined, { month: "short", year: "numeric" }) : "—"} />
+          <ProfileItem icon={Trophy} label="Band" value={progress?.current_band ?? "Earth"} />
+        </div>
+      </Card>
     </div>
   );
 };
+
+function ProfileItem({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-secondary/60 border p-4">
+      <div className="flex items-center gap-1.5 text-[11px] font-bold tracking-[0.12em] uppercase text-muted-foreground mb-1.5">
+        <Icon className="w-3.5 h-3.5" /> {label}
+      </div>
+      <div className="text-sm font-semibold text-foreground line-clamp-2">{value}</div>
+    </div>
+  );
+}
 
 const toneClasses: Record<string, string> = {
   primary: "text-primary",
