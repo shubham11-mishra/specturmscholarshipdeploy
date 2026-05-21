@@ -262,7 +262,7 @@ function StatTile({ icon: Icon, label, value, href, tone }: { icon: any; label: 
   );
 }
 
-function QuickCard({ icon: Icon, title, desc, href, badge }: { icon: any; title: string; desc: string; href: string; badge?: string }) {
+function QuickCard({ icon: Icon, title, desc, href, badge, tip }: { icon: any; title: string; desc: string; href: string; badge?: string; tip?: string }) {
   return (
     <Link to={href} className="no-underline">
       <Card className="p-5 h-full hover:shadow-md transition-shadow">
@@ -274,6 +274,7 @@ function QuickCard({ icon: Icon, title, desc, href, badge }: { icon: any; title:
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-foreground">{title}</h3>
               {badge && <Badge variant="secondary" className="text-[9px]">{badge}</Badge>}
+              {tip && <span onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}><InfoTip content={tip} /></span>}
             </div>
             <p className="text-xs text-muted-foreground mt-1">{desc}</p>
           </div>
