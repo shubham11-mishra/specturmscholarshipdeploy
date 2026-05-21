@@ -180,21 +180,18 @@ const Auth = () => {
     inc(!!firstName); inc(!!lastName); inc(!!gender); inc(!!yearLevel);
     inc(!!schoolType); inc(/^\d{4}$/.test(postcode)); inc(!!stateCode); inc(!!suburb);
     // step 1 optional
-    inc(!!currentSchoolName, 0.5); inc(!!parentEmail, 0.5);
+    inc(!!currentSchoolName, 0.5);
     // step 2 — wheel always present (default 5); reward if any non-5
     inc(Object.values(wheel).some((v) => v !== 5));
     // step 3
     inc(extras.length > 0); inc(isIndigenous || isRural || faithToggle, 0.5);
     inc(financial !== "prefer_not_to_say", 0.5);
-    // step 4 required
-    inc(!!applyingYearLevel); inc(!!targetStartYear); inc(preferredSectors.length > 0); inc(!!willingToBoard);
     // step 4 optional
-    inc(!!dreamSchools, 0.5); inc(scholarshipCats.length > 0, 0.5);
+    inc(scholarshipCats.length > 0, 0.5);
     return Math.round((pts / total) * 100);
   }, [firstName, lastName, gender, yearLevel, schoolType, postcode, stateCode, suburb,
-      currentSchoolName, parentEmail, wheel, extras, isIndigenous, isRural, faithToggle,
-      financial, applyingYearLevel, targetStartYear, preferredSectors, willingToBoard,
-      dreamSchools, scholarshipCats]);
+      currentSchoolName, wheel, extras, isIndigenous, isRural, faithToggle,
+      financial, scholarshipCats]);
 
   // When a user lands here authenticated (e.g. via Google), check if they still
   // need to complete onboarding. If yes, drop them into the wizard starting at
@@ -294,7 +291,7 @@ const Auth = () => {
     firstName.trim() && lastName.trim() && gender && yearLevel && schoolType &&
     /^\d{4}$/.test(postcode.trim()) && stateCode && suburb.trim() &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) && !emailTaken && password.length >= 8;
-  const step3Valid = applyingYearLevel && targetStartYear && preferredSectors.length > 0 && willingToBoard;
+  const step3Valid = true;
 
   const validateStep = (s: number): string | null => {
     if (s === 0) {
@@ -310,10 +307,7 @@ const Auth = () => {
       if (password.length < 8) return "Password must be at least 8 characters.";
     }
     if (s === 3) {
-      if (!applyingYearLevel) return "Please choose the year level you're applying for.";
-      if (!targetStartYear) return "Please choose a target start year.";
-      if (preferredSectors.length === 0) return "Please choose at least one preferred sector.";
-      if (!willingToBoard) return "Please choose a boarding preference.";
+      return null;
     }
     return null;
   };
@@ -603,12 +597,6 @@ const Auth = () => {
                     </div>
                   </Field>
                 </div>
-                <div className="mt-4">
-                  <Field label="Parent Email">
-                    <input type="email" value={parentEmail} onChange={(e) => setParentEmail(e.target.value)} placeholder="e.g. parent@email.com — for progress updates" className={inputCls} />
-                    <p className="text-[11px] text-muted-foreground mt-1">We'll send your parents occasional progress updates if you provide their email.</p>
-                  </Field>
-                </div>
               </div>
             </div>
           )}
@@ -709,67 +697,14 @@ const Auth = () => {
                 <Target className="w-5 h-5" style={{ color: "hsl(var(--spec-red))" }} /> Goals & Preferences
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field label="Applying for year level *">
-                  <select value={applyingYearLevel} onChange={(e) => setApplyingYearLevel(e.target.value)} className={inputCls}>
-                    <option value="">Select…</option>
-                    {APPLY_YEAR_LEVELS.map((y) => <option key={y} value={y}>{y}</option>)}
-                  </select>
-                  <p className="text-xs text-muted-foreground mt-1">Which year level are you applying for?</p>
-                </Field>
-                <Field label="Target start year *">
-                  <select value={targetStartYear} onChange={(e) => setTargetStartYear(parseInt(e.target.value, 10))} className={inputCls}>
-                    {[currentYear, currentYear + 1, currentYear + 2, currentYear + 3].map((y) => (
-                      <option key={y} value={y}>{y}</option>
-                    ))}
-                  </select>
-                </Field>
-              </div>
-
-              <Field label="Dream schools (optional)">
-                <input value={dreamSchools} onChange={(e) => setDreamSchools(e.target.value)} placeholder="Type any school name you're aiming for — comma separated" className={inputCls} />
-              </Field>
-
-              <div className="border-t border-border pt-5">
-                <p className="font-semibold text-foreground mb-3">Preferences</p>
-                <Field label="Preferred sectors *">
-                  <div className="flex flex-wrap gap-2">
-                    {SECTORS.map((s) => (
-                      <Chip key={s.value} active={preferredSectors.includes(s.value)} onClick={() => toggleIn(preferredSectors, setPreferredSectors, s.value)}>{s.label}</Chip>
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">Which school sectors are you considering?</p>
-                </Field>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <Field label="Willing to board *">
-                    <div className="flex flex-wrap gap-2">
-                      {BOARDING.map((b) => (
-                        <Chip key={b.value} active={willingToBoard === b.value} onClick={() => setWillingToBoard(b.value)}>{b.label}</Chip>
-                      ))}
-                    </div>
-                  </Field>
-                  <Field label="Max travel distance">
-                    <select value={maxTravelKm} onChange={(e) => setMaxTravelKm(parseInt(e.target.value, 10))} className={inputCls}>
-                      {TRAVEL_OPTIONS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                    </select>
-                    <p className="text-xs text-muted-foreground mt-1">How far are you willing to travel daily?</p>
-                  </Field>
-                </div>
-
-                <div className="mt-4">
-                  <CheckboxRow label="I have a sibling already enrolled at one of my target schools" checked={hasSibling} onChange={setHasSibling} />
-                  <p className="text-xs text-muted-foreground mt-1 ml-7">Sibling enrolment can unlock sibling discount scholarships.</p>
-                </div>
-              </div>
-
-              <div className="border-t border-border pt-5">
+              <div>
                 <Field label="🎯 Scholarship categories you're interested in">
                   <div className="flex flex-wrap gap-2">
                     {SCHOLARSHIP_CATEGORIES.map((c) => (
                       <Chip key={c} active={scholarshipCats.includes(c)} onClick={() => toggleIn(scholarshipCats, setScholarshipCats, c)}>{c}</Chip>
                     ))}
                   </div>
+                  <p className="text-xs text-muted-foreground mt-1">Pick any that interest you — this helps us tailor matches.</p>
                 </Field>
               </div>
             </div>
