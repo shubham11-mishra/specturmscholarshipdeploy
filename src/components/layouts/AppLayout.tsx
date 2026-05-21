@@ -4,6 +4,8 @@ import Sidebar from "./Sidebar";
 import TopHeader from "./TopHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
+import OnboardingTour from "@/components/OnboardingTour";
+
 
 const SpectrumGradientBar = () => (
   <div
@@ -40,6 +42,7 @@ const AppLayout = ({ children, pageTitle }: { children: ReactNode; pageTitle: st
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-[1400px] mx-auto p-6 md:p-8">{children}</div>
         </main>
+        <OnboardingTour />
       </div>
     </div>
   );
