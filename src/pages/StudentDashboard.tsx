@@ -20,12 +20,13 @@ type ProgressRow = {
 type WheelRow = Record<string, number | null>;
 
 const BANDS = [
-  { key: "earth",  label: "Earth",  stage: "ASSESS",   range: "0–20",   min: 0,  max: 20,  emoji: "🌱" },
-  { key: "water",  label: "Water",  stage: "DISCOVER", range: "21–40",  min: 21, max: 40,  emoji: "💧" },
-  { key: "fire",   label: "Fire",   stage: "PREPARE",  range: "41–60",  min: 41, max: 60,  emoji: "🔥" },
-  { key: "air",    label: "Air",    stage: "ENRICH",   range: "61–80",  min: 61, max: 80,  emoji: "💨" },
-  { key: "aether", label: "Aether", stage: "APPLY",    range: "81–100", min: 81, max: 100, emoji: "✨" },
+  { key: "earth",  label: "Earth",  stage: "ASSESS",   range: "0–20",   min: 0,  max: 20,  emoji: "🌱", color: "#8B6914" },
+  { key: "water",  label: "Water",  stage: "DISCOVER", range: "21–40",  min: 21, max: 40,  emoji: "💧", color: "#02B2FC" },
+  { key: "fire",   label: "Fire",   stage: "PREPARE",  range: "41–60",  min: 41, max: 60,  emoji: "🔥", color: "#FF0F3B" },
+  { key: "air",    label: "Air",    stage: "ENRICH",   range: "61–80",  min: 61, max: 80,  emoji: "💨", color: "#7ECFED" },
+  { key: "aether", label: "Aether", stage: "APPLY",    range: "81–100", min: 81, max: 100, emoji: "✨", color: "#FAC82C" },
 ] as const;
+
 
 const SELF_FIELDS = [
   "academic_self", "stem_self", "arts_creative_self",
