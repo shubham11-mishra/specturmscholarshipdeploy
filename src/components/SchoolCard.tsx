@@ -1,5 +1,5 @@
-import { ExternalLink, MapPin, ShieldCheck, GraduationCap, Calendar, DollarSign, Heart } from "lucide-react";
-import { SchoolScholarship, getConfidenceBadge, computeDaysLeft, formatCloseDate } from "@/data/csvScholarships";
+import { ExternalLink, MapPin, Calendar, DollarSign, GraduationCap, Beaker, Music, Trophy, Users, Star, Heart, CalendarCheck, Globe, Sparkles } from "lucide-react";
+import { SchoolScholarship, computeDaysLeft, formatCloseDate } from "@/data/csvScholarships";
 import { useShortlist } from "@/hooks/useShortlist";
 
 interface SchoolCardProps {
@@ -8,182 +8,195 @@ interface SchoolCardProps {
   onOpenDetail?: (s: SchoolScholarship) => void;
 }
 
-/** Map closing-soon urgency to color tokens (approx: green / amber / red). */
-const urgencyForDays = (days: number | null) => {
-  if (days == null) return { label: "Open", text: "text-emerald-700", bg: "bg-emerald-50", chipBg: "bg-emerald-600" };
-  if (days <= 9)  return { label: `${days} days left`, text: "text-rose-700",   bg: "bg-rose-50",    chipBg: "bg-rose-600" };
-  if (days <= 30) return { label: "Closing Soon",      text: "text-amber-700",  bg: "bg-amber-50",   chipBg: "bg-amber-600" };
-  return            { label: "Open",                   text: "text-emerald-700", bg: "bg-emerald-50", chipBg: "bg-emerald-600" };
+/* ─────────────────────────── Brand tokens ─────────────────────────── */
+const NAVY = "#1B2A4A";
+const RAINBOW = "linear-gradient(90deg, #003DA5 0%, #2ECC71 33%, #D4A843 66%, #E74C3C 100%)";
+
+/* Category → coloured icon block (matches Spectrum rainbow) */
+const categoryStyle = (raw: string) => {
+  const c = (raw || "").toLowerCase();
+  if (/music|perform/.test(c))   return { bg: "linear-gradient(135deg,#7B2D8E,#B45BD0)", Icon: Music };
+  if (/stem|science|math/.test(c))return { bg: "linear-gradient(135deg,#2ECC71,#5FDB99)", Icon: Beaker };
+  if (/sport|fitness/.test(c))    return { bg: "linear-gradient(135deg,#E74C3C,#F08775)", Icon: Trophy };
+  if (/leader|community|service/.test(c)) return { bg: "linear-gradient(135deg,#D4A843,#E8C572)", Icon: Users };
+  if (/academic|merit|select|gifted/.test(c)) return { bg: "linear-gradient(135deg,#003DA5,#3A6FD0)", Icon: GraduationCap };
+  return { bg: "linear-gradient(135deg,#1B2A4A,#3D507A)", Icon: Sparkles };
 };
 
+/* Category badge colour */
+const categoryBadge = (raw: string) => {
+  const c = (raw || "").toLowerCase();
+  if (/music/.test(c))     return "bg-fuchsia-50 text-fuchsia-700";
+  if (/perform/.test(c))   return "bg-purple-50 text-purple-700";
+  if (/stem/.test(c))      return "bg-emerald-50 text-emerald-700";
+  if (/sport|fitness/.test(c)) return "bg-rose-50 text-rose-700";
+  if (/leader|community/.test(c)) return "bg-amber-50 text-amber-700";
+  if (/academic|merit|select|gifted/.test(c)) return "bg-blue-50 text-blue-700";
+  return "bg-slate-100 text-slate-700";
+};
+
+/* Deadline bar: red ≤14d, green = open, grey = unknown */
+const deadlineBar = (days: number | null, hasDate: boolean) => {
+  if (!hasDate) return { bg: "bg-slate-100", text: "text-slate-600", icon: Globe, label: "Closing date: Check school website" };
+  if (days != null && days <= 14 && days >= 0)
+    return { bg: "bg-rose-50", text: "text-rose-700", icon: CalendarCheck, label: `Closing soon · ${days} day${days === 1 ? "" : "s"} left` };
+  return { bg: "bg-emerald-50", text: "text-emerald-700", icon: CalendarCheck, label: "Applications open" };
+};
+
+/* Match score (uses extraction_confidence_score 0-100 as a placeholder
+   until win_probability column is wired through Supabase types) */
+const matchTier = (n: number) => {
+  if (n >= 80) return { label: "Excellent Match", color: "text-emerald-700", dot: "bg-emerald-500" };
+  if (n >= 60) return { label: "Strong Match",    color: "text-blue-700",    dot: "bg-blue-500" };
+  if (n >= 40) return { label: "Possible Match",  color: "text-amber-700",   dot: "bg-amber-500" };
+  return        { label: "Low Match",       color: "text-slate-600",   dot: "bg-slate-400" };
+};
+
+const Stat = ({ icon: Icon, label, value }: { icon: any; label: string; value: string }) => (
+  <div className="bg-slate-50 rounded-lg px-2.5 py-2 min-w-0">
+    <div className="flex items-center gap-1 text-[9.5px] font-semibold uppercase tracking-[0.06em] text-slate-500 mb-0.5">
+      <Icon className="w-2.5 h-2.5" /> {label}
+    </div>
+    <div className="text-[12px] font-bold text-slate-900 truncate">{value || "—"}</div>
+  </div>
+);
+
 const SchoolCard = ({ school, index, onOpenDetail }: SchoolCardProps) => {
-  const badge = getConfidenceBadge(school.scholarship_confidence);
-  const hasLink = !!(school.scholarship_url || school.website_url);
   const cardId = `${school.acara_id}-${school.row}`;
   const { toggle, isShortlisted } = useShortlist();
   const liked = isShortlisted(cardId);
-  // Compute days left dynamically from the close date — the stored `days_left`
-  // column is a stale snapshot from when the row was scraped.
-  const dl = computeDaysLeft(school.application_close_date);
-  const days = dl != null && dl >= 0 ? dl : null;
-  const urgency = urgencyForDays(days);
-  const initial = (school.school_name || "?").charAt(0).toUpperCase();
+
+  const days = (() => {
+    const d = computeDaysLeft(school.application_close_date);
+    return d != null && d >= 0 ? d : null;
+  })();
+  const hasDate = !!formatCloseDate(school.application_close_date);
+  const dl = deadlineBar(days, hasDate);
+
+  const cat = categoryStyle(school.category);
+  const CatIcon = cat.Icon;
+
+  const matchRaw = Number(school.extraction_confidence_score);
+  const showMatch = Number.isFinite(matchRaw) && matchRaw > 0;
+  const m = showMatch ? matchTier(Math.round(matchRaw)) : null;
+
+  const link = school.scholarship_url || school.website_url;
 
   return (
     <div
-      className="card-shine bg-card rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-brand relative animate-fade-up group flex flex-col border border-primary/10 hover:border-primary/30"
+      className="group relative bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 cursor-pointer flex flex-col animate-fade-up"
       style={{ animationDelay: `${index * 0.03}s` }}
       onClick={() => onOpenDetail?.(school)}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpenDetail?.(school); } }}
     >
-      {/* Top gradient accent line */}
-      <div className="h-1 gradient-brand" />
+      {/* Rainbow top bar */}
+      <div className="h-1" style={{ background: RAINBOW }} />
 
-      <div className="p-5 flex flex-col flex-1">
+      <div className="p-4 flex flex-col flex-1">
         {/* Header */}
         <div className="flex items-start justify-between gap-3 mb-3">
-          <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="flex items-start gap-3 min-w-0 flex-1">
             <div
-              className="w-11 h-11 rounded-xl flex items-center justify-center text-[14px] font-bold shrink-0 text-primary"
-              style={{ background: "linear-gradient(135deg,#f3e8ff,#e6faf9)" }}
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-white shadow-sm"
+              style={{ background: cat.bg }}
             >
-              {initial}
+              <CatIcon className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[14px] font-bold text-foreground leading-tight mb-0.5 truncate">
-                {school.school_name}
-              </div>
-              <div className="text-[11px] text-muted-foreground flex items-center gap-1">
-                <MapPin className="w-[10px] h-[10px] shrink-0" />
-                <span className="truncate">{school.suburb}, {school.state} {school.postcode}</span>
+              <div className="text-[14px] font-bold text-slate-900 leading-tight truncate">{school.school_name}</div>
+              <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                <MapPin className="w-3 h-3 shrink-0" />
+                <span className="truncate">{school.suburb}, {school.state}</span>
               </div>
             </div>
           </div>
           <button
             onClick={(e) => { e.stopPropagation(); toggle(cardId); }}
-            className={`w-8 h-8 rounded-lg border-[1.5px] flex items-center justify-center shrink-0 cursor-pointer transition-all ${
-              liked
-                ? "border-rose-200 bg-rose-50 text-rose-600"
-                : "border-border bg-secondary text-muted-foreground hover:border-primary/40 hover:text-primary"
+            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all ${
+              liked ? "bg-rose-50 text-rose-600" : "bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
             }`}
-            title={liked ? "Remove from shortlist" : "Add to shortlist"}
             aria-label={liked ? "Remove from shortlist" : "Add to shortlist"}
           >
             <Heart className={`w-3.5 h-3.5 ${liked ? "fill-rose-600" : ""}`} />
           </button>
         </div>
 
-        {/* Program name */}
-        {school.program_name && (
-          <div className="flex items-center gap-1.5 mb-3">
-            <GraduationCap className="w-3.5 h-3.5 text-primary shrink-0" />
-            <span className="text-[12.5px] font-semibold text-foreground truncate">{school.program_name}</span>
-          </div>
-        )}
-
-        {/* Badges */}
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          {school.category && (
-            <span className="text-[9.5px] font-bold tracking-[0.05em] px-2 py-1 rounded-md uppercase bg-primary/10 text-primary">
-              {school.category}
-            </span>
+        {/* Sector + gender pills */}
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {school.sector && (
+            <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">{school.sector}</span>
           )}
-          <span className="text-[9.5px] font-bold tracking-[0.05em] px-2 py-1 rounded-md uppercase bg-secondary text-muted-foreground">
-            {school.sector}
-          </span>
-          {school.gender && school.gender !== "Co-ed" && (
-            <span className="text-[9.5px] font-bold tracking-[0.05em] px-2 py-1 rounded-md uppercase bg-secondary text-muted-foreground">
-              {school.gender}
-            </span>
+          {school.gender && (
+            <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">{school.gender}</span>
           )}
-          <span className={`text-[9.5px] font-bold tracking-[0.05em] px-2 py-1 rounded-md uppercase flex items-center gap-1 ${badge.color}`}>
-            <ShieldCheck className="w-[10px] h-[10px]" />
-            {badge.label}
-          </span>
         </div>
 
-        {/* Info row */}
-        {(school.value_type || school.year_levels) && (
-          <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3 text-[11.5px] text-muted-foreground">
-            {school.value_type && (
-              <div className="flex items-center gap-1">
-                <DollarSign className="w-3.5 h-3.5 text-amber-600" />
-                <span className="text-foreground font-semibold">{school.value_type}</span>
-                {school.value_aud && <span className="text-[10.5px] opacity-70">({school.value_aud})</span>}
-              </div>
-            )}
-            {school.year_levels && (
-              <div className="flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-accent" />
-                <span className="truncate max-w-[160px]">{school.year_levels}</span>
-              </div>
-            )}
+        {/* Category badges */}
+        {(school.category || school.sub_type || school.program_type) && (
+          <div className="flex flex-wrap gap-1.5 mb-2.5">
+            {[school.category, school.sub_type, school.program_type]
+              .filter(Boolean)
+              .filter((v, i, a) => a.indexOf(v) === i)
+              .slice(0, 3)
+              .map((c) => (
+                <span key={c} className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${categoryBadge(c)}`}>{c}</span>
+              ))}
           </div>
         )}
 
-        {/* Deadline urgency band */}
-        {(school.application_close_date || school.closing_label || days != null) && (
-          <div className={`flex items-center justify-between rounded-xl px-3 py-2 mb-3 ${urgency.bg}`}>
-            <div className="min-w-0">
-              <div className={`text-[9px] font-bold uppercase tracking-[0.08em] ${urgency.text}`}>Deadline</div>
-              <div className={`text-[12.5px] font-bold truncate ${urgency.text}`}>
-                {(() => {
-                  const formatted = formatCloseDate(school.application_close_date);
-                  if (formatted) return formatted;
-                  const label = school.closing_label?.trim();
-                  if (label && label.toUpperCase() !== "TBA" && label !== "—") return label;
-                  return "Check the school website";
-                })()}
-              </div>
-            </div>
-            <span className={`text-[9.5px] font-bold uppercase tracking-[0.05em] text-white px-2.5 py-1 rounded-md whitespace-nowrap ${urgency.chipBg}`}>
-              {urgency.label}
-            </span>
-          </div>
-        )}
-
-        {/* Overview */}
+        {/* Description */}
         {school.overview && (
-          <div className="mb-4 flex-1">
-            <p className="text-[12.5px] text-muted-foreground leading-relaxed line-clamp-2">
-              {school.overview}
-            </p>
+          <p className="text-[12px] text-slate-600 leading-snug line-clamp-2 mb-3">{school.overview}</p>
+        )}
+
+        {/* 4-stat grid */}
+        <div className="grid grid-cols-2 gap-1.5 mb-3">
+          <Stat icon={GraduationCap} label="Year Levels" value={school.year_levels} />
+          <Stat icon={Calendar} label="Test Month" value={school.test_month} />
+          <Stat icon={DollarSign} label="Value" value={school.value_type || school.value_aud} />
+          <Stat icon={Sparkles} label="Provider" value={school.test_provider || "School-run"} />
+        </div>
+
+        {/* Match score */}
+        {showMatch && m && (
+          <div className={`flex items-center gap-1.5 text-[11px] font-bold mb-2 ${m.color}`}>
+            <Star className="w-3 h-3 fill-current" />
+            {Math.round(matchRaw)}% — {m.label}
           </div>
         )}
 
-        {/* Actions */}
-        <div className="flex gap-2 pt-3 border-t border-border/60 mt-auto">
-          {school.scholarship_url && (
+        {/* Deadline bar */}
+        <div className={`flex items-center gap-2 ${dl.bg} ${dl.text} px-3 py-2 rounded-lg text-[11.5px] font-semibold mb-3 -mx-4 px-4 rounded-none border-l-4`}
+             style={{ borderLeftColor: dl.bg.includes("rose") ? "#E74C3C" : dl.bg.includes("emerald") ? "#2ECC71" : "#94a3b8" }}>
+          <dl.icon className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate">{dl.label}{hasDate && days != null && days > 14 && `: Closes ${formatCloseDate(school.application_close_date)}`}{!hasDate && (school.closing_label && school.closing_label.toUpperCase() !== "TBA" ? "" : "")}</span>
+        </div>
+
+        {/* CTA row */}
+        <div className="flex gap-2 mt-auto">
+          <a
+            href={link || "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => { e.stopPropagation(); if (!link) e.preventDefault(); }}
+            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-[12px] font-bold text-white hover:opacity-90 transition-all no-underline"
+            style={{ backgroundColor: NAVY }}
+          >
+            View Opportunity ›
+          </a>
+          {link && (
             <a
-              href={school.scholarship_url}
+              href={link}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl px-3.5 py-2.5 text-[11.5px] font-bold uppercase tracking-[0.06em] cursor-pointer hover:opacity-95 transition-all border-none no-underline text-white"
-              style={{ backgroundColor: "#1B2A4A" }}
               onClick={(e) => e.stopPropagation()}
+              className="w-10 h-10 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:border-slate-400 transition-all"
+              aria-label="Open external link"
             >
-              View Opportunity <ExternalLink className="w-3 h-3" />
+              <ExternalLink className="w-4 h-4" />
             </a>
-          )}
-          {school.website_url && (
-            <a
-              href={school.website_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`inline-flex items-center justify-center gap-1.5 bg-secondary text-muted-foreground border border-border rounded-xl px-3.5 py-2.5 text-[11.5px] font-semibold uppercase tracking-[0.06em] cursor-pointer hover:border-primary/50 hover:text-primary transition-all no-underline ${
-                !school.scholarship_url ? "flex-1" : ""
-              }`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              School Site <ExternalLink className="w-3 h-3" />
-            </a>
-          )}
-          {!hasLink && (
-            <div className="flex-1 text-center text-[11px] text-muted-foreground py-2">
-              No links available
-            </div>
           )}
         </div>
       </div>
