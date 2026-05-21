@@ -15,6 +15,7 @@ import SpectrumWheel from "@/components/navigator/SpectrumWheel";
 import {
   WHEEL_DIMENSIONS, DEFAULT_WHEEL_SCORES, type WheelScores,
 } from "@/lib/navigator";
+import { saveWheelScoresForUser } from "@/lib/wheelScores";
 import {
   rankEligible, dedupeBySchool, getMatchBand,
   type Student, type ScholarshipRow,
@@ -398,17 +399,8 @@ const Auth = () => {
           onboarding_completed: true,
         }).eq("id", userId);
 
-        await supabase.from("wheel_scores").upsert({
-          user_id: userId,
-          academic_self: wheel.academic,
-          stem_self: wheel.stem,
-          arts_self: wheel.arts_creative,
-          arts_creative_self: wheel.arts_creative,
-          sports_self: wheel.sports_fitness,
-          leadership_self: wheel.leadership,
-          test_readiness_self: wheel.test_readiness,
-          completed_at: new Date().toISOString(),
-        }, { onConflict: "user_id" });
+        const { error: wheelError } = await saveWheelScoresForUser(userId, wheel);
+        if (wheelError) throw wheelError;
 
         if (scholarshipCats.length) {
           await supabase.from("user_interests").insert(

@@ -11,6 +11,7 @@ import {
   bandForPoints,
   type WheelScores,
 } from "@/lib/navigator";
+import { saveWheelScoresForUser } from "@/lib/wheelScores";
 import { wheelAverageToScore, bandForScore, ELEMENT_JOURNEY, BAND_CUTOFFS } from "@/lib/readiness";
 
 const WheelPanel = () => {
@@ -65,18 +66,8 @@ const WheelPanel = () => {
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
-    const payload = {
-      user_id: user.id,
-      academic_self: scores.academic,
-      stem_self: scores.stem,
-      arts_self: scores.arts_creative,
-      arts_creative_self: scores.arts_creative,
-      sports_self: scores.sports_fitness,
-      leadership_self: scores.leadership,
-      test_readiness_self: scores.test_readiness,
-      completed_at: new Date().toISOString(),
-    };
-    const { error } = await supabase.from("wheel_scores").upsert(payload, { onConflict: "user_id" });
+    const savedAt = new Date().toISOString();
+    const { error } = await saveWheelScoresForUser(user.id, scores, savedAt);
     if (error) {
       toast.error("Couldn't save your Wheel. Please try again.");
       setSaving(false);
@@ -95,7 +86,7 @@ const WheelPanel = () => {
     const newBandKey = bandForPoints(newTotal).key;
     await supabase.from("student_progress").update({ total_points: newTotal, current_band: newBandKey }).eq("user_id", user.id);
     setPoints(newTotal);
-    setCompletedAt(new Date().toISOString());
+    setCompletedAt(savedAt);
     toast.success(`Wheel saved · +${earned} Spectrum Points`);
     setSaving(false);
   };
