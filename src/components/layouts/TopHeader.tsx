@@ -32,10 +32,15 @@ const TopHeader = ({ title }: { title: string }) => {
     year: "numeric",
   });
 
+  const displayTitle =
+    title === "Readiness"
+      ? `${(fullName || "Your").split(" ")[0]}'s Readiness Wheel`
+      : title;
+
   return (
     <header className="bg-card border-b border-border h-16 flex items-center justify-between px-6 flex-shrink-0">
       <h1 className="text-[22px] font-bold text-foreground" style={{ fontFamily: "var(--font-display)" }}>
-        {title}
+        {displayTitle}
       </h1>
 
       <div className="flex items-center gap-4">
