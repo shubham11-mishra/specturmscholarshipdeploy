@@ -58,7 +58,7 @@ const StudentDashboard = () => {
       ]);
       if (cancelled) return;
       setProgress((progressRes.data as ProgressRow) ?? null);
-      setWheel((wheelRes.data as WheelRow) ?? null);
+      setWheel((wheelRes.data as unknown as WheelRow) ?? null);
       setScholarshipCount(schoRes.count ?? 0);
       setLoading(false);
     })();
