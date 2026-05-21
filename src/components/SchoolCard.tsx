@@ -1,4 +1,4 @@
-import { ExternalLink, MapPin, Calendar, DollarSign, GraduationCap, Beaker, Music, Trophy, Users, Star, Heart, CalendarCheck, Globe, Sparkles } from "lucide-react";
+import { ExternalLink, MapPin, Calendar, DollarSign, GraduationCap, Beaker, Music, Trophy, Users, Star, Heart, CalendarCheck, Globe, Sparkles, Palette, HandCoins, Drama, Languages, Brain, Clock, AlertTriangle } from "lucide-react";
 import { SchoolScholarship, computeDaysLeft, formatCloseDate } from "@/data/csvScholarships";
 import { useShortlist } from "@/hooks/useShortlist";
 
@@ -12,36 +12,50 @@ interface SchoolCardProps {
 const NAVY = "#1B2A4A";
 const RAINBOW = "linear-gradient(90deg, #003DA5 0%, #2ECC71 33%, #D4A843 66%, #E74C3C 100%)";
 
-/* Category → coloured icon block (matches Spectrum rainbow) */
+/* Category → coloured icon block (matches Spectrum rainbow).
+   Order matters: more specific patterns first. */
 const categoryStyle = (raw: string) => {
   const c = (raw || "").toLowerCase();
-  if (/music|perform/.test(c))   return { bg: "linear-gradient(135deg,#7B2D8E,#B45BD0)", Icon: Music };
-  if (/stem|science|math/.test(c))return { bg: "linear-gradient(135deg,#2ECC71,#5FDB99)", Icon: Beaker };
-  if (/sport|fitness/.test(c))    return { bg: "linear-gradient(135deg,#E74C3C,#F08775)", Icon: Trophy };
-  if (/leader|community|service/.test(c)) return { bg: "linear-gradient(135deg,#D4A843,#E8C572)", Icon: Users };
-  if (/academic|merit|select|gifted/.test(c)) return { bg: "linear-gradient(135deg,#003DA5,#3A6FD0)", Icon: GraduationCap };
+  if (/music|choir|orchestra|band|instrument/.test(c))   return { bg: "linear-gradient(135deg,#7B2D8E,#B45BD0)", Icon: Music };
+  if (/drama|theatre|performing/.test(c))                return { bg: "linear-gradient(135deg,#9333EA,#C084FC)", Icon: Drama };
+  if (/art|design|creative|visual/.test(c))              return { bg: "linear-gradient(135deg,#EC4899,#F472B6)", Icon: Palette };
+  if (/cultural|language|indigenous|multicultural/.test(c)) return { bg: "linear-gradient(135deg,#F97316,#FB923C)", Icon: Languages };
+  if (/stem|science|math|technology|engineer/.test(c))   return { bg: "linear-gradient(135deg,#2ECC71,#5FDB99)", Icon: Beaker };
+  if (/sport|fitness|athletic/.test(c))                  return { bg: "linear-gradient(135deg,#E74C3C,#F08775)", Icon: Trophy };
+  if (/leader|community|service/.test(c))                return { bg: "linear-gradient(135deg,#D4A843,#E8C572)", Icon: Users };
+  if (/financial|need|equity|bursary|means/.test(c))     return { bg: "linear-gradient(135deg,#0EA5E9,#38BDF8)", Icon: HandCoins };
+  if (/gifted|all.?round/.test(c))                       return { bg: "linear-gradient(135deg,#A16207,#EAB308)", Icon: Brain };
+  if (/academic|merit|select/.test(c))                   return { bg: "linear-gradient(135deg,#003DA5,#3A6FD0)", Icon: GraduationCap };
   return { bg: "linear-gradient(135deg,#1B2A4A,#3D507A)", Icon: Sparkles };
 };
 
 /* Category badge colour */
 const categoryBadge = (raw: string) => {
   const c = (raw || "").toLowerCase();
-  if (/music/.test(c))     return "bg-fuchsia-50 text-fuchsia-700";
-  if (/perform/.test(c))   return "bg-purple-50 text-purple-700";
-  if (/stem/.test(c))      return "bg-emerald-50 text-emerald-700";
+  if (/music|drama|theatre|performing/.test(c)) return "bg-fuchsia-50 text-fuchsia-700";
+  if (/art|design|creative|visual/.test(c)) return "bg-pink-50 text-pink-700";
+  if (/cultural|language|indigenous/.test(c)) return "bg-orange-50 text-orange-700";
+  if (/stem|science|math|technology/.test(c)) return "bg-emerald-50 text-emerald-700";
   if (/sport|fitness/.test(c)) return "bg-rose-50 text-rose-700";
   if (/leader|community/.test(c)) return "bg-amber-50 text-amber-700";
-  if (/academic|merit|select|gifted/.test(c)) return "bg-blue-50 text-blue-700";
+  if (/financial|need|equity|bursary/.test(c)) return "bg-sky-50 text-sky-700";
+  if (/gifted|all.?round/.test(c)) return "bg-yellow-50 text-yellow-800";
+  if (/academic|merit|select/.test(c)) return "bg-blue-50 text-blue-700";
   return "bg-slate-100 text-slate-700";
 };
 
-/* Deadline bar: red ≤14d, green = open, grey = unknown */
+/* Deadline bar: red ≤7d (urgent), orange ≤30d (closing soon),
+   green = open (>30d), slate = unknown */
 const deadlineBar = (days: number | null, hasDate: boolean) => {
-  if (!hasDate) return { bg: "bg-slate-100", text: "text-slate-600", icon: Globe, label: "Closing date: Check school website" };
-  if (days != null && days <= 14 && days >= 0)
-    return { bg: "bg-rose-50", text: "text-rose-700", icon: CalendarCheck, label: `Closing soon · ${days} day${days === 1 ? "" : "s"} left` };
-  return { bg: "bg-emerald-50", text: "text-emerald-700", icon: CalendarCheck, label: "Applications open" };
+  if (!hasDate)
+    return { bg: "bg-slate-100", text: "text-slate-600", border: "#94a3b8", icon: Globe, label: "Closing date: Check school website" };
+  if (days != null && days >= 0 && days <= 7)
+    return { bg: "bg-rose-50", text: "text-rose-700", border: "#E74C3C", icon: AlertTriangle, label: `Urgent · ${days} day${days === 1 ? "" : "s"} left` };
+  if (days != null && days >= 0 && days <= 30)
+    return { bg: "bg-amber-50", text: "text-amber-700", border: "#D4A843", icon: Clock, label: `Closing soon · ${days} days left` };
+  return { bg: "bg-emerald-50", text: "text-emerald-700", border: "#2ECC71", icon: CalendarCheck, label: "Applications open" };
 };
+
 
 /* Match score (uses extraction_confidence_score 0-100 as a placeholder
    until win_probability column is wired through Supabase types) */
@@ -168,11 +182,12 @@ const SchoolCard = ({ school, index, onOpenDetail }: SchoolCardProps) => {
         )}
 
         {/* Deadline bar */}
-        <div className={`flex items-center gap-2 ${dl.bg} ${dl.text} px-3 py-2 rounded-lg text-[11.5px] font-semibold mb-3 -mx-4 px-4 rounded-none border-l-4`}
-             style={{ borderLeftColor: dl.bg.includes("rose") ? "#E74C3C" : dl.bg.includes("emerald") ? "#2ECC71" : "#94a3b8" }}>
+        <div className={`flex items-center gap-2 ${dl.bg} ${dl.text} px-3 py-2 text-[11.5px] font-semibold mb-3 -mx-4 px-4 border-l-4`}
+             style={{ borderLeftColor: dl.border }}>
           <dl.icon className="w-3.5 h-3.5 shrink-0" />
-          <span className="truncate">{dl.label}{hasDate && days != null && days > 14 && `: Closes ${formatCloseDate(school.application_close_date)}`}{!hasDate && (school.closing_label && school.closing_label.toUpperCase() !== "TBA" ? "" : "")}</span>
+          <span className="truncate">{dl.label}{hasDate && days != null && days > 30 && `: Closes ${formatCloseDate(school.application_close_date)}`}</span>
         </div>
+
 
         {/* CTA row */}
         <div className="flex gap-2 mt-auto">
