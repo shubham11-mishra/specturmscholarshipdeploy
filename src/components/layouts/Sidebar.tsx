@@ -7,7 +7,7 @@ import logoMark from "@/assets/logo-mark.svg";
 
 const navItems = [
   { label: "Dashboard", icon: "📋", path: "/dashboard", end: true },
-  { label: "Scholarships", icon: "🎯", path: "/" },
+  { label: "Scholarships", icon: "🎯", path: "/scholarships" },
   { label: "Shortlist", icon: "❤️", path: "/shortlist" },
   { label: "Readiness", icon: "📊", path: "/readiness" },
   { label: "AI Copilot", icon: "✨", path: "/copilot", badge: "AI" },
