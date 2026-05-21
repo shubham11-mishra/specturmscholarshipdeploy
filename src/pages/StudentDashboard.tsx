@@ -9,6 +9,8 @@ import {
   Sparkles, ArrowRight, Compass, Pencil, GraduationCap,
   MapPin, Heart, CalendarClock, BookOpen,
 } from "lucide-react";
+import { wheelAverageToScore, bandForScore } from "@/lib/readiness";
+
 
 type ProgressRow = {
   total_points: number | null;
