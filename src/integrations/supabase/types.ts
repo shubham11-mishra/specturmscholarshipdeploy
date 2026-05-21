@@ -614,6 +614,7 @@ export type Database = {
           application_open_date: string | null
           category: string | null
           closing_label: string | null
+          closing_label_display: string | null
           contact_email: string | null
           contact_phone: string | null
           created_at: string
@@ -621,23 +622,41 @@ export type Database = {
           days_left: string | null
           description: string | null
           eligibility_criteria: string | null
+          enrol_hits: string | null
           extraction_confidence_score: string | null
           gender: string | null
           gender_eligibility: string | null
+          geolocation: string | null
           id: string
           is_active: string | null
           last_verified_at: string | null
+          lat: string | null
+          link_status: string | null
+          link_status_code: string | null
+          lng: string | null
+          match_gender: string | null
+          match_year_levels: string | null
+          nlp_keywords: string | null
           number_awarded: string | null
           overview: string | null
+          page_snippet: string | null
+          page_type: string | null
           postcode: string | null
+          prep_description: string | null
+          prep_product: string | null
+          prep_product_type: string | null
+          prep_product_url: string | null
           program_name: string | null
           program_type: string | null
-          row_number: number | null
+          schol_hits: string | null
           scholarship_confidence: string | null
           scholarship_url: string | null
+          school_email: string | null
           school_name: string
+          school_phone: string | null
           school_sector: string | null
           school_type: string | null
+          search_tags: string | null
           sector: string | null
           special_conditions: string | null
           state: string | null
@@ -645,11 +664,15 @@ export type Database = {
           suburb: string | null
           test_month: string | null
           test_provider: string | null
+          tuition_fee_aud: string | null
+          tuition_fee_num: string | null
           url_status: string | null
           value_aud: string | null
           value_num: string | null
           value_type: string | null
           website_url: string | null
+          win_probability_base: string | null
+          win_probability_label: string | null
           year_levels: string | null
         }
         Insert: {
@@ -659,6 +682,7 @@ export type Database = {
           application_open_date?: string | null
           category?: string | null
           closing_label?: string | null
+          closing_label_display?: string | null
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
@@ -666,23 +690,41 @@ export type Database = {
           days_left?: string | null
           description?: string | null
           eligibility_criteria?: string | null
+          enrol_hits?: string | null
           extraction_confidence_score?: string | null
           gender?: string | null
           gender_eligibility?: string | null
+          geolocation?: string | null
           id?: string
           is_active?: string | null
           last_verified_at?: string | null
+          lat?: string | null
+          link_status?: string | null
+          link_status_code?: string | null
+          lng?: string | null
+          match_gender?: string | null
+          match_year_levels?: string | null
+          nlp_keywords?: string | null
           number_awarded?: string | null
           overview?: string | null
+          page_snippet?: string | null
+          page_type?: string | null
           postcode?: string | null
+          prep_description?: string | null
+          prep_product?: string | null
+          prep_product_type?: string | null
+          prep_product_url?: string | null
           program_name?: string | null
           program_type?: string | null
-          row_number?: number | null
+          schol_hits?: string | null
           scholarship_confidence?: string | null
           scholarship_url?: string | null
+          school_email?: string | null
           school_name: string
+          school_phone?: string | null
           school_sector?: string | null
           school_type?: string | null
+          search_tags?: string | null
           sector?: string | null
           special_conditions?: string | null
           state?: string | null
@@ -690,11 +732,15 @@ export type Database = {
           suburb?: string | null
           test_month?: string | null
           test_provider?: string | null
+          tuition_fee_aud?: string | null
+          tuition_fee_num?: string | null
           url_status?: string | null
           value_aud?: string | null
           value_num?: string | null
           value_type?: string | null
           website_url?: string | null
+          win_probability_base?: string | null
+          win_probability_label?: string | null
           year_levels?: string | null
         }
         Update: {
@@ -704,6 +750,7 @@ export type Database = {
           application_open_date?: string | null
           category?: string | null
           closing_label?: string | null
+          closing_label_display?: string | null
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
@@ -711,23 +758,41 @@ export type Database = {
           days_left?: string | null
           description?: string | null
           eligibility_criteria?: string | null
+          enrol_hits?: string | null
           extraction_confidence_score?: string | null
           gender?: string | null
           gender_eligibility?: string | null
+          geolocation?: string | null
           id?: string
           is_active?: string | null
           last_verified_at?: string | null
+          lat?: string | null
+          link_status?: string | null
+          link_status_code?: string | null
+          lng?: string | null
+          match_gender?: string | null
+          match_year_levels?: string | null
+          nlp_keywords?: string | null
           number_awarded?: string | null
           overview?: string | null
+          page_snippet?: string | null
+          page_type?: string | null
           postcode?: string | null
+          prep_description?: string | null
+          prep_product?: string | null
+          prep_product_type?: string | null
+          prep_product_url?: string | null
           program_name?: string | null
           program_type?: string | null
-          row_number?: number | null
+          schol_hits?: string | null
           scholarship_confidence?: string | null
           scholarship_url?: string | null
+          school_email?: string | null
           school_name?: string
+          school_phone?: string | null
           school_sector?: string | null
           school_type?: string | null
+          search_tags?: string | null
           sector?: string | null
           special_conditions?: string | null
           state?: string | null
@@ -735,11 +800,15 @@ export type Database = {
           suburb?: string | null
           test_month?: string | null
           test_provider?: string | null
+          tuition_fee_aud?: string | null
+          tuition_fee_num?: string | null
           url_status?: string | null
           value_aud?: string | null
           value_num?: string | null
           value_type?: string | null
           website_url?: string | null
+          win_probability_base?: string | null
+          win_probability_label?: string | null
           year_levels?: string | null
         }
         Relationships: []
