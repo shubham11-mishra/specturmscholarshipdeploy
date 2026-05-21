@@ -1,16 +1,17 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useShortlist } from "@/hooks/useShortlist";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useUserRole } from "@/hooks/useUserRole";
 import { cn } from "@/lib/utils";
 import logoMark from "@/assets/logo-mark.svg";
 
 const navItems = [
-  { label: "Dashboard", icon: "📋", path: "/dashboard" },
-  { label: "Scholarships", icon: "🎯", path: "/#results-grid" },
+  { label: "Dashboard", icon: "📋", path: "/dashboard", end: true },
+  { label: "Scholarships", icon: "🎯", path: "/scholarships" },
   { label: "Shortlist", icon: "❤️", path: "/shortlist" },
   { label: "Readiness", icon: "📊", path: "/readiness" },
   { label: "AI Copilot", icon: "✨", path: "/copilot", badge: "AI" },
+  { label: "Assessments", icon: "📚", path: "/assessments" },
   { label: "Applications", icon: "📝", path: "/applications" },
   { label: "Wins", icon: "🏆", path: "/wins" },
   { label: "Profile", icon: "👤", path: "/profile" },
@@ -25,19 +26,20 @@ const getInitials = (name?: string | null) =>
     .join("")
     .toUpperCase() || "S";
 
-const Sidebar = () => {
+type Props = { className?: string; onNavigate?: () => void };
+
+const Sidebar = ({ className, onNavigate }: Props) => {
   const { fullName, location: loc, yearLevel } = useAuth();
   const { count: shortlistCount } = useShortlist();
-  const { isAdmin } = useIsAdmin();
-  const location = useLocation();
-
-  const items = navItems;
+  const { isAdmin, isParent } = useUserRole();
 
   return (
-    <aside className="w-60 flex-shrink-0 flex flex-col h-screen sticky top-0" style={{ background: "hsl(var(--hero-dark))", color: "white" }}>
-      {/* Logo */}
+    <aside
+      className={cn("w-60 flex-shrink-0 flex flex-col h-screen sticky top-0", className)}
+      style={{ background: "hsl(var(--hero-dark))", color: "white" }}
+    >
       <div className="px-6 py-5 border-b border-white/10">
-        <Link to="/" className="flex items-center gap-2.5 no-underline">
+        <Link to="/" className="flex items-center gap-2.5 no-underline" onClick={onNavigate}>
           <img src={logoMark} alt="" className="w-8 h-8" />
           <div className="leading-tight">
             <div className="text-white font-bold text-[15px] tracking-wide" style={{ fontFamily: "var(--font-display)" }}>SPECTRUM</div>
@@ -46,19 +48,22 @@ const Sidebar = () => {
         </Link>
       </div>
 
-      {/* Portal toggle */}
-      <div className="px-4 pt-4">
-        <div className="bg-white/5 rounded-full p-1 flex">
-          <button className="flex-1 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider text-foreground" style={{ background: "hsl(var(--gold))" }}>
-            🎓 Student
-          </button>
-          <button title="Switch to Parent dashboard" onClick={() => (window.location.href = "/parent")} className="flex-1 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-wider text-white/60 hover:text-white transition">
-            👥 Parent
-          </button>
+      {(isParent || isAdmin) && (
+        <div className="px-4 pt-4">
+          <div className="bg-white/5 rounded-full p-1 flex">
+            <button className="flex-1 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider text-foreground" style={{ background: "hsl(var(--gold))" }}>
+              🎓 Student
+            </button>
+            {isParent && (
+              <button title="Switch to Parent dashboard" onClick={() => { onNavigate?.(); window.location.href = "/parent"; }}
+                className="flex-1 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-wider text-white/60 hover:text-white transition">
+                👥 Parent
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* User card */}
       <div className="mx-4 my-4 bg-white/5 rounded-xl p-3.5">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-[13px] text-foreground" style={{ background: "hsl(var(--gold))" }}>
@@ -73,46 +78,45 @@ const Sidebar = () => {
         </div>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
-        {items.map((item) => {
-          const active = location.pathname === item.path || (item.path !== "/dashboard" && location.pathname.startsWith(item.path));
-          const isHash = item.path.startsWith("/#");
-          const commonProps = {
-            className: cn(
+        {navItems.map((item) => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            end={item.end}
+            onClick={onNavigate}
+            className={({ isActive }) => cn(
               "flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-semibold transition-colors no-underline",
-              active ? "text-foreground" : "text-white/75 hover:bg-white/5 hover:text-white",
-            ),
-            style: active ? { background: "hsl(var(--gold))" } : undefined,
-          };
-          const inner = (
-            <>
-              <span className="text-base">{item.icon}</span>
-              <span className="flex-1">{item.label}</span>
-              {item.label === "Shortlist" && shortlistCount > 0 && (
-                <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center", active ? "bg-foreground/15 text-foreground" : "text-white")} style={!active ? { background: "hsl(var(--spec-red))" } : undefined}>
-                  {shortlistCount}
-                </span>
-              )}
-              {item.badge && (
-                <span className="text-[9px] font-bold text-white px-1.5 py-0.5 rounded-full" style={{ background: "hsl(var(--spec-red))" }}>
-                  {item.badge}
-                </span>
-              )}
-            </>
-          );
-          return isHash ? (
-            <a key={item.path} href={item.path} {...commonProps}>{inner}</a>
-          ) : (
-            <Link key={item.path} to={item.path} {...commonProps}>{inner}</Link>
-          );
-        })}
+              isActive ? "text-foreground" : "text-white/75 hover:bg-white/5 hover:text-white",
+            )}
+            style={({ isActive }) => isActive ? { background: "hsl(var(--gold))" } : undefined}
+          >
+            {({ isActive }) => (
+              <>
+                <span className="text-base">{item.icon}</span>
+                <span className="flex-1">{item.label}</span>
+                {item.label === "Shortlist" && shortlistCount > 0 && (
+                  <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center", isActive ? "bg-foreground/15 text-foreground" : "text-white")}
+                    style={!isActive ? { background: "hsl(var(--spec-red))" } : undefined}>
+                    {shortlistCount}
+                  </span>
+                )}
+                {item.badge && (
+                  <span className="text-[9px] font-bold text-white px-1.5 py-0.5 rounded-full" style={{ background: "hsl(var(--spec-red))" }}>
+                    {item.badge}
+                  </span>
+                )}
+              </>
+            )}
+          </NavLink>
+        ))}
       </nav>
 
       {isAdmin && (
         <div className="px-3 pb-2">
           <Link
             to="/admin"
+            onClick={onNavigate}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-semibold no-underline text-white/75 hover:bg-white/5 hover:text-white"
           >
             <span className="text-base">🛠️</span>
