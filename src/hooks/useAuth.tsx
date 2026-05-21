@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
+import { ensureWheelScoresForUser } from "@/lib/wheelScores";
 
 interface UserLocation {
   state: string | null;
@@ -106,14 +107,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (user) await fetchInterests(user.id);
   };
 
+  const ensureUserSetup = (sessionUser: User) => {
+    setTimeout(() => syncInterestsFromMetadata(sessionUser), 0);
+    setTimeout(() => fetchLocation(sessionUser.id), 0);
+    setTimeout(() => ensureWheelScoresForUser(sessionUser.id, sessionUser.user_metadata), 0);
+  };
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          setTimeout(() => syncInterestsFromMetadata(session.user), 0);
-          setTimeout(() => fetchLocation(session.user.id), 0);
+          ensureUserSetup(session.user);
         } else {
           setInterests([]);
           setLocation({ state: null, postcode: null, suburb: null });
@@ -128,8 +134,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        syncInterestsFromMetadata(session.user);
-        fetchLocation(session.user.id);
+        ensureUserSetup(session.user);
       }
       setLoading(false);
     });
