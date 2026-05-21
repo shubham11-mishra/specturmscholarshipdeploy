@@ -456,9 +456,6 @@ const Auth = () => {
                 <Sparkles className="w-4 h-4" />{submitting ? "Please wait..." : "Sign In"}
               </button>
             </form>
-            <button onClick={handleGoogle} className="mt-3 w-full bg-card border border-border text-foreground rounded-xl px-4 py-3 text-sm font-semibold cursor-pointer hover:bg-secondary transition">
-              Continue with Google
-            </button>
             <div className="mt-5 text-center text-sm">
               <span className="text-muted-foreground">Don't have an account? </span>
               <button onClick={() => { setIsLogin(false); setStep(0); setError(""); }} className="text-accent font-semibold hover:text-accent/80 bg-transparent border-none cursor-pointer">Sign Up</button>
