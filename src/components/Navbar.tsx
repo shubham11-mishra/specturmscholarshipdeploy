@@ -44,14 +44,14 @@ const Navbar = () => {
         {(user
           ? [
               { label: "Home", to: "/" },
-              { label: "Find Opportunities", to: "/#results-grid" },
+              { label: "Find Opportunities", to: "https://scholarshipsearcher.com.au/#results-grid" },
               { label: "My Wheel", to: "/wheel" },
               
               { label: "My Profile", to: "/profile" },
             ]
           : [
               { label: "Home", to: "/" },
-              { label: "Find Schools", to: "/#results-grid" },
+              { label: "Find Schools", to: "https://scholarshipsearcher.com.au/#results-grid" },
               { label: "About", to: "/#about" },
               { label: "Contact", to: "/#contact" },
             ]
