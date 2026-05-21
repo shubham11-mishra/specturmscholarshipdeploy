@@ -3,6 +3,7 @@ import { Heart, LogOut, Settings, User as UserIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useShortlist } from "@/hooks/useShortlist";
 import NotificationsBell from "@/components/NotificationsBell";
+import HelpButton from "@/components/HelpButton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +40,8 @@ const TopHeader = ({ title }: { title: string }) => {
 
       <div className="flex items-center gap-4">
         <span className="text-[13px] text-muted-foreground hidden md:inline">{today}</span>
+
+        <HelpButton />
 
         <NotificationsBell scrolled />
 
