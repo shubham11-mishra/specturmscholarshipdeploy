@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useShortlist } from "@/hooks/useShortlist";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { cn } from "@/lib/utils";
 import logoMark from "@/assets/logo-mark.svg";
 
@@ -28,7 +29,12 @@ const getInitials = (name?: string | null) =>
 const Sidebar = () => {
   const { fullName, location: loc, yearLevel } = useAuth();
   const { count: shortlistCount } = useShortlist();
+  const { isAdmin } = useIsAdmin();
   const location = useLocation();
+
+  const items = isAdmin
+    ? [...navItems, { label: "Assessment Editor", icon: "🛠️", path: "/admin/assessments", badge: "ADMIN" }]
+    : navItems;
 
   return (
     <aside className="w-60 flex-shrink-0 flex flex-col h-screen sticky top-0" style={{ background: "hsl(var(--hero-dark))", color: "white" }}>
@@ -72,7 +78,7 @@ const Sidebar = () => {
 
       {/* Nav */}
       <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
-        {navItems.map((item) => {
+        {items.map((item) => {
           const active = location.pathname === item.path || (item.path !== "/dashboard" && location.pathname.startsWith(item.path));
           const isHash = item.path.startsWith("/#");
           const commonProps = {
