@@ -4,8 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { SUBJECT_THEME, listQuestionsForBand, type Subject, type Question, type Section } from "@/lib/assessment";
-import { Trophy, CheckCircle2 } from "lucide-react";
+import { SUBJECT_THEME, listQuestionsForBand, resetAttempt, READINESS_POINTS_PER_ASSESSMENT, type Subject, type Question, type Section } from "@/lib/assessment";
+import { Trophy, CheckCircle2, RotateCcw } from "lucide-react";
 
 function pctColor(pct: number) {
   if (pct >= 80) return "#2ECC71";
@@ -87,11 +87,16 @@ export default function AssessmentResults() {
           <h1 className="text-2xl font-display font-bold">{theme.label} Assessment Complete</h1>
           <p className="text-muted-foreground">{aboveAvg ? "Above average" : "Keep going"} for Year {attempt.year_band} {theme.label}</p>
           <div className="flex justify-center gap-2 flex-wrap pt-2">
-            <Badge className="text-base px-3 py-1" style={{ background: theme.color, color: "#fff" }}>+30 XP</Badge>
+            <Badge className="text-base px-3 py-1" style={{ background: theme.color, color: "#fff" }}>
+              +{READINESS_POINTS_PER_ASSESSMENT} Readiness Points
+            </Badge>
             <Badge className="text-base px-3 py-1 bg-[#D4A843] text-white">
               <Trophy className="w-4 h-4 mr-1" /> Verified Academic
             </Badge>
           </div>
+          <p className="text-xs text-muted-foreground pt-1">
+            Contributes {READINESS_POINTS_PER_ASSESSMENT} of 100 toward your Readiness Score.
+          </p>
         </CardContent>
       </Card>
 
@@ -205,8 +210,17 @@ export default function AssessmentResults() {
         </CardContent>
       </Card>
 
-      <div className="flex gap-3 justify-end">
+      <div className="flex gap-3 justify-end flex-wrap">
         <Button variant="outline" asChild><Link to="/assessments">More assessments</Link></Button>
+        <Button
+          variant="outline"
+          onClick={async () => {
+            await resetAttempt(attempt.id);
+            nav(`/assessments/${attempt.subject}/${encodeURIComponent(attempt.year_band)}/take`);
+          }}
+        >
+          <RotateCcw className="w-4 h-4 mr-1" /> Retake / edit answers
+        </Button>
         <Button onClick={() => nav("/dashboard")} style={{ background: theme.color }}>Back to dashboard</Button>
       </div>
     </div>
