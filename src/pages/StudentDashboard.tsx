@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import InfoTip from "@/components/InfoTip";
 import {
   Sparkles, Target, Heart, BookOpen, Trophy, ClipboardCheck,
-  ArrowRight, TrendingUp, AlertCircle,
+  ArrowRight, TrendingUp, AlertCircle, Pencil, GraduationCap, MapPin, Mail, CalendarClock,
 } from "lucide-react";
 
 type ProgressRow = {
