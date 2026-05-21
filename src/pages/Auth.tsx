@@ -71,8 +71,7 @@ const SCHOLARSHIP_CATEGORIES = ["Academic Merit", "Music", "Sports", "STEM", "Ar
 const STEPS = [
   { label: "About You", icon: User, color: "hsl(var(--gold))" },
   { label: "Your Wheel", icon: Compass, color: "hsl(var(--spec-green))" },
-  { label: "Background", icon: Palette, color: "hsl(var(--spec-blue))" },
-  { label: "Goals", icon: Target, color: "hsl(var(--spec-red))" },
+  { label: "Background & Goals", icon: Palette, color: "hsl(var(--spec-blue))" },
   { label: "Your Matches", icon: PartyPopper, color: "hsl(var(--spec-orange))" },
 ];
 
