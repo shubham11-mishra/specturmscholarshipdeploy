@@ -71,8 +71,7 @@ const SCHOLARSHIP_CATEGORIES = ["Academic Merit", "Music", "Sports", "STEM", "Ar
 const STEPS = [
   { label: "About You", icon: User, color: "hsl(var(--gold))" },
   { label: "Your Wheel", icon: Compass, color: "hsl(var(--spec-green))" },
-  { label: "Background", icon: Palette, color: "hsl(var(--spec-blue))" },
-  { label: "Goals", icon: Target, color: "hsl(var(--spec-red))" },
+  { label: "Background & Goals", icon: Palette, color: "hsl(var(--spec-blue))" },
   { label: "Your Matches", icon: PartyPopper, color: "hsl(var(--spec-orange))" },
 ];
 
@@ -153,7 +152,7 @@ const Auth = () => {
   });
 
   useEffect(() => {
-    if (step !== 4) return;
+    if (step !== 3) return;
     let cancelled = false;
     (async () => {
       setMatchLoading(true);
@@ -493,9 +492,9 @@ const Auth = () => {
             <img src={logoHorizontal} alt="Opportunity Searcher" className="h-12 w-auto" draggable={false} />
           </Link>
           <h1 className="font-display text-3xl md:text-4xl font-extrabold text-foreground text-center">
-            {step === 4 ? "Your matches are ready" : "Let's build your opportunity profile"}
+            {step === 3 ? "Your matches are ready" : "Let's build your opportunity profile"}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1.5">Step {step + 1} of 5 · Takes less than 3 minutes</p>
+          <p className="text-sm text-muted-foreground mt-1.5">Step {step + 1} of 4 · Takes less than 3 minutes</p>
         </div>
 
         <StepIndicator />
