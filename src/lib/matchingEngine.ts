@@ -48,12 +48,24 @@ function isNationalScholarship(s: ScholarshipRow): boolean {
 function parseYearLevels(text: string | null): number[] {
   if (!text) return [];
   const out = new Set<number>();
-  const re = /\d+/g;
+  const t = text.toLowerCase();
+
+  // Expand explicit ranges: "7-12", "7 – 12", "year 7 to year 12", "7 to 12"
+  const rangeRe = /(?:year\s*)?(\d+)\s*(?:[-–]|to)\s*(?:year\s*)?(\d+)/gi;
   let m: RegExpExecArray | null;
-  while ((m = re.exec(text))) {
-    const n = parseInt(m[0], 10);
+  while ((m = rangeRe.exec(t)) !== null) {
+    const lo = parseInt(m[1], 10);
+    const hi = parseInt(m[2], 10);
+    for (let y = Math.max(lo, 3); y <= Math.min(hi, 12); y++) out.add(y);
+  }
+
+  // Also pick up standalone year numbers ("Year 7", "7, 8, 9", etc.)
+  const singleRe = /\b(\d+)\b/g;
+  while ((m = singleRe.exec(t)) !== null) {
+    const n = parseInt(m[1], 10);
     if (n >= 3 && n <= 12) out.add(n);
   }
+
   return Array.from(out);
 }
 
@@ -79,15 +91,13 @@ function genderMatches(s: ScholarshipRow, g: Gender | null): boolean {
 }
 
 export function isEligible(student: Student, s: ScholarshipRow): boolean {
-  // 7. Junk program filter
+  // 7. Junk program filter — reject truly empty names only
   const pname = (s.program_name || "").trim();
-  if (!pname || pname.length > 80) return false;
+  if (!pname) return false;
 
-  // 6. Active + not closed
+  // 6. Active check — is_active is the authoritative source; days_left may be stale
   const active = norm(s.is_active);
   if (active === "false" || active === "no" || active === "0") return false;
-  const days = parseDaysLeft(s);
-  if (days !== null && days < 0) return false;
 
   // 1. Year level
   const yls = parseYearLevels(s.year_levels);

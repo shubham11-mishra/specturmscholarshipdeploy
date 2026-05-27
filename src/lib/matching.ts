@@ -12,6 +12,10 @@ export interface StudentProfile {
   scholarship_categories: string[];
   wheel?: WheelScores | null;
   band?: string | null;
+  gender?: string | null;
+  is_indigenous?: boolean | null;
+  is_rural?: boolean | null;
+  financial_need?: string | null;
 }
 
 export interface ScholarshipRow {
@@ -21,6 +25,7 @@ export interface ScholarshipRow {
   category: string | null;
   year_levels: string | null;
   gender_eligibility: string | null;
+  school_type: string | null;
   value_num: string | null;
   application_close_date: string | null;
   days_left: string | null;
@@ -72,10 +77,17 @@ const yearToNum = (y: string | null | undefined): number | null => {
 const parseYearLevels = (text: string | null): number[] => {
   if (!text) return [];
   const out = new Set<number>();
-  const re = /\d+/g;
-  let m;
-  while ((m = re.exec(text))) {
-    const n = parseInt(m[0], 10);
+  const t = text.toLowerCase();
+  const rangeRe = /(?:year\s*)?(\d+)\s*(?:[-–]|to)\s*(?:year\s*)?(\d+)/gi;
+  let m: RegExpExecArray | null;
+  while ((m = rangeRe.exec(t)) !== null) {
+    const lo = parseInt(m[1], 10);
+    const hi = parseInt(m[2], 10);
+    for (let y = Math.max(lo, 3); y <= Math.min(hi, 12); y++) out.add(y);
+  }
+  const singleRe = /\b(\d+)\b/g;
+  while ((m = singleRe.exec(t)) !== null) {
+    const n = parseInt(m[1], 10);
     if (n >= 3 && n <= 12) out.add(n);
   }
   return Array.from(out);
@@ -164,6 +176,56 @@ export function calculateMatch(student: StudentProfile, s: ScholarshipRow): Matc
   if (wheelBoost !== 0) {
     score += wheelBoost;
     if (wheelBoost > 0) reasons.push(`Strength in ${s.category}`);
+  }
+
+  // Gender eligibility — check gender_eligibility field first, fall back to school_type
+  if (student.gender) {
+    const sg = student.gender.toLowerCase();
+    const isMale   = sg.includes("male") || sg === "m" || sg === "boy";
+    const isFemale = sg.includes("female") || sg === "f" || sg === "girl";
+    const ge = (s.gender_eligibility || "").toLowerCase();
+    const st = (s.school_type || "").toLowerCase();
+
+    const isGirlsOnly = (ge.includes("female") && !ge.includes("male")) || st === "girls";
+    const isBoysOnly  = (ge.includes("male") && !ge.includes("female")) || st === "boys";
+
+    if (isGirlsOnly && isMale) {
+      score -= 25;
+    } else if (isBoysOnly && isFemale) {
+      score -= 25;
+    } else if (isGirlsOnly || isBoysOnly) {
+      score += 5;
+      reasons.push("Matches your gender eligibility");
+    }
+  }
+
+  // Indigenous background
+  if (student.is_indigenous && s.category) {
+    const cat = s.category.toLowerCase();
+    if (cat.includes("indigenous") || cat.includes("aboriginal") || cat.includes("first nations")) {
+      score += 15;
+      reasons.push("Eligible for indigenous scholarship");
+    }
+  }
+
+  // Rural / regional background
+  if (student.is_rural && s.category) {
+    const cat = s.category.toLowerCase();
+    if (cat.includes("rural") || cat.includes("regional") || cat.includes("country")) {
+      score += 15;
+      reasons.push("Eligible as a rural/regional student");
+    }
+  }
+
+  // Financial need
+  if (student.financial_need && s.category) {
+    const fn = student.financial_need.toLowerCase();
+    const cat = s.category.toLowerCase();
+    const hasNeed = fn === "yes" || fn === "true" || fn === "high";
+    if (hasNeed && (cat.includes("bursary") || cat.includes("financial") || cat.includes("means-tested") || cat.includes("need-based"))) {
+      score += 12;
+      reasons.push("Eligible based on financial need");
+    }
   }
 
   // Confidence factor

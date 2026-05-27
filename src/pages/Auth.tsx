@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { copilotSupabase } from "@/integrations/supabase/copilotClient";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import {
@@ -155,13 +156,20 @@ const Auth = () => {
     let cancelled = false;
     (async () => {
       setMatchLoading(true);
-      const { data } = await supabase
+      const { data } = await copilotSupabase
         .from("scholarships")
         .select("id, school_name, program_name, category, sub_type, state, sector, gender_eligibility, year_levels, application_close_date, days_left, is_active")
+        .eq("is_active", "True")
         .limit(5000);
       if (cancelled || !data) { setMatchLoading(false); return; }
 
-      const ranked = rankEligible(buildStudent(), data as ScholarshipRow[]);
+      // Normalise copilot DB rows: program_name falls back to school_name if null.
+      const normalised = data.map(r => ({
+        ...r,
+        program_name: (r.program_name || r.school_name || "").trim() || null,
+      }));
+
+      const ranked = rankEligible(buildStudent(), normalised as ScholarshipRow[]);
       const top = dedupeBySchool(ranked, 5);
       setEligibleCount(ranked.length);
       setTopMatches(top);
