@@ -12,8 +12,6 @@ const QUICK_LINKS: {
   { label: "Cultural",        Icon: Globe,         iconBg: "bg-[#ffe4e6]", iconColor: "text-[#9f1239]" },
   { label: "Financial Need",  Icon: HandCoins,     iconBg: "bg-[#fef3c7]", iconColor: "text-[#b45309]" },
   { label: "STEM",            Icon: FlaskConical,  iconBg: "bg-[#e0f7fa]", iconColor: "text-[#0e7490]" },
-  { label: "School-Specific", Icon: School,        iconBg: "bg-[#ede9fe]", iconColor: "text-[#4f46e5]" },
-  { label: "Gifted Program",  Icon: Sparkles,      iconBg: "bg-[#fef9c3]", iconColor: "text-[#a16207]" },
 ];
 
 interface Props {
