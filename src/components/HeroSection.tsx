@@ -104,6 +104,7 @@ const HeroSection = ({ searchQuery, onSearchChange, onSearch }: HeroSectionProps
       </div>
     </div>
   </section>
-);
+  );
+};
 
 export default HeroSection;
