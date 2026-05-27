@@ -34,15 +34,11 @@ const CATEGORY_BUCKETS: { label: string; values: string[] }[] = [
   { label: "Cultural", values: ["Cultural"] },
   { label: "Financial Need", values: ["Financial Need"] },
   { label: "STEM", values: ["STEM"] },
-  { label: "School-Specific", values: ["School-Specific", "General", "Other"] },
 ];
-
-const GIFTED_LABEL = "Gifted Program";
 
 const expandCategoryBuckets = (labels: string[]): string[] => {
   const out = new Set<string>();
   labels.forEach((l) => {
-    if (l === GIFTED_LABEL) return; // handled via datasetTypes
     const bucket = CATEGORY_BUCKETS.find((b) => b.label === l);
     (bucket ? bucket.values : [l]).forEach((v) => out.add(v));
   });
@@ -151,20 +147,19 @@ const Index = () => {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    const giftedSelected = categoryFilters.includes(GIFTED_LABEL);
-    const otherCats = categoryFilters.filter((l) => l !== GIFTED_LABEL);
+    const academicSelected = categoryFilters.includes("Academic");
     fetchScholarshipsPage({
       search: searchQuery,
       confidence: confidenceFilter,
       states: stateFilters,
       sectors: sectorFilters,
-      categories: expandCategoryBuckets(otherCats),
+      categories: expandCategoryBuckets(categoryFilters),
       genders: genderFilters,
       valueTypes: valueTypeFilters,
       datasetTypes: searchQuery
         ? undefined // when searching, look across all dataset types
-        : giftedSelected
-          ? (otherCats.length === 0 ? ["gifted_program"] : ["scholarship", "gifted_program"])
+        : categoryFilters.length === 0 || academicSelected
+          ? ["scholarship", "gifted_program"]
           : ["scholarship"],
       interestCategories,
       yearLevel: showPersonalized && !searchQuery ? yearLevel : null,
@@ -213,7 +208,7 @@ const Index = () => {
     CATEGORY_BUCKETS.forEach((b) => {
       out[b.label] = b.values.reduce((sum, v) => sum + (rawCategoryCounts[v] ?? 0), 0);
     });
-    out[GIFTED_LABEL] = giftedCount;
+    out["Academic"] = (out["Academic"] ?? 0) + giftedCount;
     return out;
   }, [rawCategoryCounts, giftedCount]);
 
@@ -303,7 +298,7 @@ const Index = () => {
 
             <FilterCheckGroup label="State" selected={stateFilters} onToggle={(v) => toggleInArray(v, stateFilters, setStateFilters)} options={filterOptions.states} noScroll />
             <FilterCheckGroup label="School Sector" selected={sectorFilters} onToggle={(v) => toggleInArray(v, sectorFilters, setSectorFilters)} options={filterOptions.sectors} />
-            <FilterCheckGroup label="Category" selected={categoryFilters} onToggle={(v) => toggleInArray(v, categoryFilters, setCategoryFilters)} options={[...CATEGORY_BUCKETS.map((b) => b.label), GIFTED_LABEL]} />
+            <FilterCheckGroup label="Category" selected={categoryFilters} onToggle={(v) => toggleInArray(v, categoryFilters, setCategoryFilters)} options={CATEGORY_BUCKETS.map((b) => b.label)} />
             <FilterCheckGroup label="Gender" selected={genderFilters} onToggle={(v) => toggleInArray(v, genderFilters, setGenderFilters)} options={filterOptions.genders} />
             <FilterCheckGroup label="Value Type" selected={valueTypeFilters} onToggle={(v) => toggleInArray(v, valueTypeFilters, setValueTypeFilters)} options={filterOptions.valueTypes} />
           </aside>
