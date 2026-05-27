@@ -1,85 +1,60 @@
-# Spectrum Copilot — Integration Package
+# Spectrum Copilot — Integration Guide
 
-## What's in this folder
+## How to make it work on your own server/account
 
-These are the only files added/modified to build the AI Copilot feature.
-Drop them into your project at the same paths and the Copilot works.
-
-```
-copilot-package/
-├── src/
-│   ├── pages/
-│   │   ├── Copilot.tsx               ← Copilot page (chat, My Matches, Comparison)
-│   │   └── Auth.tsx                  ← Updated onboarding (queries scholarships)
-│   ├── integrations/supabase/
-│   │   └── copilotClient.ts          ← Supabase client for the copilot project
-│   └── lib/
-│       ├── matching.ts               ← Scholarship scoring engine
-│       └── matchingEngine.ts         ← Matching logic
-└── supabase/
-    └── functions/
-        └── copilot-chat/
-            └── index.ts              ← Edge Function: RAG search + Groq AI
-```
+### Step 1 — Copy the files
+Copy everything inside `copilot-package/` into your project at the exact same folder paths.
 
 ---
 
-## Environment Variables Required
-
-Add these to your `.env` file (never commit this file):
-
-```
-VITE_COPILOT_SUPABASE_URL=https://rvvhqhirveqpvqrvtlwj.supabase.co
-VITE_COPILOT_SUPABASE_ANON_KEY=eyJ...
-GROQ_API_KEY=gsk_...
-```
-
-Also add them to your hosting platform (Vercel / Netlify) dashboard.
+### Step 2 — Create your Supabase project
+1. Go to [supabase.com](https://supabase.com) → create a new project
+2. Note down your **Project URL** and **Anon Key** from Project Settings → API
 
 ---
 
-## How It Works
-
-### 1. Scholarship Database
-- 6,080 scholarships stored in Supabase (`rvvhqhirveqpvqrvtlwj` — "sample" project)
-- The Copilot reads from this project via `copilotClient.ts`
-
-### 2. Profile Matching
-- When the Copilot loads, it fetches the student's profile (state, year level, wheel scores, gender, interests)
-- `matching.ts` scores every scholarship against the profile
-- Top 15 ranked scholarships are passed to the AI as context
-
-### 3. RAG Search (Retrieval-Augmented Generation)
-- When the student asks a question (e.g. "any violin scholarships in VIC?")
-- The Edge Function extracts keywords from the message
-- Searches all 6,080 scholarships across `program_name`, `category`, `overview`, `eligibility_criteria`
-- Merges query-relevant results with the profile-matched top 15
-- Passes the combined list to the Groq AI
-
-### 4. AI Response
-- Groq API (Llama 4 Scout) generates a streamed response
-- Uses both profile matches AND RAG results as context
-- Follows strict rules: only recommends scholarships from the provided data
-
----
-
-## Deploy the Edge Function
-
+### Step 3 — Import the scholarship data
+Run the import script to load the scholarships into your Supabase:
 ```bash
-npx supabase functions deploy copilot-chat --project-ref rvvhqhirveqpvqrvtlwj
+node scripts/import-scholarships.mjs YOUR_SERVICE_ROLE_KEY
 ```
+Find your **Service Role Key** in Supabase → Project Settings → API.
 
-Set the Groq API key as a Supabase secret:
+---
+
+### Step 4 — Deploy the Edge Function
 ```bash
-npx supabase secrets set GROQ_API_KEY=gsk_... --project-ref rvvhqhirveqpvqrvtlwj
+npx supabase functions deploy copilot-chat --project-ref YOUR_PROJECT_REF
+npx supabase secrets set GROQ_API_KEY=your_groq_key --project-ref YOUR_PROJECT_REF
+```
+Get a free Groq API key at [console.groq.com](https://console.groq.com)
+
+---
+
+### Step 5 — Add environment variables
+Add these to your `.env` file (or Vercel/Netlify dashboard):
+```
+VITE_COPILOT_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+VITE_COPILOT_SUPABASE_ANON_KEY=your_anon_key
+GROQ_API_KEY=your_groq_key
 ```
 
 ---
 
-## Add the Route
-
-In your router file, add:
+### Step 6 — Add the Copilot route
+In your router file add:
 ```tsx
 import Copilot from "@/pages/Copilot";
 <Route path="/copilot" element={<Copilot />} />
 ```
+
+---
+
+## That's it — Copilot is live!
+
+| What it does | How |
+|---|---|
+| Loads student profile | From your existing Supabase (main project) |
+| Finds matching scholarships | From your copilot Supabase project |
+| Searches 6,080 scholarships by keyword | RAG — built into the Edge Function |
+| Generates AI responses | Groq API (Llama 4) — free tier available |
