@@ -47,7 +47,7 @@ const HeroSection = ({ searchQuery, onSearchChange, onSearch }: HeroSectionProps
         <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-8 bg-black/40 backdrop-blur-sm border border-white/15">
           <span className="w-2 h-2 rounded-full bg-[#22c55e]" />
           <span className="text-[12px] font-medium tracking-wide text-white/90">
-            4,300+ Opportunities Listed
+            {display}
           </span>
         </div>
 
