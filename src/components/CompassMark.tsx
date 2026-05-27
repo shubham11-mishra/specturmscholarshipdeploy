@@ -1,4 +1,4 @@
-import logoMark from "@/assets/logo-mark.svg";
+import logoMark from "@/assets/logo-icon.png";
 
 interface CompassMarkProps {
   size?: number;
