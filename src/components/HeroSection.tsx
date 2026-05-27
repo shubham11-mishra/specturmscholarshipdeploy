@@ -1,5 +1,7 @@
 import { Search } from "lucide-react";
+import { useEffect, useState } from "react";
 import heroStudents from "@/assets/hero-students.jpg";
+import { supabase } from "@/integrations/supabase/client";
 
 interface HeroSectionProps {
   searchQuery: string;
@@ -10,7 +12,21 @@ interface HeroSectionProps {
 
 const STATES = ["All States", "ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"];
 
-const HeroSection = ({ searchQuery, onSearchChange, onSearch }: HeroSectionProps) => (
+const HeroSection = ({ searchQuery, onSearchChange, onSearch }: HeroSectionProps) => {
+  const [count, setCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from("scholarships")
+      .select("*", { count: "exact", head: true })
+      .then(({ count }) => {
+        if (typeof count === "number") setCount(count);
+      });
+  }, []);
+
+  const display = count ? `${count.toLocaleString()}+ Opportunities Listed` : "Opportunities Listed";
+
+  return (
   <section className="relative w-full overflow-hidden">
     {/* Top thin rainbow bar sits inside Navbar shadow area */}
     <div className="rainbow-bar" />
@@ -31,7 +47,7 @@ const HeroSection = ({ searchQuery, onSearchChange, onSearch }: HeroSectionProps
         <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-8 bg-black/40 backdrop-blur-sm border border-white/15">
           <span className="w-2 h-2 rounded-full bg-[#22c55e]" />
           <span className="text-[12px] font-medium tracking-wide text-white/90">
-            4,300+ Opportunities Listed
+            {display}
           </span>
         </div>
 
@@ -88,6 +104,7 @@ const HeroSection = ({ searchQuery, onSearchChange, onSearch }: HeroSectionProps
       </div>
     </div>
   </section>
-);
+  );
+};
 
 export default HeroSection;
