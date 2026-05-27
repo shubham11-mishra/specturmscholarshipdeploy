@@ -107,7 +107,7 @@ const Wins = () => {
           <Trophy className="w-14 h-14 mx-auto text-amber-500 mb-3" />
           <h1 className="font-serif text-4xl md:text-5xl font-bold">Trophy Room</h1>
           <p className="text-muted-foreground mt-2">
-            {fullName ? `${fullName}'s` : "Your"} scholarship wins.
+            {fullName ? `${fullName}'s` : "Your"} opportunity wins.
           </p>
         </div>
 
@@ -158,7 +158,7 @@ const Wins = () => {
                       <div className="flex items-start justify-between gap-3 flex-wrap">
                         <div>
                           <h2 className="font-serif text-xl font-bold">
-                            {w.scholarship?.program_name || w.scholarship?.school_name || "Scholarship"}
+                            {w.scholarship?.program_name || w.scholarship?.school_name || "Opportunity"}
                           </h2>
                           {w.scholarship?.program_name && (
                             <div className="text-sm text-muted-foreground">{w.scholarship.school_name}</div>

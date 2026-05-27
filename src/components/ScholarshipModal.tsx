@@ -69,7 +69,7 @@ const ScholarshipModal = ({ scholarship: s, isSaved, onClose, onToggleSave }: Sc
               <div className="text-lg font-bold text-foreground">{s.testProvider}</div>
             </div>
           </div>
-          <div className="text-[13px] font-semibold text-foreground mb-2 mt-4">About this Scholarship</div>
+          <div className="text-[13px] font-semibold text-foreground mb-2 mt-4">About this Opportunity</div>
           <p className="text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
           <div className="text-[13px] font-semibold text-foreground mb-2 mt-4">Eligibility Requirements</div>
           <p className="text-sm text-muted-foreground leading-relaxed">{s.elig}</p>

@@ -34,15 +34,11 @@ const CATEGORY_BUCKETS: { label: string; values: string[] }[] = [
   { label: "Cultural", values: ["Cultural"] },
   { label: "Financial Need", values: ["Financial Need"] },
   { label: "STEM", values: ["STEM"] },
-  { label: "School-Specific", values: ["School-Specific", "General", "Other"] },
 ];
-
-const GIFTED_LABEL = "Gifted Program";
 
 const expandCategoryBuckets = (labels: string[]): string[] => {
   const out = new Set<string>();
   labels.forEach((l) => {
-    if (l === GIFTED_LABEL) return; // handled via datasetTypes
     const bucket = CATEGORY_BUCKETS.find((b) => b.label === l);
     (bucket ? bucket.values : [l]).forEach((v) => out.add(v));
   });
@@ -151,26 +147,26 @@ const Index = () => {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    const giftedSelected = categoryFilters.includes(GIFTED_LABEL);
-    const otherCats = categoryFilters.filter((l) => l !== GIFTED_LABEL);
+    const academicSelected = categoryFilters.includes("Academic");
     fetchScholarshipsPage({
       search: searchQuery,
       confidence: confidenceFilter,
       states: stateFilters,
       sectors: sectorFilters,
-      categories: expandCategoryBuckets(otherCats),
+      categories: expandCategoryBuckets(categoryFilters),
       genders: genderFilters,
       valueTypes: valueTypeFilters,
       datasetTypes: searchQuery
         ? undefined // when searching, look across all dataset types
-        : giftedSelected
-          ? (otherCats.length === 0 ? ["gifted_program"] : ["scholarship", "gifted_program"])
+        : categoryFilters.length === 0 || academicSelected
+          ? ["scholarship", "gifted_program"]
           : ["scholarship"],
       interestCategories,
       yearLevel: showPersonalized && !searchQuery ? yearLevel : null,
       sortBy,
       page,
       pageSize: PAGE_SIZE,
+      includeClosed: false,
     }).then((res) => {
       if (cancelled) return;
       setRows(res.rows);
@@ -212,7 +208,7 @@ const Index = () => {
     CATEGORY_BUCKETS.forEach((b) => {
       out[b.label] = b.values.reduce((sum, v) => sum + (rawCategoryCounts[v] ?? 0), 0);
     });
-    out[GIFTED_LABEL] = giftedCount;
+    out["Academic"] = (out["Academic"] ?? 0) + giftedCount;
     return out;
   }, [rawCategoryCounts, giftedCount]);
 
@@ -265,27 +261,6 @@ const Index = () => {
         onSelect={toggleCategoryBucket}
       />
 
-      {showResults && user && interests.length > 0 && (
-        <div className="max-w-[1200px] mx-auto px-4 md:px-8 pb-3 animate-fade-up">
-          <div className="glass rounded-xl px-4 py-2.5 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-sm">
-              <Sparkles className="w-4 h-4 text-primary shrink-0" />
-              <span className="text-muted-foreground">
-                Showing scholarships matching your interests:{" "}
-                <span className="text-foreground font-semibold">{interests.join(", ")}</span>
-              </span>
-            </div>
-            <button
-              onClick={() => setShowPersonalized(!showPersonalized)}
-              className={`text-xs font-medium px-3 py-1 rounded-lg cursor-pointer border-none transition-all ${
-                showPersonalized ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground"
-              }`}
-            >
-              {showPersonalized ? "Show All" : "My Interests"}
-            </button>
-          </div>
-        </div>
-      )}
 
       {showResults && (
 
@@ -323,15 +298,53 @@ const Index = () => {
 
             <FilterCheckGroup label="State" selected={stateFilters} onToggle={(v) => toggleInArray(v, stateFilters, setStateFilters)} options={filterOptions.states} noScroll />
             <FilterCheckGroup label="School Sector" selected={sectorFilters} onToggle={(v) => toggleInArray(v, sectorFilters, setSectorFilters)} options={filterOptions.sectors} />
-            <FilterCheckGroup label="Category" selected={categoryFilters} onToggle={(v) => toggleInArray(v, categoryFilters, setCategoryFilters)} options={[...CATEGORY_BUCKETS.map((b) => b.label), GIFTED_LABEL]} />
+            <FilterCheckGroup label="Category" selected={categoryFilters} onToggle={(v) => toggleInArray(v, categoryFilters, setCategoryFilters)} options={CATEGORY_BUCKETS.map((b) => b.label)} />
             <FilterCheckGroup label="Gender" selected={genderFilters} onToggle={(v) => toggleInArray(v, genderFilters, setGenderFilters)} options={filterOptions.genders} />
             <FilterCheckGroup label="Value Type" selected={valueTypeFilters} onToggle={(v) => toggleInArray(v, valueTypeFilters, setValueTypeFilters)} options={filterOptions.valueTypes} />
           </aside>
 
           <div>
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2.5">
-              <div className="text-sm text-muted-foreground">
-                Showing <strong className="text-foreground font-bold">{total.toLocaleString()}</strong> {total === 1 ? "opportunity" : "opportunities"}
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="inline-flex items-baseline gap-2 rounded-full border border-border bg-card/60 px-3.5 py-1.5 shadow-sm">
+                  <span className="text-base font-bold text-foreground tabular-nums">{total.toLocaleString()}</span>
+                  <span className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                    {total === 1 ? "Opportunity" : "Opportunities"}
+                  </span>
+                </div>
+                {user && interests.length > 0 && (
+                  <div
+                    role="tablist"
+                    aria-label="Opportunity scope"
+                    className="inline-flex items-center rounded-full border border-border bg-card/60 p-0.5 shadow-sm"
+                  >
+                    <button
+                      role="tab"
+                      aria-selected={showPersonalized}
+                      onClick={() => setShowPersonalized(true)}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] cursor-pointer border-none transition-all ${
+                        showPersonalized
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "bg-transparent text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      My Interests
+                    </button>
+                    <button
+                      role="tab"
+                      aria-selected={!showPersonalized}
+                      onClick={() => setShowPersonalized(false)}
+                      className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] cursor-pointer border-none transition-all ${
+                        !showPersonalized
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "bg-transparent text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      All Opportunities
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <label htmlFor="sort-by" className="text-[11px] font-semibold tracking-[0.12em] uppercase text-muted-foreground">
@@ -355,12 +368,12 @@ const Index = () => {
             {loading ? (
               <div className="text-center py-16">
                 <div className="text-5xl mb-4 animate-spin">⏳</div>
-                <h3 className="font-display text-xl mb-2">Loading scholarships...</h3>
+                <h3 className="font-display text-xl mb-2">Loading opportunities...</h3>
               </div>
             ) : rows.length === 0 ? (
               <div className="text-center py-16">
                 <div className="text-5xl mb-4">🔍</div>
-                <h3 className="font-display text-xl mb-2">No scholarships found</h3>
+                <h3 className="font-display text-xl mb-2">No opportunities found</h3>
                 <p className="text-muted-foreground text-sm">Try adjusting your filters or search term.</p>
               </div>
             ) : (
@@ -408,7 +421,7 @@ const Index = () => {
             Ready to Find Your Match?
           </h2>
           <p className="text-primary-foreground/80 text-[15px] font-light tracking-wide mb-8 max-w-[480px] mx-auto">
-            Create a free account and start discovering scholarships in minutes.
+            Create a free account and start discovering opportunities in minutes.
           </p>
           <button
             onClick={() => navigate("/auth")}

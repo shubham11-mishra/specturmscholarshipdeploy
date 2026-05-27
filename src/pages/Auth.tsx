@@ -8,13 +8,15 @@ import {
   Eye, EyeOff, Sparkles, Check, ChevronLeft, ChevronRight,
   User, Compass, Palette, Target, PartyPopper, Loader2,
 } from "lucide-react";
-import logoMark from "@/assets/logo-mark.svg";
+import logoHorizontal from "@/assets/searcher-navbar-light.png";
+import { Link } from "react-router-dom";
 import { stateFromPostcode, lookupSuburbsForPostcode } from "@/lib/postcode";
 import { Slider } from "@/components/ui/slider";
 import SpectrumWheel from "@/components/navigator/SpectrumWheel";
 import {
   WHEEL_DIMENSIONS, DEFAULT_WHEEL_SCORES, type WheelScores,
 } from "@/lib/navigator";
+import { saveWheelScoresForUser } from "@/lib/wheelScores";
 import {
   rankEligible, dedupeBySchool, getMatchBand,
   type Student, type ScholarshipRow,
@@ -187,25 +189,53 @@ const Auth = () => {
     inc(!!firstName); inc(!!lastName); inc(!!gender); inc(!!yearLevel);
     inc(!!schoolType); inc(/^\d{4}$/.test(postcode)); inc(!!stateCode); inc(!!suburb);
     // step 1 optional
-    inc(!!currentSchoolName, 0.5); inc(!!parentEmail, 0.5);
+    inc(!!currentSchoolName, 0.5);
     // step 2 — wheel always present (default 5); reward if any non-5
     inc(Object.values(wheel).some((v) => v !== 5));
     // step 3
     inc(extras.length > 0); inc(isIndigenous || isRural || faithToggle, 0.5);
     inc(financial !== "prefer_not_to_say", 0.5);
-    // step 4 required
-    inc(!!applyingYearLevel); inc(!!targetStartYear); inc(preferredSectors.length > 0); inc(!!willingToBoard);
     // step 4 optional
-    inc(!!dreamSchools, 0.5); inc(scholarshipCats.length > 0, 0.5);
+    inc(scholarshipCats.length > 0, 0.5);
     return Math.round((pts / total) * 100);
   }, [firstName, lastName, gender, yearLevel, schoolType, postcode, stateCode, suburb,
-      currentSchoolName, parentEmail, wheel, extras, isIndigenous, isRural, faithToggle,
-      financial, applyingYearLevel, targetStartYear, preferredSectors, willingToBoard,
-      dreamSchools, scholarshipCats]);
+      currentSchoolName, wheel, extras, isIndigenous, isRural, faithToggle,
+      financial, scholarshipCats]);
 
+  // When a user lands here authenticated (e.g. via Google), check if they still
+  // need to complete onboarding. If yes, drop them into the wizard starting at
+  // the Wheel step so their data ends up in the DB (not the static 50/100).
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
   useEffect(() => {
     const hash = window.location.hash;
-    if (user && !hash.includes("type=recovery")) navigate("/");
+    if (!user || hash.includes("type=recovery")) return;
+    (async () => {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("onboarding_completed, full_name, last_name, year_level, state, postcode, suburb, school_type")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (profile?.onboarding_completed) {
+        navigate("/");
+        return;
+      }
+      // Prefill what we have, jump into wizard at Wheel step
+      const fullName = profile?.full_name || (user.user_metadata as any)?.full_name || "";
+      const [fn, ...rest] = fullName.split(" ");
+      if (fn && !firstName) setFirstName(fn);
+      const ln = profile?.last_name || rest.join(" ");
+      if (ln && !lastName) setLastName(ln);
+      if (profile?.year_level && !yearLevel) setYearLevel(profile.year_level);
+      if (profile?.state && !stateCode) setStateCode(profile.state);
+      if (profile?.postcode && !postcode) setPostcode(profile.postcode);
+      if (profile?.suburb && !suburb) setSuburb(profile.suburb);
+      if (profile?.school_type && !schoolType) setSchoolType(profile.school_type);
+      if (user.email && !email) setEmail(user.email);
+      setIsLogin(false);
+      setNeedsOnboarding(true);
+      setStep((s) => (s === 0 ? 1 : s));
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, navigate]);
 
   useEffect(() => {
@@ -270,7 +300,7 @@ const Auth = () => {
     firstName.trim() && lastName.trim() && gender && yearLevel && schoolType &&
     /^\d{4}$/.test(postcode.trim()) && stateCode && suburb.trim() &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) && !emailTaken && password.length >= 8;
-  const step3Valid = applyingYearLevel && targetStartYear && preferredSectors.length > 0 && willingToBoard;
+  const step3Valid = true;
 
   const validateStep = (s: number): string | null => {
     if (s === 0) {
@@ -286,55 +316,81 @@ const Auth = () => {
       if (password.length < 8) return "Password must be at least 8 characters.";
     }
     if (s === 3) {
-      if (!applyingYearLevel) return "Please choose the year level you're applying for.";
-      if (!targetStartYear) return "Please choose a target start year.";
-      if (preferredSectors.length === 0) return "Please choose at least one preferred sector.";
-      if (!willingToBoard) return "Please choose a boarding preference.";
+      return null;
     }
     return null;
   };
 
   const goNext = () => {
     const err = validateStep(step);
-    if (err) { setError(err); return; }
+    if (err) { setError(err); toast.error(err); return; }
     setError("");
     if (step < STEPS.length - 1) setStep(step + 1);
   };
-  const goBack = () => { setError(""); setStep(Math.max(0, step - 1)); };
-
-  const continueDisabled =
-    (step === 0 && !step0Valid) || (step === 3 && !step3Valid);
+  const goBack = () => { setError(""); setStep(Math.max(needsOnboarding ? 1 : 0, step - 1)); };
 
   const handleFinalSubmit = async () => {
     setError(""); setSubmitting(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email, password,
-        options: {
-          data: {
-            full_name: `${firstName} ${lastName}`.trim(),
-            state: stateCode,
-            postcode: postcode.trim(),
-            suburb: suburb.trim(),
-            year_level: yearLevel,
-            school_type: schoolType,
-            scholarship_categories: scholarshipCats,
-            extracurriculars: extras,
-            financial_need: financial,
-            target_year: `Year ${yearNum(applyingYearLevel) ?? ""}`,
-          },
-        },
-      });
-      if (error && !error.message.toLowerCase().includes("rate limit")) throw error;
+      let userId: string | undefined = user?.id;
 
-      const userId = data?.session?.user?.id ?? data?.user?.id;
+      // Only run signUp for brand-new email/password signups.
+      if (!userId) {
+        const { data, error } = await supabase.auth.signUp({
+          email, password,
+          options: {
+            data: {
+              full_name: `${firstName} ${lastName}`.trim(),
+              last_name: lastName,
+              gender,
+              state: stateCode,
+              postcode: postcode.trim(),
+              suburb: suburb.trim(),
+              year_level: yearLevel,
+              school_type: schoolType,
+              parent_email: parentEmail,
+              current_school_name: currentSchoolName,
+              current_school_type: schoolType ? schoolType.toLowerCase() : null,
+              scholarship_categories: scholarshipCats,
+              extracurriculars: extras,
+              financial_need: financial,
+              target_year: `Year ${yearNum(applyingYearLevel) ?? ""}`,
+              is_indigenous: isIndigenous,
+              is_rural: isRural,
+              faith_background: faithToggle ? faith : null,
+              preferred_sectors: preferredSectors,
+              willing_to_board: willingToBoard,
+              max_travel_km: maxTravelKm,
+              has_sibling_enrolled: hasSibling,
+              target_start_year: targetStartYear,
+              applying_year_level: yearNum(applyingYearLevel),
+              dream_schools: dreamSchools,
+              onboarding_completed: true,
+              wheel_scores: wheel,
+            },
+          },
+        });
+        if (error && !error.message.toLowerCase().includes("rate limit")) throw error;
+        userId = data?.session?.user?.id ?? data?.user?.id;
+      }
+
       if (userId) {
         await supabase.from("profiles").update({
-          last_name: lastName,
+          full_name: `${firstName} ${lastName}`.trim() || null,
+          last_name: lastName || null,
           gender: gender || null,
+          year_level: yearLevel || null,
+          state: stateCode || undefined,
+          postcode: postcode.trim() || undefined,
+          suburb: suburb.trim() || null,
+          school_type: schoolType || null,
+          extracurriculars: extras,
+          financial_need: financial,
+          scholarship_categories: scholarshipCats,
+          target_year: `Year ${yearNum(applyingYearLevel) ?? ""}`,
           parent_email: parentEmail || null,
           current_school_name: currentSchoolName || null,
-          current_school_type: schoolType.toLowerCase(),
+          current_school_type: schoolType ? schoolType.toLowerCase() : null,
           is_indigenous: isIndigenous,
           is_rural: isRural,
           faith_background: faithToggle ? faith || null : null,
@@ -348,17 +404,8 @@ const Auth = () => {
           onboarding_completed: true,
         }).eq("id", userId);
 
-        await supabase.from("wheel_scores").upsert({
-          user_id: userId,
-          academic_self: wheel.academic,
-          stem_self: wheel.stem,
-          arts_self: wheel.arts_creative,
-          arts_creative_self: wheel.arts_creative,
-          sports_self: wheel.sports_fitness,
-          leadership_self: wheel.leadership,
-          test_readiness_self: wheel.test_readiness,
-          completed_at: new Date().toISOString(),
-        }, { onConflict: "user_id" });
+        const { error: wheelError } = await saveWheelScoresForUser(userId, wheel);
+        if (wheelError) throw wheelError;
 
         if (scholarshipCats.length) {
           await supabase.from("user_interests").insert(
@@ -380,12 +427,11 @@ const Auth = () => {
       <div className="min-h-screen flex items-center justify-center px-4 py-10" style={{ background: "var(--gradient-canvas)" }}>
         <div className="w-full max-w-md">
           <div className="flex flex-col items-center mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <img src={logoMark} alt="Spectrum Navigator" className="w-10 h-10" />
-              <span className="font-display text-xl font-extrabold tracking-tight text-foreground">SPECTRUM <span className="text-muted-foreground text-xs tracking-[0.3em]">NAVIGATOR</span></span>
-            </div>
+            <Link to="/" aria-label="Back to home" className="mb-3 no-underline">
+              <img src={logoHorizontal} alt="Opportunity Searcher" className="h-12 w-auto" draggable={false} />
+            </Link>
             <h1 className="font-display text-3xl font-extrabold text-foreground text-center">Welcome back</h1>
-            <p className="text-sm text-muted-foreground mt-1">Sign in to access your scholarship matches.</p>
+            <p className="text-sm text-muted-foreground mt-1">Sign in to access your opportunity matches.</p>
           </div>
           <div className="bg-card border border-border rounded-2xl p-6 shadow-md">
             {error && <div className="bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-xl px-4 py-2.5 mb-4">{error}</div>}
@@ -401,9 +447,6 @@ const Auth = () => {
                 <Sparkles className="w-4 h-4" />{submitting ? "Please wait..." : "Sign In"}
               </button>
             </form>
-            <button onClick={handleGoogle} className="mt-3 w-full bg-card border border-border text-foreground rounded-xl px-4 py-3 text-sm font-semibold cursor-pointer hover:bg-secondary transition">
-              Continue with Google
-            </button>
             <div className="mt-5 text-center text-sm">
               <span className="text-muted-foreground">Don't have an account? </span>
               <button onClick={() => { setIsLogin(false); setStep(0); setError(""); }} className="text-accent font-semibold hover:text-accent/80 bg-transparent border-none cursor-pointer">Sign Up</button>
@@ -451,14 +494,11 @@ const Auth = () => {
     <div className="min-h-screen px-4 py-10" style={{ background: "var(--gradient-canvas)" }}>
       <div className="max-w-3xl mx-auto">
         <div className="flex flex-col items-center mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <img src={logoMark} alt="Spectrum Navigator" className="w-10 h-10" />
-            <span className="font-display text-xl font-extrabold tracking-tight text-foreground">
-              SPECTRUM <span className="text-muted-foreground text-[10px] tracking-[0.3em] align-middle">NAVIGATOR</span>
-            </span>
-          </div>
+          <Link to="/" aria-label="Back to home" className="mb-4 no-underline">
+            <img src={logoHorizontal} alt="Opportunity Searcher" className="h-12 w-auto" draggable={false} />
+          </Link>
           <h1 className="font-display text-3xl md:text-4xl font-extrabold text-foreground text-center">
-            {step === 4 ? "Your matches are ready" : "Let's build your scholarship profile"}
+            {step === 4 ? "Your matches are ready" : "Let's build your opportunity profile"}
           </h1>
           <p className="text-sm text-muted-foreground mt-1.5">Step {step + 1} of 5 · Takes less than 3 minutes</p>
         </div>
@@ -552,12 +592,6 @@ const Auth = () => {
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
-                  </Field>
-                </div>
-                <div className="mt-4">
-                  <Field label="Parent Email">
-                    <input type="email" value={parentEmail} onChange={(e) => setParentEmail(e.target.value)} placeholder="e.g. parent@email.com — for progress updates" className={inputCls} />
-                    <p className="text-[11px] text-muted-foreground mt-1">We'll send your parents occasional progress updates if you provide their email.</p>
                   </Field>
                 </div>
               </div>
@@ -660,67 +694,14 @@ const Auth = () => {
                 <Target className="w-5 h-5" style={{ color: "hsl(var(--spec-red))" }} /> Goals & Preferences
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field label="Applying for year level *">
-                  <select value={applyingYearLevel} onChange={(e) => setApplyingYearLevel(e.target.value)} className={inputCls}>
-                    <option value="">Select…</option>
-                    {APPLY_YEAR_LEVELS.map((y) => <option key={y} value={y}>{y}</option>)}
-                  </select>
-                  <p className="text-xs text-muted-foreground mt-1">Which year level are you applying for?</p>
-                </Field>
-                <Field label="Target start year *">
-                  <select value={targetStartYear} onChange={(e) => setTargetStartYear(parseInt(e.target.value, 10))} className={inputCls}>
-                    {[currentYear, currentYear + 1, currentYear + 2, currentYear + 3].map((y) => (
-                      <option key={y} value={y}>{y}</option>
-                    ))}
-                  </select>
-                </Field>
-              </div>
-
-              <Field label="Dream schools (optional)">
-                <input value={dreamSchools} onChange={(e) => setDreamSchools(e.target.value)} placeholder="Type any school name you're aiming for — comma separated" className={inputCls} />
-              </Field>
-
-              <div className="border-t border-border pt-5">
-                <p className="font-semibold text-foreground mb-3">Preferences</p>
-                <Field label="Preferred sectors *">
-                  <div className="flex flex-wrap gap-2">
-                    {SECTORS.map((s) => (
-                      <Chip key={s.value} active={preferredSectors.includes(s.value)} onClick={() => toggleIn(preferredSectors, setPreferredSectors, s.value)}>{s.label}</Chip>
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">Which school sectors are you considering?</p>
-                </Field>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <Field label="Willing to board *">
-                    <div className="flex flex-wrap gap-2">
-                      {BOARDING.map((b) => (
-                        <Chip key={b.value} active={willingToBoard === b.value} onClick={() => setWillingToBoard(b.value)}>{b.label}</Chip>
-                      ))}
-                    </div>
-                  </Field>
-                  <Field label="Max travel distance">
-                    <select value={maxTravelKm} onChange={(e) => setMaxTravelKm(parseInt(e.target.value, 10))} className={inputCls}>
-                      {TRAVEL_OPTIONS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                    </select>
-                    <p className="text-xs text-muted-foreground mt-1">How far are you willing to travel daily?</p>
-                  </Field>
-                </div>
-
-                <div className="mt-4">
-                  <CheckboxRow label="I have a sibling already enrolled at one of my target schools" checked={hasSibling} onChange={setHasSibling} />
-                  <p className="text-xs text-muted-foreground mt-1 ml-7">Sibling enrolment can unlock sibling discount scholarships.</p>
-                </div>
-              </div>
-
-              <div className="border-t border-border pt-5">
-                <Field label="🎯 Scholarship categories you're interested in">
+              <div>
+                <Field label="🎯 Opportunity categories you're interested in">
                   <div className="flex flex-wrap gap-2">
                     {SCHOLARSHIP_CATEGORIES.map((c) => (
                       <Chip key={c} active={scholarshipCats.includes(c)} onClick={() => toggleIn(scholarshipCats, setScholarshipCats, c)}>{c}</Chip>
                     ))}
                   </div>
+                  <p className="text-xs text-muted-foreground mt-1">Pick any that interest you — this helps us tailor matches.</p>
                 </Field>
               </div>
             </div>
@@ -753,11 +734,11 @@ const Auth = () => {
               ) : (
                 <>
                   <p className="text-foreground font-semibold mb-1">
-                    You're eligible for <span className="bg-foreground text-background rounded-md px-3 py-1 ml-1 font-bold">{eligibleCount} scholarship{eligibleCount === 1 ? "" : "s"}</span>
+                    You're eligible for <span className="bg-foreground text-background rounded-md px-3 py-1 ml-1 font-bold">{eligibleCount} opportunit{eligibleCount === 1 ? "y" : "ies"}</span>
                   </p>
                   <p className="text-sm text-muted-foreground mb-5">
                     {eligibleCount === 0
-                      ? "Your profile is just getting started — head to your dashboard to explore all scholarships and update your Wheel for personalised matches."
+                      ? "Your profile is just getting started — head to your dashboard to explore all opportunities and update your Wheel for personalised matches."
                       : eligibleCount >= 20
                       ? `You're strongly competitive for ${topMatches.length} right now.`
                       : eligibleCount >= 5
@@ -810,7 +791,7 @@ const Auth = () => {
               className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground bg-transparent border-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
               <ChevronLeft className="w-4 h-4" /> Back
             </button>
-            <button type="button" onClick={goNext} disabled={continueDisabled}
+            <button type="button" onClick={goNext}
               className="bg-primary text-primary-foreground rounded-xl px-6 py-3 text-sm font-bold cursor-pointer hover:opacity-95 transition-all inline-flex items-center gap-2 border-none shadow-brand disabled:opacity-40 disabled:cursor-not-allowed">
               Continue <ChevronRight className="w-4 h-4" />
             </button>

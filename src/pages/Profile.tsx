@@ -178,7 +178,7 @@ const Profile = () => {
               </p>
 
               <div className="grid grid-cols-3 gap-4 md:gap-8 mt-7 max-w-[640px]">
-                <Stat value={eligibleCount ?? 0} label="Eligible scholarships" />
+                <Stat value={eligibleCount ?? 0} label="Eligible opportunities" />
                 <Stat value={shortlistCount} label="Shortlisted" />
                 <Stat value={hasWheel ? `${wheelAvg}/10` : "—"} label="Wheel average" />
               </div>
@@ -193,9 +193,9 @@ const Profile = () => {
           {/* Quick actions */}
           <div className="grid sm:grid-cols-3 gap-3 mb-8">
             <ActionCard
-              to="/scholarships"
+              to="https://scholarshipsearcher.com.au/#results-grid"
               icon={<Target className="w-4 h-4" />}
-              title="Browse scholarships"
+              title="Browse opportunities"
               hint="Find your next opportunity"
             />
             <ActionCard
@@ -213,89 +213,7 @@ const Profile = () => {
           </div>
 
           <div className="grid lg:grid-cols-3 gap-6">
-            {/* Readiness band */}
-            <div className="rounded-3xl bg-card border border-border/60 p-6 shadow-sm lg:col-span-1">
-              <div className="text-[11px] font-bold tracking-[0.14em] uppercase text-muted-foreground mb-3">
-                Readiness Band
-              </div>
-              <div
-                className="rounded-2xl p-5 text-white shadow-md"
-                style={{ background: band.color }}
-              >
-                <div className="flex items-center gap-2 text-xs font-bold tracking-[0.12em] uppercase opacity-90">
-                  <Flame className="w-4 h-4" /> Element
-                </div>
-                <div className="font-display font-extrabold text-2xl mt-1">{band.label}</div>
-                <div className="text-sm text-white/85 mt-1">⚡ {points} Spectrum Points</div>
-              </div>
-              <Link
-                to="/navigator"
-                className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-secondary text-foreground py-2.5 text-sm font-semibold hover:bg-primary/10 hover:text-primary transition"
-              >
-                View readiness journey <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
 
-            {/* Wheel breakdown */}
-            <div className="rounded-3xl bg-card border border-border/60 p-6 shadow-sm lg:col-span-2">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <div className="text-[11px] font-bold tracking-[0.14em] uppercase text-muted-foreground">
-                    Spectrum Wheel
-                  </div>
-                  <div className="font-display font-bold text-foreground text-xl mt-0.5">
-                    Your strengths at a glance
-                  </div>
-                </div>
-                {hasWheel && (
-                  <div className="hidden md:flex items-center gap-3 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1"><Trophy className="w-3.5 h-3.5 text-primary" /> {strongDimensions} strong</span>
-                    <span className="flex items-center gap-1"><Target className="w-3.5 h-3.5 text-accent" /> {growDimensions} to grow</span>
-                  </div>
-                )}
-              </div>
-
-              {hasWheel ? (
-                <div className="space-y-3">
-                  {WHEEL_DIMENSIONS.map((d) => (
-                    <div key={d.key}>
-                      <div className="flex items-center justify-between text-sm mb-1">
-                        <span className="font-semibold text-foreground flex items-center gap-2">
-                          <span>{d.emoji}</span> {d.label}
-                        </span>
-                        <span
-                          className="text-xs font-bold tabular-nums px-2 py-0.5 rounded-md"
-                          style={{ background: `${d.color}22`, color: d.color }}
-                        >
-                          {scores[d.key]}/10
-                        </span>
-                      </div>
-                      <div className="h-2 rounded-full bg-secondary overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{
-                            width: `${scores[d.key] * 10}%`,
-                            background: d.color,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-2xl border border-dashed border-border p-8 text-center">
-                  <div className="text-sm text-muted-foreground mb-3">
-                    Complete your Spectrum Wheel to unlock personalised matches.
-                  </div>
-                  <Link
-                    to="/navigator"
-                    className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-xl px-4 py-2.5 text-sm font-semibold hover:opacity-90 transition"
-                  >
-                    <Compass className="w-4 h-4" /> Start your assessment
-                  </Link>
-                </div>
-              )}
-            </div>
 
             {/* Profile snapshot */}
             <div className="rounded-3xl bg-card border border-border/60 p-6 shadow-sm lg:col-span-3">
@@ -374,21 +292,27 @@ const ActionCard = ({
   icon: React.ReactNode;
   title: string;
   hint: string;
-}) => (
-  <Link
-    to={to}
-    className="group rounded-2xl bg-card border border-border/60 p-4 flex items-center gap-3 hover:border-primary/40 hover:shadow-md transition"
-  >
-    <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-      {icon}
-    </div>
-    <div className="flex-1 min-w-0">
-      <div className="font-display font-bold text-foreground text-sm">{title}</div>
-      <div className="text-xs text-muted-foreground truncate">{hint}</div>
-    </div>
-    <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition" />
-  </Link>
-);
+}) => {
+  const className = "group rounded-2xl bg-card border border-border/60 p-4 flex items-center gap-3 hover:border-primary/40 hover:shadow-md transition";
+  const content = (
+    <>
+      <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="font-display font-bold text-foreground text-sm">{title}</div>
+        <div className="text-xs text-muted-foreground truncate">{hint}</div>
+      </div>
+      <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition" />
+    </>
+  );
+
+  if (to.startsWith("http")) {
+    return <a href={to} className={className}>{content}</a>;
+  }
+
+  return <Link to={to} className={className}>{content}</Link>;
+};
 
 const SnapshotItem = ({
   icon,

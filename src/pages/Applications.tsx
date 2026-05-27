@@ -155,7 +155,7 @@ const Applications = () => {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" asChild>
-              <Link to="/scholarships">Browse scholarships</Link>
+              <a href="https://scholarshipsearcher.com.au/#results-grid">Browse opportunities</a>
             </Button>
             <Button asChild className="gradient-brand text-primary-foreground">
               <Link to="/wins">
@@ -321,7 +321,7 @@ const Applications = () => {
               Start one from any scholarship's Detail page.
             </p>
             <Button asChild className="gradient-brand text-primary-foreground">
-              <Link to="/scholarships">Find scholarships</Link>
+              <a href="https://scholarshipsearcher.com.au/#results-grid">Find scholarships</a>
             </Button>
           </Card>
         )}

@@ -41,8 +41,8 @@ const Shortlist = () => {
         ) : filtered.length === 0 ? (
           <div className="text-center py-16">
             <div className="text-5xl mb-4">💛</div>
-            <h3 className="font-display text-xl mb-2">No shortlisted scholarships yet</h3>
-            <p className="text-muted-foreground text-sm">Click the heart icon on any scholarship card to add it here.</p>
+            <h3 className="font-display text-xl mb-2">No shortlisted opportunities yet</h3>
+            <p className="text-muted-foreground text-sm">Click the heart icon on any opportunity card to add it here.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -3,7 +3,7 @@ import { Sparkles, LogOut, User, Heart, MessageCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useShortlist } from "@/hooks/useShortlist";
 import { useNavigate } from "react-router-dom";
-import logoHorizontal from "@/assets/logo-horizontal.svg";
+import logoHorizontal from "@/assets/searcher-navbar-light.png";
 import NotificationsBell from "@/components/NotificationsBell";
 
 const Navbar = () => {
@@ -30,11 +30,11 @@ const Navbar = () => {
       <a
         href="/"
         className="flex items-center no-underline"
-        aria-label="Spectrum Navigator — Navigate every educational opportunity"
+        aria-label="Scholarship Searcher — Every school. Every opportunity."
       >
         <img
           src={logoHorizontal}
-          alt="Spectrum Navigator"
+          alt="Scholarship Searcher"
           className="h-12 md:h-14 w-auto"
           draggable={false}
         />
@@ -44,14 +44,14 @@ const Navbar = () => {
         {(user
           ? [
               { label: "Home", to: "/" },
-              { label: "Find Scholarships", to: "/scholarships" },
+              { label: "Find Opportunities", to: "https://scholarshipsearcher.com.au/#results-grid" },
               { label: "My Wheel", to: "/wheel" },
-              { label: "Parent", to: "/parent" },
+              
               { label: "My Profile", to: "/profile" },
             ]
           : [
               { label: "Home", to: "/" },
-              { label: "Find Schools", to: "/#results-grid" },
+              { label: "Find Schools", to: "https://scholarshipsearcher.com.au/#results-grid" },
               { label: "About", to: "/#about" },
               { label: "Contact", to: "/#contact" },
             ]
@@ -71,15 +71,6 @@ const Navbar = () => {
       <div className="flex items-center gap-1.5">
         {user && (
           <>
-            <button
-              onClick={() => navigate("/copilot")}
-              className={`hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold uppercase tracking-[0.08em] transition-all bg-transparent border-none cursor-pointer ${
-                scrolled ? "text-foreground/65 hover:bg-primary/8 hover:text-primary" : "text-white hover:text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
-              }`}
-            >
-              <MessageCircle className="w-3.5 h-3.5" />
-              Copilot
-            </button>
             <button
               onClick={() => navigate("/shortlist")}
               className={`hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold uppercase tracking-[0.08em] transition-all bg-transparent border-none cursor-pointer relative ${

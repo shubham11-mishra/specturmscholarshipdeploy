@@ -142,7 +142,7 @@ const ScholarshipDetail = () => {
       <div className="min-h-screen bg-background">
 
         <div className="pt-2 flex items-center justify-center text-muted-foreground">
-          <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading scholarship…
+          <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading opportunity…
         </div>
       </div>
     );
@@ -153,7 +153,7 @@ const ScholarshipDetail = () => {
       <div className="min-h-screen bg-background">
 
         <div className="pt-2 text-center text-muted-foreground">
-          Scholarship not found.{" "}
+          Opportunity not found.{" "}
           <Link to="/scholarships" className="text-primary font-semibold underline">
             Back to list
           </Link>
@@ -174,7 +174,7 @@ const ScholarshipDetail = () => {
             to="/scholarships"
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4"
           >
-            <ArrowLeft className="w-4 h-4" /> All scholarships
+            <ArrowLeft className="w-4 h-4" /> All opportunities
           </Link>
 
           {/* Hero */}
@@ -184,10 +184,10 @@ const ScholarshipDetail = () => {
           >
             <div className="relative z-10 text-primary-foreground">
               <div className="text-[11px] uppercase tracking-[0.14em] font-bold opacity-90 mb-2">
-                {row.category || "Scholarship"} {row.state ? `· ${row.state}` : ""}
+                {row.category || "Opportunity"} {row.state ? `· ${row.state}` : ""}
               </div>
               <h1 className="font-display font-extrabold text-2xl md:text-3xl leading-tight">
-                {row.program_name || `${row.school_name} Scholarship`}
+                {row.program_name || `${row.school_name} Opportunity`}
               </h1>
               <p className="text-white/85 mt-1.5 text-sm">{row.school_name}</p>
 

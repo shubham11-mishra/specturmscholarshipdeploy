@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 130 130">
+  <defs>
+    <linearGradient id="ring" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F0F0F0"/><stop offset="20%" stop-color="#D8D8D8"/>
+      <stop offset="40%" stop-color="#B0B0B0"/><stop offset="55%" stop-color="#E0E0E0"/>
+      <stop offset="70%" stop-color="#A0A0A0"/><stop offset="85%" stop-color="#D0D0D0"/>
+      <stop offset="100%" stop-color="#909090"/>
+    </linearGradient>
+    <linearGradient id="handle" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C8C8C8"/><stop offset="30%" stop-color="#A0A0A0"/>
+      <stop offset="50%" stop-color="#D0D0D0"/><stop offset="70%" stop-color="#888888"/>
+      <stop offset="100%" stop-color="#B0B0B0"/>
+    </linearGradient>
+    <radialGradient id="hub" cx="40%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#E8E8E8"/><stop offset="50%" stop-color="#B0B0B0"/>
+      <stop offset="100%" stop-color="#808080"/>
+    </radialGradient>
+  </defs>
+  <line x1="83.8" y1="83.8" x2="120.5" y2="120.5" stroke="url(#handle)" stroke-width="11.7" stroke-linecap="round"/>
+  <line x1="82.5" y1="82.5" x2="119.2" y2="119.2" stroke="rgba(255,255,255,0.25)" stroke-width="2.6" stroke-linecap="round"/>
+  <circle cx="54.6" cy="54.6" r="45.5" fill="url(#ring)"/>
+  <circle cx="54.6" cy="54.6" r="41.6" fill="#2D2D2D"/>
+  <circle cx="54.6" cy="54.6" r="43.6" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="0.78"/>
+  <polygon points="54.6,28.6 58.5,54.6 50.7,54.6" fill="#00AEEF" opacity="0.95"/>
+  <polygon points="80.6,54.6 54.6,58.5 54.6,50.7" fill="#00A651" opacity="0.95"/>
+  <polygon points="54.6,80.6 50.7,54.6 58.5,54.6" fill="#ED1C24" opacity="0.95"/>
+  <polygon points="28.6,54.6 54.6,50.7 54.6,58.5" fill="#F7941D" opacity="0.95"/>
+  <circle cx="54.6" cy="54.6" r="7.8" fill="url(#hub)"/>
+  <circle cx="54.6" cy="54.6" r="3.9" fill="#D0D0D0"/>
+  <circle cx="52.65" cy="52.65" r="1.95" fill="rgba(255,255,255,0.5)"/>
+</svg>

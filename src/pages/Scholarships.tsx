@@ -156,7 +156,7 @@ const Scholarships = () => {
       <div className="min-h-screen bg-background">
 
         <div className="pt-2 flex items-center justify-center text-muted-foreground">
-          <Loader2 className="w-5 h-5 animate-spin mr-2" /> Finding your scholarships…
+          <Loader2 className="w-5 h-5 animate-spin mr-2" /> Finding your opportunities…
         </div>
       </div>
     );
@@ -170,7 +170,7 @@ const Scholarships = () => {
           {/* Header */}
           <div className="mb-6">
             <div className="text-[11px] font-bold tracking-[0.14em] uppercase text-primary mb-2">
-              Find Scholarships
+              Find Opportunities
             </div>
             <h1 className="font-display font-extrabold text-3xl md:text-4xl text-foreground">
               Your personalised matches
@@ -279,7 +279,7 @@ const Scholarships = () => {
 
           {filtered.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
-              No scholarships match your filters. Try widening them.
+              No opportunities match your filters. Try widening them.
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -374,7 +374,7 @@ const ScholarshipMatchCard = ({
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="min-w-0 flex-1">
           <div className="text-[11px] uppercase tracking-[0.12em] font-bold text-muted-foreground truncate">
-            {row.category || "Scholarship"}
+            {row.category || "Opportunity"}
           </div>
           <div className="font-display font-bold text-foreground text-[15px] leading-tight mt-0.5 line-clamp-2">
             {row.school_name}

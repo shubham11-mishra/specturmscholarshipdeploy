@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Century Gothic", "Nunito", "Trebuchet MS", "sans-serif"],
-        body: ["Century Gothic", "Nunito", "Arial", "Helvetica", "sans-serif"],
+        display: ["Century Gothic", "CenturyGothic", "AppleGothic", "URW Gothic", "ITC Avant Garde Gothic", "Questrial", "Trebuchet MS", "sans-serif"],
+        body: ["Century Gothic", "CenturyGothic", "AppleGothic", "URW Gothic", "ITC Avant Garde Gothic", "Questrial", "Arial", "Helvetica", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

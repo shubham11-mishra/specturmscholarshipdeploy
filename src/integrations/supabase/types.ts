@@ -91,6 +91,180 @@ export type Database = {
         }
         Relationships: []
       }
+      assessment_attempts: {
+        Row: {
+          answers: Json
+          completed_at: string | null
+          current_question: number
+          flagged_questions: Json
+          id: string
+          level_scores: Json | null
+          section_scores: Json | null
+          started_at: string
+          status: string
+          student_id: string
+          subject: string
+          total_score: number | null
+          updated_at: string
+          year_band: string
+        }
+        Insert: {
+          answers?: Json
+          completed_at?: string | null
+          current_question?: number
+          flagged_questions?: Json
+          id?: string
+          level_scores?: Json | null
+          section_scores?: Json | null
+          started_at?: string
+          status?: string
+          student_id: string
+          subject: string
+          total_score?: number | null
+          updated_at?: string
+          year_band: string
+        }
+        Update: {
+          answers?: Json
+          completed_at?: string | null
+          current_question?: number
+          flagged_questions?: Json
+          id?: string
+          level_scores?: Json | null
+          section_scores?: Json | null
+          started_at?: string
+          status?: string
+          student_id?: string
+          subject?: string
+          total_score?: number | null
+          updated_at?: string
+          year_band?: string
+        }
+        Relationships: []
+      }
+      assessment_passages: {
+        Row: {
+          created_at: string
+          id: string
+          passage_text: string
+          subject: string | null
+          title: string
+          updated_at: string
+          year_band: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          passage_text: string
+          subject?: string | null
+          title: string
+          updated_at?: string
+          year_band?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          passage_text?: string
+          subject?: string | null
+          title?: string
+          updated_at?: string
+          year_band?: string | null
+        }
+        Relationships: []
+      }
+      assessment_questions: {
+        Row: {
+          correct_answer: string
+          created_at: string
+          explanation: string | null
+          id: string
+          level: number
+          options: Json
+          passage_id: string | null
+          passage_text: string | null
+          question_image_url: string | null
+          question_number: number
+          question_text: string
+          section_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          correct_answer: string
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          level?: number
+          options?: Json
+          passage_id?: string | null
+          passage_text?: string | null
+          question_image_url?: string | null
+          question_number: number
+          question_text: string
+          section_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          correct_answer?: string
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          level?: number
+          options?: Json
+          passage_id?: string | null
+          passage_text?: string | null
+          question_image_url?: string | null
+          question_number?: number
+          question_text?: string
+          section_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_questions_passage_id_fkey"
+            columns: ["passage_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_passages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_questions_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_sections: {
+        Row: {
+          created_at: string
+          id: string
+          section_name: string
+          section_order: number
+          subject: string
+          year_band: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          section_name: string
+          section_order?: number
+          subject: string
+          year_band: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          section_name?: string
+          section_order?: number
+          subject?: string
+          year_band?: string
+        }
+        Relationships: []
+      }
       gap_actions_completed: {
         Row: {
           id: string
@@ -122,6 +296,7 @@ export type Database = {
       }
       gap_recommendations: {
         Row: {
+          badge_name: string | null
           band_relevance: string[] | null
           category: string | null
           created_at: string
@@ -135,13 +310,18 @@ export type Database = {
           icon_emoji: string | null
           id: string
           is_active: boolean | null
+          pathway: string | null
           priority: string
           spectrum_product_name: string | null
           spectrum_product_url: string | null
           title: string
           trigger_score_max: number
+          verifies_evidence: boolean
+          why_template: string | null
+          xp_reward: number
         }
         Insert: {
+          badge_name?: string | null
           band_relevance?: string[] | null
           category?: string | null
           created_at?: string
@@ -155,13 +335,18 @@ export type Database = {
           icon_emoji?: string | null
           id?: string
           is_active?: boolean | null
+          pathway?: string | null
           priority: string
           spectrum_product_name?: string | null
           spectrum_product_url?: string | null
           title: string
           trigger_score_max: number
+          verifies_evidence?: boolean
+          why_template?: string | null
+          xp_reward?: number
         }
         Update: {
+          badge_name?: string | null
           band_relevance?: string[] | null
           category?: string | null
           created_at?: string
@@ -175,11 +360,15 @@ export type Database = {
           icon_emoji?: string | null
           id?: string
           is_active?: boolean | null
+          pathway?: string | null
           priority?: string
           spectrum_product_name?: string | null
           spectrum_product_url?: string | null
           title?: string
           trigger_score_max?: number
+          verifies_evidence?: boolean
+          why_template?: string | null
+          xp_reward?: number
         }
         Relationships: []
       }
@@ -425,6 +614,7 @@ export type Database = {
           application_open_date: string | null
           category: string | null
           closing_label: string | null
+          closing_label_display: string | null
           contact_email: string | null
           contact_phone: string | null
           created_at: string
@@ -432,23 +622,41 @@ export type Database = {
           days_left: string | null
           description: string | null
           eligibility_criteria: string | null
+          enrol_hits: string | null
           extraction_confidence_score: string | null
           gender: string | null
           gender_eligibility: string | null
+          geolocation: string | null
           id: string
           is_active: string | null
           last_verified_at: string | null
+          lat: string | null
+          link_status: string | null
+          link_status_code: string | null
+          lng: string | null
+          match_gender: string | null
+          match_year_levels: string | null
+          nlp_keywords: string | null
           number_awarded: string | null
           overview: string | null
+          page_snippet: string | null
+          page_type: string | null
           postcode: string | null
+          prep_description: string | null
+          prep_product: string | null
+          prep_product_type: string | null
+          prep_product_url: string | null
           program_name: string | null
           program_type: string | null
-          row_number: number | null
+          schol_hits: string | null
           scholarship_confidence: string | null
           scholarship_url: string | null
+          school_email: string | null
           school_name: string
+          school_phone: string | null
           school_sector: string | null
           school_type: string | null
+          search_tags: string | null
           sector: string | null
           special_conditions: string | null
           state: string | null
@@ -456,11 +664,15 @@ export type Database = {
           suburb: string | null
           test_month: string | null
           test_provider: string | null
+          tuition_fee_aud: string | null
+          tuition_fee_num: string | null
           url_status: string | null
           value_aud: string | null
           value_num: string | null
           value_type: string | null
           website_url: string | null
+          win_probability_base: string | null
+          win_probability_label: string | null
           year_levels: string | null
         }
         Insert: {
@@ -470,6 +682,7 @@ export type Database = {
           application_open_date?: string | null
           category?: string | null
           closing_label?: string | null
+          closing_label_display?: string | null
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
@@ -477,23 +690,41 @@ export type Database = {
           days_left?: string | null
           description?: string | null
           eligibility_criteria?: string | null
+          enrol_hits?: string | null
           extraction_confidence_score?: string | null
           gender?: string | null
           gender_eligibility?: string | null
+          geolocation?: string | null
           id?: string
           is_active?: string | null
           last_verified_at?: string | null
+          lat?: string | null
+          link_status?: string | null
+          link_status_code?: string | null
+          lng?: string | null
+          match_gender?: string | null
+          match_year_levels?: string | null
+          nlp_keywords?: string | null
           number_awarded?: string | null
           overview?: string | null
+          page_snippet?: string | null
+          page_type?: string | null
           postcode?: string | null
+          prep_description?: string | null
+          prep_product?: string | null
+          prep_product_type?: string | null
+          prep_product_url?: string | null
           program_name?: string | null
           program_type?: string | null
-          row_number?: number | null
+          schol_hits?: string | null
           scholarship_confidence?: string | null
           scholarship_url?: string | null
+          school_email?: string | null
           school_name: string
+          school_phone?: string | null
           school_sector?: string | null
           school_type?: string | null
+          search_tags?: string | null
           sector?: string | null
           special_conditions?: string | null
           state?: string | null
@@ -501,11 +732,15 @@ export type Database = {
           suburb?: string | null
           test_month?: string | null
           test_provider?: string | null
+          tuition_fee_aud?: string | null
+          tuition_fee_num?: string | null
           url_status?: string | null
           value_aud?: string | null
           value_num?: string | null
           value_type?: string | null
           website_url?: string | null
+          win_probability_base?: string | null
+          win_probability_label?: string | null
           year_levels?: string | null
         }
         Update: {
@@ -515,6 +750,7 @@ export type Database = {
           application_open_date?: string | null
           category?: string | null
           closing_label?: string | null
+          closing_label_display?: string | null
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
@@ -522,23 +758,41 @@ export type Database = {
           days_left?: string | null
           description?: string | null
           eligibility_criteria?: string | null
+          enrol_hits?: string | null
           extraction_confidence_score?: string | null
           gender?: string | null
           gender_eligibility?: string | null
+          geolocation?: string | null
           id?: string
           is_active?: string | null
           last_verified_at?: string | null
+          lat?: string | null
+          link_status?: string | null
+          link_status_code?: string | null
+          lng?: string | null
+          match_gender?: string | null
+          match_year_levels?: string | null
+          nlp_keywords?: string | null
           number_awarded?: string | null
           overview?: string | null
+          page_snippet?: string | null
+          page_type?: string | null
           postcode?: string | null
+          prep_description?: string | null
+          prep_product?: string | null
+          prep_product_type?: string | null
+          prep_product_url?: string | null
           program_name?: string | null
           program_type?: string | null
-          row_number?: number | null
+          schol_hits?: string | null
           scholarship_confidence?: string | null
           scholarship_url?: string | null
+          school_email?: string | null
           school_name?: string
+          school_phone?: string | null
           school_sector?: string | null
           school_type?: string | null
+          search_tags?: string | null
           sector?: string | null
           special_conditions?: string | null
           state?: string | null
@@ -546,11 +800,15 @@ export type Database = {
           suburb?: string | null
           test_month?: string | null
           test_provider?: string | null
+          tuition_fee_aud?: string | null
+          tuition_fee_num?: string | null
           url_status?: string | null
           value_aud?: string | null
           value_num?: string | null
           value_type?: string | null
           website_url?: string | null
+          win_probability_base?: string | null
+          win_probability_label?: string | null
           year_levels?: string | null
         }
         Relationships: []
@@ -705,6 +963,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       wheel_scores: {
         Row: {
           academic_self: number | null
@@ -801,6 +1080,13 @@ export type Database = {
           year_level: string
         }[]
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       redeem_parent_invite: { Args: { _code: string }; Returns: string }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
@@ -812,6 +1098,7 @@ export type Database = {
         | "state"
         | "national"
         | "international"
+      app_role: "admin" | "moderator" | "user"
       readiness_band: "earth" | "water" | "fire" | "air" | "aether"
       readiness_dimension:
         | "academic"
@@ -956,6 +1243,7 @@ export const Constants = {
         "national",
         "international",
       ],
+      app_role: ["admin", "moderator", "user"],
       readiness_band: ["earth", "water", "fire", "air", "aether"],
       readiness_dimension: [
         "academic",
