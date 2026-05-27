@@ -1,0 +1,1 @@
+UPDATE public.wheel_scores SET completed_at = COALESCE(updated_at, created_at, now()) WHERE completed_at IS NULL;
