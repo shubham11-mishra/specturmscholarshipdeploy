@@ -34,7 +34,6 @@ const CATEGORY_BUCKETS: { label: string; values: string[] }[] = [
   { label: "Cultural", values: ["Cultural"] },
   { label: "Financial Need", values: ["Financial Need"] },
   { label: "STEM", values: ["STEM"] },
-  { label: "School-Specific", values: ["School-Specific", "General", "Other"] },
 ];
 
 const GIFTED_LABEL = "Gifted Program";
