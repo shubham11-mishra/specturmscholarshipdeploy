@@ -66,6 +66,8 @@ export const ensureWheelScoresForUser = async (userId: string, metadata: unknown
 
   if (readError || existingRows?.length) return { error: readError };
 
-  // Always stamp completed_at so the wheel renders as a saved record from day one.
-  return saveWheelScoresForUser(userId, wheelScoresFromMetadata(metadata), new Date().toISOString());
+  const hasCompletedWheel =
+    metadata && typeof metadata === "object" && "wheel_scores" in metadata && Boolean((metadata as { wheel_scores?: unknown }).wheel_scores);
+
+  return saveWheelScoresForUser(userId, wheelScoresFromMetadata(metadata), hasCompletedWheel ? new Date().toISOString() : null);
 };
