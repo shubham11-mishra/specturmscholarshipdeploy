@@ -150,20 +150,19 @@ const Index = () => {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    const giftedSelected = categoryFilters.includes(GIFTED_LABEL);
-    const otherCats = categoryFilters.filter((l) => l !== GIFTED_LABEL);
+    const academicSelected = categoryFilters.includes("Academic");
     fetchScholarshipsPage({
       search: searchQuery,
       confidence: confidenceFilter,
       states: stateFilters,
       sectors: sectorFilters,
-      categories: expandCategoryBuckets(otherCats),
+      categories: expandCategoryBuckets(categoryFilters),
       genders: genderFilters,
       valueTypes: valueTypeFilters,
       datasetTypes: searchQuery
         ? undefined // when searching, look across all dataset types
-        : giftedSelected
-          ? (otherCats.length === 0 ? ["gifted_program"] : ["scholarship", "gifted_program"])
+        : categoryFilters.length === 0 || academicSelected
+          ? ["scholarship", "gifted_program"]
           : ["scholarship"],
       interestCategories,
       yearLevel: showPersonalized && !searchQuery ? yearLevel : null,
