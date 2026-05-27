@@ -12,7 +12,21 @@ interface HeroSectionProps {
 
 const STATES = ["All States", "ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"];
 
-const HeroSection = ({ searchQuery, onSearchChange, onSearch }: HeroSectionProps) => (
+const HeroSection = ({ searchQuery, onSearchChange, onSearch }: HeroSectionProps) => {
+  const [count, setCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from("scholarships")
+      .select("*", { count: "exact", head: true })
+      .then(({ count }) => {
+        if (typeof count === "number") setCount(count);
+      });
+  }, []);
+
+  const display = count ? `${count.toLocaleString()}+ Opportunities Listed` : "Opportunities Listed";
+
+  return (
   <section className="relative w-full overflow-hidden">
     {/* Top thin rainbow bar sits inside Navbar shadow area */}
     <div className="rainbow-bar" />
