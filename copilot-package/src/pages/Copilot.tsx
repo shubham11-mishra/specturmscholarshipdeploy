@@ -39,7 +39,7 @@ interface WinDetails {
 }
 
 const QUICK_PROMPTS = [
-  "Which 3 opportunities should I prioritise this month?",
+  "Which 3 scholarships should I prioritise this month?",
   "Help me draft a personal statement opening.",
   "What's holding me back from the next band?",
   "Explain what the 8 wheel dimensions mean.",
@@ -151,7 +151,7 @@ const Copilot = () => {
   const { user, loading, location, yearLevel, fullName } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("chat");
   const [messages, setMessages] = useState<Msg[]>([
-    { role: "assistant", content: `Hi${fullName ? ` ${fullName.split(" ")[0]}` : ""} — I'm your Spectrum Copilot. Ask me anything about opportunities, your readiness, or what to do next.` },
+    { role: "assistant", content: `Hi${fullName ? ` ${fullName.split(" ")[0]}` : ""} — I'm your Spectrum Copilot. Ask me anything about scholarships, your readiness, or what to do next.` },
   ]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -396,7 +396,7 @@ const Copilot = () => {
             <Sparkles className="w-5 h-5" />
             <span className="text-xs font-bold uppercase tracking-widest">Spectrum Copilot</span>
           </div>
-          <h1 className="text-3xl font-extrabold mt-1">Your opportunity coach</h1>
+          <h1 className="text-3xl font-extrabold mt-1">Your scholarship coach</h1>
           <p className="text-sm text-muted-foreground">Personalised to your wheel, shortlist, and applications.</p>
         </header>
 
