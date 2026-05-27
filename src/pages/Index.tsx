@@ -211,7 +211,7 @@ const Index = () => {
     CATEGORY_BUCKETS.forEach((b) => {
       out[b.label] = b.values.reduce((sum, v) => sum + (rawCategoryCounts[v] ?? 0), 0);
     });
-    out[GIFTED_LABEL] = giftedCount;
+    out["Academic"] = (out["Academic"] ?? 0) + giftedCount;
     return out;
   }, [rawCategoryCounts, giftedCount]);
 
