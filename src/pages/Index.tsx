@@ -36,12 +36,9 @@ const CATEGORY_BUCKETS: { label: string; values: string[] }[] = [
   { label: "STEM", values: ["STEM"] },
 ];
 
-const GIFTED_LABEL = "Gifted Program";
-
 const expandCategoryBuckets = (labels: string[]): string[] => {
   const out = new Set<string>();
   labels.forEach((l) => {
-    if (l === GIFTED_LABEL) return; // handled via datasetTypes
     const bucket = CATEGORY_BUCKETS.find((b) => b.label === l);
     (bucket ? bucket.values : [l]).forEach((v) => out.add(v));
   });
