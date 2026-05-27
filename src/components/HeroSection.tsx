@@ -1,5 +1,7 @@
 import { Search } from "lucide-react";
+import { useEffect, useState } from "react";
 import heroStudents from "@/assets/hero-students.jpg";
+import { supabase } from "@/integrations/supabase/client";
 
 interface HeroSectionProps {
   searchQuery: string;
