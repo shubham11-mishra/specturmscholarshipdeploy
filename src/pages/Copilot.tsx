@@ -4,15 +4,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { Send, Sparkles, Loader2 } from "lucide-react";
 import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
 const QUICK_PROMPTS = [
-  "Which 3 opportunities should I prioritise this month?",
-  "Help me draft a personal statement opening.",
-  "What's holding me back from the next band?",
-  "Explain what the 8 wheel dimensions mean.",
+  "Show me academic scholarships in VIC for Year 7.",
+  "Which boarding schools offer Indigenous scholarships?",
+  "Find music scholarships closing soon in NSW.",
+  "What selective entry schools are near me?",
 ];
+
 
 const Copilot = () => {
   const { user, loading, location, yearLevel, fullName } = useAuth();
@@ -122,12 +125,23 @@ const Copilot = () => {
         <div ref={scrollRef} className="flex-1 overflow-y-auto rounded-xl border border-border bg-card p-4 space-y-4">
           {messages.map((m, i) => (
             <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap ${m.role === "user" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}>
-                {m.content || (sending && i === messages.length - 1 ? <Loader2 className="w-4 h-4 animate-spin" /> : "…")}
+              <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${m.role === "user" ? "bg-primary text-primary-foreground whitespace-pre-wrap" : "bg-secondary text-foreground"}`}>
+                {m.role === "assistant" ? (
+                  m.content ? (
+                    <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0 prose-a:text-primary">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                    </div>
+                  ) : (
+                    sending && i === messages.length - 1 ? <Loader2 className="w-4 h-4 animate-spin" /> : "…"
+                  )
+                ) : (
+                  m.content
+                )}
               </div>
             </div>
           ))}
         </div>
+
 
         {messages.length <= 1 && (
           <div className="mt-3 flex flex-wrap gap-2">
