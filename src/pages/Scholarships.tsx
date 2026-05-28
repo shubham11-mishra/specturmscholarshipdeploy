@@ -56,7 +56,7 @@ const Scholarships = () => {
             "id, school_name, state, category, year_levels, gender_eligibility, value_num, application_close_date, days_left, scholarship_url, scholarship_confidence",
           )
           .limit(2000),
-        supabase.from("wheel_scores").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("wheel_scores").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }).order("created_at", { ascending: false }).limit(1).maybeSingle(),
         supabase.from("student_progress").select("current_band").eq("user_id", user.id).maybeSingle(),
       ]);
       if (cancelled) return;

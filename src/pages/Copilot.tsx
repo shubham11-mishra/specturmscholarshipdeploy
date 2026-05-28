@@ -28,7 +28,7 @@ const Copilot = () => {
     if (!user) return;
     (async () => {
       const [wheelRes, progRes, shortRes, appsRes] = await Promise.all([
-        supabase.from("wheel_scores").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("wheel_scores").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }).order("created_at", { ascending: false }).limit(1).maybeSingle(),
         supabase.from("student_progress").select("*").eq("user_id", user.id).maybeSingle(),
         supabase.from("navigator_shortlist").select("scholarship_id").eq("user_id", user.id),
         supabase.from("applications").select("status,outcome").eq("user_id", user.id),

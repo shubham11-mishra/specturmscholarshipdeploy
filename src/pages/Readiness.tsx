@@ -42,7 +42,7 @@ const Readiness = () => {
     (async () => {
       setLoading(true);
       const [{ data: w }, { data: r }, { data: d }] = await Promise.all([
-        supabase.from("wheel_scores").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("wheel_scores").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }).order("created_at", { ascending: false }).limit(1).maybeSingle(),
         supabase.from("gap_recommendations").select("*").eq("is_active", true),
         supabase.from("gap_actions_completed").select("recommendation_id").eq("user_id", user.id),
       ]);

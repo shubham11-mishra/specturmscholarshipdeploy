@@ -48,7 +48,7 @@ const Profile = () => {
     (async () => {
       setHydrating(true);
       const [{ data: wheel }, { data: progress }, { data: profileRow }, { data: scholarRows }] = await Promise.all([
-        supabase.from("wheel_scores").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("wheel_scores").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }).order("created_at", { ascending: false }).limit(1).maybeSingle(),
         supabase.from("student_progress").select("*").eq("user_id", user.id).maybeSingle(),
         supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
         supabase

@@ -68,7 +68,7 @@ const ScholarshipDetail = () => {
       setLoading(true);
       const [{ data: s }, { data: w }, { data: prog }, { data: app }] = await Promise.all([
         supabase.from("scholarships").select("*").eq("id", id).maybeSingle(),
-        supabase.from("wheel_scores").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("wheel_scores").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }).order("created_at", { ascending: false }).limit(1).maybeSingle(),
         supabase.from("student_progress").select("current_band").eq("user_id", user.id).maybeSingle(),
         supabase.from("applications").select("status").eq("user_id", user.id).eq("scholarship_id", id).maybeSingle(),
       ]);

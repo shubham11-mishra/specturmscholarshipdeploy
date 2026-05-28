@@ -43,6 +43,8 @@ export const saveWheelScoresForUser = async (userId: string, scores: WheelScores
     .from("wheel_scores")
     .select("id")
     .eq("user_id", userId)
+    .order("updated_at", { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(1);
 
   if (readError) return { error: readError };
@@ -62,6 +64,8 @@ export const ensureWheelScoresForUser = async (userId: string, metadata: unknown
     .from("wheel_scores")
     .select("id")
     .eq("user_id", userId)
+    .order("updated_at", { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(1);
 
   if (readError || existingRows?.length) return { error: readError };

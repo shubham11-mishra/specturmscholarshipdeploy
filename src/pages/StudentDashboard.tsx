@@ -56,7 +56,7 @@ const StudentDashboard = () => {
     (async () => {
       const [progressRes, wheelRes, schoRes] = await Promise.all([
         supabase.from("student_progress").select("total_points,current_band").eq("user_id", user.id).maybeSingle(),
-        supabase.from("wheel_scores").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("wheel_scores").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }).order("created_at", { ascending: false }).limit(1).maybeSingle(),
         supabase.from("scholarships").select("*", { count: "exact", head: true }),
       ]);
       if (cancelled) return;
