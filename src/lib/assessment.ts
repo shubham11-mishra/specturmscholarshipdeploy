@@ -122,7 +122,7 @@ export async function completeAttempt(attemptId: string, userId: string, subject
   if (subject === "english" || subject === "maths") {
     const verified = Math.round(scores.total_score / 10);
     const { data: existing } = await supabase.from("wheel_scores").select("id, academic_verified")
-      .eq("user_id", userId).maybeSingle();
+      .eq("user_id", userId).order("updated_at", { ascending: false }).order("created_at", { ascending: false }).limit(1).maybeSingle();
     if (existing) {
       // Take the max of english/maths verified
       const newVerified = Math.max(existing.academic_verified ?? 0, verified);
