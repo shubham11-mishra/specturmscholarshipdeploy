@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export interface SchoolScholarship {
-  id: string;
+  id?: string;
   row: string;
   acara_id: string;
   school_name: string;
