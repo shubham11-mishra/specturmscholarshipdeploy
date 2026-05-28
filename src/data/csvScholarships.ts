@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export interface SchoolScholarship {
+  id: string;
   row: string;
   acara_id: string;
   school_name: string;
@@ -46,6 +47,7 @@ export interface SchoolScholarship {
 
 function mapRow(obj: any): SchoolScholarship {
   return {
+    id: obj.id || "",
     row: String(obj.row_number || ""),
     acara_id: obj.acara_id || "",
     school_name: obj.school_name || "",
@@ -387,8 +389,13 @@ export async function fetchScholarshipsByIds(ids: string[]): Promise<SchoolSchol
     const { data, error } = await supabase.from("scholarships").select("*").in("acara_id", acaraIds);
     if (error) console.error("fetchScholarshipsByIds (legacy) error:", error);
     else if (data) {
+      // Match against either "{acara_id}-{row_number}" or bare "{acara_id}"
       const wanted = new Set(legacyIds);
-      results.push(...data.filter((d: any) => wanted.has(`${d.acara_id}-${d.row_number}`)));
+      results.push(...data.filter((d: any) =>
+        wanted.has(`${d.acara_id}-${d.row_number}`) ||
+        wanted.has(`${d.acara_id}-`) ||
+        wanted.has(String(d.acara_id))
+      ));
     }
   }
   return results.map(mapRow);

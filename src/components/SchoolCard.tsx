@@ -76,7 +76,7 @@ const Stat = ({ icon: Icon, label, value }: { icon: any; label: string; value: s
 );
 
 const SchoolCard = ({ school, index, onOpenDetail }: SchoolCardProps) => {
-  const cardId = `${school.acara_id}-${school.row}`;
+  const cardId = school.id || `${school.acara_id}-${school.row}`;
   const { toggle, isShortlisted } = useShortlist();
   const liked = isShortlisted(cardId);
 
