@@ -439,10 +439,33 @@ const Auth = () => {
                 <Sparkles className="w-4 h-4" />{submitting ? "Please wait..." : "Sign In"}
               </button>
             </form>
-            <div className="mt-5 text-center text-sm">
+            <div className="mt-3 text-center text-sm">
+              <button
+                type="button"
+                onClick={async () => {
+                  setError("");
+                  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+                    setError("Enter your email above, then click Forgot password.");
+                    return;
+                  }
+                  setSubmitting(true);
+                  const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+                    redirectTo: `${window.location.origin}/reset-password`,
+                  });
+                  setSubmitting(false);
+                  if (err) setError(err.message);
+                  else setError("Password reset link sent. Check your email.");
+                }}
+                className="text-accent font-semibold hover:text-accent/80 bg-transparent border-none cursor-pointer"
+              >
+                Forgot password?
+              </button>
+            </div>
+            <div className="mt-3 text-center text-sm">
               <span className="text-muted-foreground">Don't have an account? </span>
               <button onClick={() => { setIsLogin(false); setStep(0); setError(""); }} className="text-accent font-semibold hover:text-accent/80 bg-transparent border-none cursor-pointer">Sign Up</button>
             </div>
+
           </div>
         </div>
       </div>
