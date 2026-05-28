@@ -24,7 +24,8 @@ const HeroSection = ({ searchQuery, onSearchChange, onSearch }: HeroSectionProps
       });
   }, []);
 
-  const display = count ? `${count.toLocaleString()}+ Opportunities Listed` : "Opportunities Listed";
+  const rounded = count ? Math.floor(count / 1000) * 1000 : null;
+  const display = rounded ? `${rounded.toLocaleString()}+ Opportunities Listed` : "Opportunities Listed";
 
   return (
   <section className="relative w-full overflow-hidden">
