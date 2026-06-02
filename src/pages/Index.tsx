@@ -440,14 +440,23 @@ const Index = () => {
             Spectrum · Every School. Every Opportunity.
           </span>
         </div>
-        <div className="flex flex-wrap gap-6">
-          {["Privacy", "Terms", "Contact", "Schools"].map((l) => (
+        <div className="flex flex-wrap gap-5">
+          {[
+            { label: "About", to: "/about" },
+            { label: "FAQ", to: "/faq" },
+            { label: "Contact", to: "/contact" },
+            { label: "Privacy", to: "/privacy" },
+            { label: "Terms", to: "/terms" },
+            { label: "Refunds", to: "/refunds" },
+            { label: "Cookies", to: "/cookies" },
+            { label: "Disclaimer", to: "/disclaimer" },
+          ].map((l) => (
             <a
-              key={l}
-              href="#"
+              key={l.label}
+              href={l.to}
               className="text-[11px] text-foreground/40 tracking-[0.08em] uppercase no-underline hover:text-primary transition-colors"
             >
-              {l}
+              {l.label}
             </a>
           ))}
         </div>
