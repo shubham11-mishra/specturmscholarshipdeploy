@@ -36,6 +36,14 @@ import PassageManager from "./pages/admin/PassageManager.tsx";
 import UserManagement from "./pages/admin/UserManagement.tsx";
 import StudentDashboard from "./pages/StudentDashboard.tsx";
 import ParentGuard from "./components/admin/ParentGuard.tsx";
+import About from "./pages/legal/About.tsx";
+import Faq from "./pages/legal/Faq.tsx";
+import ContactPage from "./pages/legal/Contact.tsx";
+import Refunds from "./pages/legal/Refunds.tsx";
+import CookiesPage from "./pages/legal/Cookies.tsx";
+import DisclaimerPage from "./pages/legal/Disclaimer.tsx";
+import TermsPage from "./pages/legal/Terms.tsx";
+import PrivacyPage from "./pages/legal/Privacy.tsx";
 
 const queryClient = new QueryClient();
 
