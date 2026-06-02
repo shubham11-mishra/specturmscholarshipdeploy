@@ -36,6 +36,14 @@ import PassageManager from "./pages/admin/PassageManager.tsx";
 import UserManagement from "./pages/admin/UserManagement.tsx";
 import StudentDashboard from "./pages/StudentDashboard.tsx";
 import ParentGuard from "./components/admin/ParentGuard.tsx";
+import About from "./pages/legal/About.tsx";
+import Faq from "./pages/legal/Faq.tsx";
+import ContactPage from "./pages/legal/Contact.tsx";
+import Refunds from "./pages/legal/Refunds.tsx";
+import CookiesPage from "./pages/legal/Cookies.tsx";
+import DisclaimerPage from "./pages/legal/Disclaimer.tsx";
+import TermsPage from "./pages/legal/Terms.tsx";
+import PrivacyPage from "./pages/legal/Privacy.tsx";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +67,16 @@ const Root = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+
+              {/* Public legal & info pages */}
+              <Route path="/about" element={<About />} />
+              <Route path="/faq" element={<Faq />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/refunds" element={<Refunds />} />
+              <Route path="/cookies" element={<CookiesPage />} />
+              <Route path="/disclaimer" element={<DisclaimerPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
 
               <Route path="/dashboard" element={<App title="Dashboard"><StudentDashboard /></App>} />
               <Route path="/profile" element={<App title="My Profile"><Profile /></App>} />
