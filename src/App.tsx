@@ -68,6 +68,16 @@ const Root = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/reset-password" element={<ResetPassword />} />
 
+              {/* Public legal & info pages */}
+              <Route path="/about" element={<About />} />
+              <Route path="/faq" element={<Faq />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/refunds" element={<Refunds />} />
+              <Route path="/cookies" element={<CookiesPage />} />
+              <Route path="/disclaimer" element={<DisclaimerPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+
               <Route path="/dashboard" element={<App title="Dashboard"><StudentDashboard /></App>} />
               <Route path="/profile" element={<App title="My Profile"><Profile /></App>} />
               <Route path="/profile/edit" element={<App title="Edit Profile"><ProfileEdit /></App>} />
