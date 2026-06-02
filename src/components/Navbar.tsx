@@ -119,7 +119,11 @@ const Navbar = () => {
           <div className="flex items-center gap-2 ml-1">
             <button
               onClick={() => navigate("/auth")}
-              className="px-4 py-2 rounded-lg text-[12px] font-bold uppercase tracking-[0.08em] text-primary border border-primary/40 hover:bg-primary/8 transition-all bg-transparent cursor-pointer"
+              className={`px-4 py-2 rounded-lg text-[12px] font-bold uppercase tracking-[0.08em] transition-all bg-transparent cursor-pointer border ${
+                scrolled
+                  ? "text-primary border-primary/40 hover:bg-primary/8"
+                  : "text-white border-white/70 hover:bg-white/10 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
+              }`}
             >
               Sign In
             </button>
