@@ -878,6 +878,7 @@ const Auth = () => {
             { label: "Refunds", to: "/refunds" },
             { label: "Cookies", to: "/cookies" },
             { label: "Disclaimer", to: "/disclaimer" },
+            { label: "Schools", to: "https://scholarshipsearcher.com.au/#results-grid" },
           ].map((l) => (
             <a
               key={l.label}
