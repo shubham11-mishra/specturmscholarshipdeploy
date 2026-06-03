@@ -542,7 +542,7 @@ const Auth = () => {
     <div className="min-h-screen flex flex-col" style={{ background: "var(--gradient-canvas)" }}>
       <Navbar />
       <div className="flex-1 px-4 py-10 pt-28">
-        <div className="flex flex-col items-center mb-6">
+        <div className="max-w-3xl mx-auto">
           <Link to="/" aria-label="Back to home" className="mb-4 no-underline">
             <img src={logoHorizontal} alt="Opportunity Searcher" className="h-12 w-auto" draggable={false} />
           </Link>
@@ -851,7 +851,36 @@ const Auth = () => {
           <span className="text-muted-foreground">Already have an account? </span>
           <button onClick={() => { setIsLogin(true); setError(""); }} className="text-accent font-semibold hover:text-accent/80 bg-transparent border-none cursor-pointer">Sign In</button>
         </div>
+        </div>
       </div>
+      <footer className="border-t border-primary/10 py-8 px-4 md:px-8 flex flex-wrap items-center justify-between gap-4 bg-card/40">
+        <div className="flex items-center gap-2.5">
+          <CompassMark size={24} id="auth-footer" />
+          <span className="text-[11px] tracking-[0.12em] text-foreground/40 uppercase">
+            Spectrum · Every School. Every Opportunity.
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-5">
+          {[
+            { label: "About", to: "/about" },
+            { label: "FAQ", to: "/faq" },
+            { label: "Contact", to: "/contact" },
+            { label: "Privacy", to: "/privacy" },
+            { label: "Terms", to: "/terms" },
+            { label: "Refunds", to: "/refunds" },
+            { label: "Cookies", to: "/cookies" },
+            { label: "Disclaimer", to: "/disclaimer" },
+          ].map((l) => (
+            <a
+              key={l.label}
+              href={l.to}
+              className="text-[11px] text-foreground/40 tracking-[0.08em] uppercase no-underline hover:text-primary transition-colors"
+            >
+              {l.label}
+            </a>
+          ))}
+        </div>
+      </footer>
     </div>
   );
 };
