@@ -36,7 +36,7 @@ const ResetPassword = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!ready && !window.location.hash.includes("type=recovery")) {
-        navigate("/auth");
+        navigate("/sign-in");
       }
     }, 3000);
     return () => clearTimeout(timer);

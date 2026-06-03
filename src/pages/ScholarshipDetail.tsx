@@ -47,7 +47,7 @@ const ScholarshipDetail = () => {
   const [checklist, setChecklist] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    if (!authLoading && !user) navigate("/auth");
+    if (!authLoading && !user) navigate("/sign-in");
   }, [authLoading, user, navigate]);
 
   // Load checklist from localStorage

@@ -45,7 +45,7 @@ const Achievements = () => {
   }, [user]);
 
   if (loading) return <div className="min-h-screen bg-background" />;
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) return <Navigate to="/sign-in" replace />;
 
   const total = progress?.total_points ?? 0;
   const currentBandIdx = Math.max(0, BANDS.findIndex((b) => b.key === (progress?.current_band ?? "Earth")));

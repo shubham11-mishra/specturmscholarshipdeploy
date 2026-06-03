@@ -27,7 +27,7 @@ const Navigator = () => {
   const [needsNewDims, setNeedsNewDims] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) navigate("/auth");
+    if (!loading && !user) navigate("/sign-in");
   }, [loading, user, navigate]);
 
   useEffect(() => {

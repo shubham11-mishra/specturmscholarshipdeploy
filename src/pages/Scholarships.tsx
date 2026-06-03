@@ -36,7 +36,7 @@ const Scholarships = () => {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    if (!authLoading && !user) navigate("/auth");
+    if (!authLoading && !user) navigate("/sign-in");
   }, [authLoading, user, navigate]);
 
   useEffect(() => {
