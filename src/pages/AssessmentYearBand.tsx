@@ -49,7 +49,7 @@ export default function AssessmentYearBand() {
         <div className="text-sm font-semibold mb-2">Year band</div>
         <div className="flex flex-wrap gap-2">
           {YEAR_BANDS.map(b => {
-            const isAvail = available.includes(b);
+            const isAvail = available.includes(b) && allowed.has(b);
             const isSel = selected === b;
             const isRec = b === recommended;
             return (
