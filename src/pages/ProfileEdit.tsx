@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { CheckCircle2, MapPin, GraduationCap, Heart, User as UserIcon, Save } from "lucide-react";
+import { CheckCircle2, MapPin, GraduationCap, Heart, User as UserIcon, Save, School as SchoolIcon } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +28,7 @@ const ProfileEdit = () => {
   const [postcode, setPostcode] = useState("");
   const [suburb, setSuburb] = useState("");
   const [yearLevel, setYearLevel] = useState("");
+  const [schoolName, setSchoolName] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [initializing, setInitializing] = useState(true);
@@ -40,7 +41,7 @@ const ProfileEdit = () => {
     if (!user) return;
     (async () => {
       const [{ data: profile }, { data: interests }] = await Promise.all([
-        supabase.from("profiles").select("full_name, state, postcode, suburb, year_level").eq("id", user.id).maybeSingle(),
+        supabase.from("profiles").select("full_name, state, postcode, suburb, year_level, current_school_name").eq("id", user.id).maybeSingle(),
         supabase.from("user_interests").select("category").eq("user_id", user.id),
       ]);
       setFullName(profile?.full_name ?? "");
@@ -48,6 +49,7 @@ const ProfileEdit = () => {
       setPostcode(profile?.postcode ?? "");
       setSuburb(profile?.suburb ?? "");
       setYearLevel(profile?.year_level ?? "");
+      setSchoolName(profile?.current_school_name ?? "");
       setSelectedCategories(interests?.map((i) => i.category) ?? []);
       setInitializing(false);
     })();
@@ -79,6 +81,7 @@ const ProfileEdit = () => {
           postcode: postcode.trim(),
           suburb: suburb.trim() || null,
           year_level: yearLevel || null,
+          current_school_name: schoolName.trim() || null,
         })
         .eq("id", user.id);
       if (profileError) throw profileError;
@@ -167,6 +170,21 @@ const ProfileEdit = () => {
                 ))}
               </select>
             </div>
+
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                <SchoolIcon className="w-3.5 h-3.5" /> Current school
+              </label>
+              <input
+                type="text"
+                value={schoolName}
+                onChange={(e) => setSchoolName(e.target.value)}
+                placeholder="Enter your full school name"
+                className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all"
+              />
+            </div>
+
+
 
             <div className="space-y-2">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
