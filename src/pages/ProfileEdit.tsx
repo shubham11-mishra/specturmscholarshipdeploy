@@ -81,6 +81,7 @@ const ProfileEdit = () => {
           postcode: postcode.trim(),
           suburb: suburb.trim() || null,
           year_level: yearLevel || null,
+          current_school_name: schoolName.trim() || null,
         })
         .eq("id", user.id);
       if (profileError) throw profileError;
