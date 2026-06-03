@@ -624,11 +624,10 @@ const Auth = () => {
               </div>
 
               <Field label="State / Territory *">
-                <div className="flex flex-wrap gap-2">
-                  {AU_STATES.map((s) => (
-                    <Chip key={s} active={stateCode === s} onClick={() => setStateCode(s)}>{s}</Chip>
-                  ))}
-                </div>
+                <select value={stateCode} onChange={(e) => setStateCode(e.target.value)} className={inputCls}>
+                  <option value="">Select…</option>
+                  {AU_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
               </Field>
 
               <div className="border-t border-border pt-5">
