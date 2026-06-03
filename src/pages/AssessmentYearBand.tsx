@@ -16,6 +16,7 @@ export default function AssessmentYearBand() {
   const theme = SUBJECT_THEME[subj];
 
   const recommended = useMemo(() => inferYearBand(yearLevel), [yearLevel]);
+  const allowed = useMemo(() => new Set(nearbyBands(yearLevel)), [yearLevel]);
   const [available, setAvailable] = useState<string[]>([]);
   const [selected, setSelected] = useState<string>(recommended);
   const [preview, setPreview] = useState<{ sections: any[]; totalQ: number }>({ sections: [], totalQ: 0 });
