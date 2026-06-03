@@ -16,7 +16,7 @@ import { DEFAULT_WHEEL_SCORES, type WheelScores } from "@/lib/navigator";
 type Sort = "match" | "deadline" | "value" | "az";
 type TierFilter = "all" | "best_fit" | "stretch" | "fast_win";
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 30;
 
 const Scholarships = () => {
   const { user, loading: authLoading, location, yearLevel, interests } = useAuth();
@@ -149,7 +149,26 @@ const Scholarships = () => {
     setPage(1);
   }, [tier, stateFilter, search, showLocked, sort]);
 
-  const visible = filtered.slice(0, page * PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const startIdx = (currentPage - 1) * PAGE_SIZE;
+  const visible = filtered.slice(startIdx, startIdx + PAGE_SIZE);
+
+  const pageNumbers = useMemo(() => {
+    const pages: (number | "ellipsis")[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+      return pages;
+    }
+    pages.push(1);
+    const start = Math.max(2, currentPage - 1);
+    const end = Math.min(totalPages - 1, currentPage + 1);
+    if (start > 2) pages.push("ellipsis");
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (end < totalPages - 1) pages.push("ellipsis");
+    pages.push(totalPages);
+    return pages;
+  }, [totalPages, currentPage]);
 
   if (authLoading || loading) {
     return (
@@ -274,7 +293,9 @@ const Scholarships = () => {
 
           {/* Results */}
           <div className="text-xs text-muted-foreground mb-3">
-            Showing {visible.length} of {filtered.length} · {shortlistCount} shortlisted
+            {filtered.length === 0
+              ? `Showing 0 of 0 · ${shortlistCount} shortlisted`
+              : `Showing ${startIdx + 1}–${startIdx + visible.length} of ${filtered.length} · ${shortlistCount} shortlisted`}
           </div>
 
           {filtered.length === 0 ? (
@@ -298,15 +319,44 @@ const Scholarships = () => {
             </div>
           )}
 
-          {visible.length < filtered.length && (
-            <div className="flex justify-center mt-6">
+          {totalPages > 1 && (
+            <nav
+              aria-label="Pagination"
+              className="flex flex-wrap items-center justify-center gap-1.5 mt-8"
+            >
               <button
-                onClick={() => setPage((p) => p + 1)}
-                className="px-5 py-2.5 rounded-xl border border-border bg-card text-sm font-semibold text-foreground hover:border-primary/40 hover:text-primary"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-semibold text-foreground hover:border-primary/40 hover:text-primary disabled:opacity-40 disabled:pointer-events-none"
               >
-                Load more ({filtered.length - visible.length} remaining)
+                Previous
               </button>
-            </div>
+              {pageNumbers.map((p, i) =>
+                p === "ellipsis" ? (
+                  <span key={`e-${i}`} className="px-2 text-xs text-muted-foreground">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    aria-current={p === currentPage ? "page" : undefined}
+                    className={`min-w-[34px] px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition ${
+                      p === currentPage
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-card text-foreground hover:border-primary/40 hover:text-primary"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-semibold text-foreground hover:border-primary/40 hover:text-primary disabled:opacity-40 disabled:pointer-events-none"
+              >
+                Next
+              </button>
+            </nav>
           )}
         </div>
       </main>
