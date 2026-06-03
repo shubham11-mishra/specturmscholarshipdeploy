@@ -853,7 +853,6 @@ const Auth = () => {
         </div>
         </div>
       </div>
-      </div>
       <footer className="border-t border-primary/10 py-8 px-4 md:px-8 flex flex-wrap items-center justify-between gap-4 bg-card/40">
         <div className="flex items-center gap-2.5">
           <CompassMark size={24} id="auth-footer" />
