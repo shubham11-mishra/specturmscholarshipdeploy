@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import logoHorizontal from "@/assets/searcher-navbar-light.png";
 import { Link } from "react-router-dom";
+import Navbar from "@/components/Navbar";
+import CompassMark from "@/components/CompassMark";
 import { stateFromPostcode, lookupSuburbsForPostcode } from "@/lib/postcode";
 import { Slider } from "@/components/ui/slider";
 import SpectrumWheel from "@/components/navigator/SpectrumWheel";
@@ -269,7 +271,7 @@ const Auth = () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${window.location.origin}/auth` },
+        options: { redirectTo: `${window.location.origin}/sign-in` },
       });
       if (error) { setError(error.message || "Google sign-in failed"); setSubmitting(false); }
     } catch (err: any) { setError(err.message || "Google sign-in failed"); setSubmitting(false); }
