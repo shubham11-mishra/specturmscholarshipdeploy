@@ -233,7 +233,8 @@ const Auth = () => {
   }, [user, navigate]);
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("mode") === "signup") setIsLogin(false);
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("mode") === "signup" || window.location.pathname === "/sign-up") setIsLogin(false);
   }, []);
 
   // postcode → suburb + state
