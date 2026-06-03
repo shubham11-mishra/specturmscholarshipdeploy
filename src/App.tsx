@@ -65,7 +65,8 @@ const Root = () => (
           <ShortlistProvider>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
+              <Route path="/sign-in" element={<Auth />} />
+              <Route path="/auth" element={<Navigate to="/sign-in" replace />} />
               <Route path="/reset-password" element={<ResetPassword />} />
 
               {/* Public legal & info pages */}

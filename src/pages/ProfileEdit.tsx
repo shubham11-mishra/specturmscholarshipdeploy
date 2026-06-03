@@ -33,7 +33,7 @@ const ProfileEdit = () => {
   const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
-    if (!loading && !user) navigate("/auth");
+    if (!loading && !user) navigate("/sign-in");
   }, [user, loading, navigate]);
 
   useEffect(() => {

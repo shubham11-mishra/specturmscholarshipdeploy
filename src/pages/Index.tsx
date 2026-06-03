@@ -231,7 +231,7 @@ const Index = () => {
         onSearch={handleSearch}
         onStartMatching={() => {
           if (!user) {
-            navigate("/auth");
+            navigate("/sign-in");
             return;
           }
           if (interests.length === 0) {
@@ -424,7 +424,7 @@ const Index = () => {
             Create a free account and start discovering opportunities in minutes.
           </p>
           <button
-            onClick={() => navigate("/auth")}
+            onClick={() => navigate("/sign-in")}
             className="bg-card text-primary rounded-xl px-10 py-4 text-[13px] font-bold uppercase tracking-[0.1em] cursor-pointer border-none shadow-lg hover:-translate-y-0.5 transition-all"
           >
             Create Free Account

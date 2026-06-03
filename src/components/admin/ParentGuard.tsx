@@ -15,6 +15,6 @@ export default function ParentGuard({ children }: { children: ReactNode }) {
       </div>
     );
   }
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) return <Navigate to="/sign-in" replace />;
   return <>{children}</>;
 }

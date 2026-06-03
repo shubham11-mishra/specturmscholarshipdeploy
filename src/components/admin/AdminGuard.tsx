@@ -15,7 +15,7 @@ export const AdminGuard = ({ children }: { children: ReactNode }) => {
       </div>
     );
   }
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) return <Navigate to="/sign-in" replace />;
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background p-6 text-center">

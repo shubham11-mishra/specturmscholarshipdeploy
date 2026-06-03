@@ -40,7 +40,7 @@ const Profile = () => {
   const [hydrating, setHydrating] = useState(true);
 
   useEffect(() => {
-    if (!loading && !user) navigate("/auth");
+    if (!loading && !user) navigate("/sign-in");
   }, [loading, user, navigate]);
 
   useEffect(() => {

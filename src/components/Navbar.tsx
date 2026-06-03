@@ -118,7 +118,7 @@ const Navbar = () => {
         ) : (
           <div className="flex items-center gap-2 ml-1">
             <button
-              onClick={() => navigate("/auth")}
+              onClick={() => navigate("/sign-in")}
               className={`px-4 py-2 rounded-lg text-[12px] font-bold uppercase tracking-[0.08em] transition-all bg-transparent cursor-pointer border ${
                 scrolled
                   ? "text-primary border-primary/40 hover:bg-primary/8"
@@ -128,7 +128,7 @@ const Navbar = () => {
               Sign In
             </button>
             <button
-              onClick={() => navigate("/auth?mode=signup")}
+              onClick={() => navigate("/sign-in?mode=signup")}
               className="gradient-brand text-primary-foreground px-5 py-2 rounded-lg text-[12px] font-bold uppercase tracking-[0.08em] hover:opacity-95 transition-all flex items-center gap-1.5 shadow-brand border-none cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5" />

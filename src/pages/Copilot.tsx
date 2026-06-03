@@ -104,7 +104,7 @@ const Copilot = () => {
   };
 
   if (loading) return <div className="min-h-screen bg-background" />;
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) return <Navigate to="/sign-in" replace />;
 
   return (
     <div className="min-h-screen bg-background">

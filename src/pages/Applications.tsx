@@ -50,7 +50,7 @@ const Applications = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && !user) navigate("/auth");
+    if (!authLoading && !user) navigate("/sign-in");
   }, [authLoading, user, navigate]);
 
   useEffect(() => {

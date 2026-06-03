@@ -30,7 +30,7 @@ const Wins = () => {
   const [editing, setEditing] = useState<Record<string, { text: string; share: boolean }>>({});
 
   useEffect(() => {
-    if (!authLoading && !user) navigate("/auth");
+    if (!authLoading && !user) navigate("/sign-in");
   }, [authLoading, user, navigate]);
 
   useEffect(() => {

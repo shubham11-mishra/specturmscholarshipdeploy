@@ -27,7 +27,7 @@ const AppLayout = ({ children, pageTitle }: { children: ReactNode; pageTitle: st
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) navigate("/auth");
+    if (!loading && !user) navigate("/sign-in");
   }, [loading, user, navigate]);
 
   // Admins can browse the student portal freely; access /admin via sidebar.
