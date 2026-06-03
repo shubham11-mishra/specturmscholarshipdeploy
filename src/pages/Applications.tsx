@@ -150,7 +150,7 @@ const Applications = () => {
       <main className="pt-2 pb-20 max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex items-end justify-between flex-wrap gap-4 mb-6">
           <div>
-            <h1 className="font-serif text-4xl md:text-5xl font-bold text-foreground">Applications Hub</h1>
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground">Applications Hub</h1>
             <p className="text-muted-foreground mt-2">Move cards as you progress. Capture outcomes when decisions land.</p>
           </div>
           <div className="flex gap-2">
@@ -316,7 +316,7 @@ const Applications = () => {
         {apps.length === 0 && (
           <Card className="p-10 text-center mt-8">
             <Heart className="w-10 h-10 mx-auto text-primary mb-3" />
-            <h3 className="font-serif text-2xl font-bold mb-1">No applications yet</h3>
+            <h3 className="font-display text-2xl font-bold mb-1">No applications yet</h3>
             <p className="text-muted-foreground mb-4">
               Start one from any scholarship's Detail page.
             </p>
