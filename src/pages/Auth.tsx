@@ -735,11 +735,11 @@ const Auth = () => {
               <div className="border-t border-border pt-5">
                 <p className="font-semibold text-foreground mb-1">💰 Financial need indicator <span className="text-muted-foreground font-normal">(optional)</span></p>
                 <p className="text-sm text-muted-foreground mb-3">This unlocks means-tested and equity scholarships. Never shown to schools.</p>
-                <div className="flex flex-wrap gap-2">
+                <select value={financial} onChange={(e) => setFinancial(e.target.value)} className={inputCls}>
                   {FINANCIAL_OPTIONS.map((opt) => (
-                    <Chip key={opt.value} active={financial === opt.value} onClick={() => setFinancial(opt.value)}>{opt.label}</Chip>
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
-                </div>
+                </select>
               </div>
             </div>
           )}
