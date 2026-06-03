@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import {
   YEAR_BANDS, listAvailableBands, listQuestionsForBand,
-  inferYearBand, SUBJECT_THEME, type Subject
+  inferYearBand, nearbyBands, SUBJECT_THEME, type Subject
 } from "@/lib/assessment";
 
 export default function AssessmentYearBand() {
@@ -16,6 +16,7 @@ export default function AssessmentYearBand() {
   const theme = SUBJECT_THEME[subj];
 
   const recommended = useMemo(() => inferYearBand(yearLevel), [yearLevel]);
+  const allowed = useMemo(() => new Set(nearbyBands(yearLevel)), [yearLevel]);
   const [available, setAvailable] = useState<string[]>([]);
   const [selected, setSelected] = useState<string>(recommended);
   const [preview, setPreview] = useState<{ sections: any[]; totalQ: number }>({ sections: [], totalQ: 0 });
@@ -48,7 +49,7 @@ export default function AssessmentYearBand() {
         <div className="text-sm font-semibold mb-2">Year band</div>
         <div className="flex flex-wrap gap-2">
           {YEAR_BANDS.map(b => {
-            const isAvail = available.includes(b);
+            const isAvail = available.includes(b) && allowed.has(b);
             const isSel = selected === b;
             const isRec = b === recommended;
             return (

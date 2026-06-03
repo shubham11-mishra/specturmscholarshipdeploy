@@ -48,15 +48,34 @@ export async function listQuestionsForBand(subject: Subject, yearBand: string): 
 export function inferYearBand(yearLevel: string | null | undefined): string {
   if (!yearLevel) return "6-8";
   const y = yearLevel.toLowerCase().replace(/[^0-9a-z]/g, "");
+  if (y.includes("prep")) return "Prep-2";
   const n = parseInt(y.replace(/\D/g, ""), 10);
-  if (y.includes("prep") || (n >= 0 && n <= 2)) return "Prep-2";
-  if (n >= 2 && n <= 4) return "2-4";
-  if (n >= 4 && n <= 6) return "4-6";
-  if (n >= 6 && n <= 8) return "6-8";
-  if (n >= 8 && n <= 10) return "8-10";
+  if (isNaN(n)) return "6-8";
+  if (n <= 1) return "Prep-2";
+  if (n <= 3) return "2-4";
+  if (n <= 5) return "4-6";
+  if (n <= 7) return "6-8";
+  if (n <= 10) return "8-10";
   if (n === 11) return "Y11";
-  if (n === 12) return "Y12";
+  if (n >= 12) return "Y12";
   return "6-8";
+}
+
+// Ordered list of standard bands used for "nearby" access logic.
+const BAND_ORDER: string[] = ["Prep-2", "2-4", "4-6", "6-8", "8-10", "Y11", "Y12"];
+
+/**
+ * Returns the year bands a student can access based on their year level:
+ * their recommended band plus the immediately adjacent bands on either side.
+ * Specialty bands ("Scholarship/SEALP", "Selective") are always accessible.
+ */
+export function nearbyBands(yearLevel: string | null | undefined): string[] {
+  const rec = inferYearBand(yearLevel);
+  const idx = BAND_ORDER.indexOf(rec);
+  const range = idx === -1
+    ? [rec]
+    : BAND_ORDER.slice(Math.max(0, idx - 1), Math.min(BAND_ORDER.length, idx + 2));
+  return Array.from(new Set([...range, "Scholarship/SEALP", "Selective"]));
 }
 
 export async function getOrCreateAttempt(userId: string, subject: Subject, yearBand: string) {
