@@ -130,7 +130,7 @@ const Navbar = () => {
               Sign In
             </button>
             <button
-              onClick={() => navigate("/sign-in?mode=signup")}
+              onClick={() => navigate("/sign-up")}
               className="gradient-brand text-primary-foreground px-5 py-2 rounded-lg text-[12px] font-bold uppercase tracking-[0.08em] hover:opacity-95 transition-all flex items-center gap-1.5 shadow-brand border-none cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5" />
