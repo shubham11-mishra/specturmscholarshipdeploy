@@ -28,6 +28,7 @@ const ProfileEdit = () => {
   const [postcode, setPostcode] = useState("");
   const [suburb, setSuburb] = useState("");
   const [yearLevel, setYearLevel] = useState("");
+  const [schoolName, setSchoolName] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [initializing, setInitializing] = useState(true);
