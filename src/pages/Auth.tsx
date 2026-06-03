@@ -576,18 +576,17 @@ const Auth = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Field label="Student's First Name *">
-                  <input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Mia" className={inputCls} />
+                  <input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Enter first name" className={inputCls} />
                 </Field>
                 <Field label="Last Name *">
-                  <input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Chen" className={inputCls} />
+                  <input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Enter last name" className={inputCls} />
                 </Field>
 
                 <Field label="Gender *">
-                  <div className="flex flex-wrap gap-2">
-                    {GENDERS.map((g) => (
-                      <Chip key={g.value} active={gender === g.value} onClick={() => setGender(g.value)}>{g.label}</Chip>
-                    ))}
-                  </div>
+                  <select value={gender} onChange={(e) => setGender(e.target.value)} className={inputCls}>
+                    <option value="">Select…</option>
+                    {GENDERS.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
+                  </select>
                 </Field>
                 <Field label="Current Year Level *">
                   <select value={yearLevel} onChange={(e) => setYearLevel(e.target.value)} className={inputCls}>
@@ -597,7 +596,7 @@ const Auth = () => {
                 </Field>
 
                 <Field label="Current School Name">
-                  <input value={currentSchoolName} onChange={(e) => setCurrentSchoolName(e.target.value)} placeholder="e.g. Glen Waverley Primary" className={inputCls} />
+                  <input value={currentSchoolName} onChange={(e) => setCurrentSchoolName(e.target.value)} placeholder="Enter your full school name" className={inputCls} />
                 </Field>
                 <Field label="School Type *">
                   <select value={schoolType} onChange={(e) => setSchoolType(e.target.value)} className={inputCls}>
