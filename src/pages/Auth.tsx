@@ -515,31 +515,32 @@ const Auth = () => {
 
   // ---------- SIGNUP WIZARD ----------
   const StepIndicator = () => (
-    <div className="flex items-start justify-center gap-1 sm:gap-2 mb-8 max-w-3xl mx-auto">
+    <div className="grid grid-cols-5 gap-0 mb-8 max-w-3xl mx-auto relative">
       {STEPS.map((s, i) => {
         const Icon = s.icon;
         const done = i < step;
         const active = i === step;
         return (
-          <div key={s.label} className="flex items-start flex-1">
-            <div className="flex flex-col items-center flex-1 min-w-0">
-              <div
-                className="w-11 h-11 rounded-full flex items-center justify-center transition-all shrink-0"
-                style={{
-                  background: done ? "hsl(var(--ink))" : active ? s.color : "hsl(var(--secondary))",
-                  color: done || active ? "white" : "hsl(var(--muted-foreground))",
-                  boxShadow: active ? `0 4px 16px ${s.color.replace(")", " / 0.4)")}` : "none",
-                }}
-              >
-                {done ? <Check className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
-              </div>
-              <span className={`text-[11px] sm:text-xs mt-2 text-center font-semibold ${active ? "text-foreground" : "text-muted-foreground"}`}>
-                {s.label}
-              </span>
-            </div>
+          <div key={s.label} className="flex flex-col items-center relative">
             {i < STEPS.length - 1 && (
-              <div className="h-0.5 flex-1 mt-[22px] mx-1 rounded-full" style={{ background: i < step ? "hsl(var(--ink))" : "hsl(var(--border))" }} />
+              <div
+                className="absolute top-[22px] left-1/2 w-full h-0.5 rounded-full z-0"
+                style={{ background: i < step ? "hsl(var(--ink))" : "hsl(var(--border))" }}
+              />
             )}
+            <div
+              className="w-11 h-11 rounded-full flex items-center justify-center transition-all shrink-0 relative z-10"
+              style={{
+                background: done ? "hsl(var(--ink))" : active ? s.color : "hsl(var(--secondary))",
+                color: done || active ? "white" : "hsl(var(--muted-foreground))",
+                boxShadow: active ? `0 4px 16px ${s.color.replace(")", " / 0.4)")}` : "none",
+              }}
+            >
+              {done ? <Check className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
+            </div>
+            <span className={`text-[11px] sm:text-xs mt-2 text-center font-semibold px-1 ${active ? "text-foreground" : "text-muted-foreground"}`}>
+              {s.label}
+            </span>
           </div>
         );
       })}
