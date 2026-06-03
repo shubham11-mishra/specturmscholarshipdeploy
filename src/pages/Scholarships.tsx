@@ -319,15 +319,44 @@ const Scholarships = () => {
             </div>
           )}
 
-          {visible.length < filtered.length && (
-            <div className="flex justify-center mt-6">
+          {totalPages > 1 && (
+            <nav
+              aria-label="Pagination"
+              className="flex flex-wrap items-center justify-center gap-1.5 mt-8"
+            >
               <button
-                onClick={() => setPage((p) => p + 1)}
-                className="px-5 py-2.5 rounded-xl border border-border bg-card text-sm font-semibold text-foreground hover:border-primary/40 hover:text-primary"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-semibold text-foreground hover:border-primary/40 hover:text-primary disabled:opacity-40 disabled:pointer-events-none"
               >
-                Load more ({filtered.length - visible.length} remaining)
+                Previous
               </button>
-            </div>
+              {pageNumbers.map((p, i) =>
+                p === "ellipsis" ? (
+                  <span key={`e-${i}`} className="px-2 text-xs text-muted-foreground">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    aria-current={p === currentPage ? "page" : undefined}
+                    className={`min-w-[34px] px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition ${
+                      p === currentPage
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-card text-foreground hover:border-primary/40 hover:text-primary"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-semibold text-foreground hover:border-primary/40 hover:text-primary disabled:opacity-40 disabled:pointer-events-none"
+              >
+                Next
+              </button>
+            </nav>
           )}
         </div>
       </main>
