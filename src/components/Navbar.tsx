@@ -52,6 +52,8 @@ const Navbar = () => {
           : [
               { label: "Home", to: "/" },
               { label: "Find Schools", to: "https://scholarshipsearcher.com.au/#results-grid" },
+              { label: "About", to: "/about" },
+              { label: "Contact", to: "/contact" },
             ]
         ).map((l) => (
           <a
