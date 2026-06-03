@@ -28,14 +28,41 @@ export const SUBJECT_THEME = {
   maths:   { color: "#2ECC71", label: "Maths",   icon: "🧮", hsl: "145 63% 49%" },
 } as const;
 
+// Normalize subject from any import casing/aliases ("English", "Mathematics", "Math").
+export function normalizeSubject(s: string | null | undefined): Subject {
+  const v = (s ?? "").toLowerCase().trim();
+  if (v === "mathematics" || v === "math" || v === "maths") return "maths";
+  return "english";
+}
+
+// Normalize year_band: strip "Year " prefix, canonicalize specialty bands.
+export function normalizeYearBand(b: string | null | undefined): string {
+  if (!b) return "";
+  const v = b.trim().replace(/^year\s+/i, "");
+  const low = v.toLowerCase();
+  if (low === "prep-2" || low === "prep2") return "Prep-2";
+  if (low === "y11" || low === "year11" || low === "11") return "Y11";
+  if (low === "y12" || low === "year12" || low === "12") return "Y12";
+  if (low === "scholarship-sealp" || low === "scholarship/sealp" || low === "sealp" || low === "scholarship") return "Scholarship/SEALP";
+  if (low === "selective" || low === "selective-entry") return "Selective";
+  return v; // "2-4", "4-6", "6-8", "8-10" pass through unchanged
+}
+
 export async function listAvailableBands(subject: Subject): Promise<string[]> {
-  const { data } = await supabase.from("assessment_sections").select("year_band").eq("subject", subject);
-  return Array.from(new Set((data ?? []).map((r: any) => r.year_band)));
+  const subj = normalizeSubject(subject);
+  const { data } = await supabase.from("assessment_sections").select("subject, year_band");
+  const bands = (data ?? [])
+    .filter((r: any) => normalizeSubject(r.subject) === subj)
+    .map((r: any) => normalizeYearBand(r.year_band));
+  return Array.from(new Set(bands));
 }
 export async function listSections(subject: Subject, yearBand: string): Promise<Section[]> {
-  const { data } = await supabase.from("assessment_sections").select("*")
-    .eq("subject", subject).eq("year_band", yearBand).order("section_order");
-  return (data ?? []) as Section[];
+  const subj = normalizeSubject(subject);
+  const band = normalizeYearBand(yearBand);
+  const { data } = await supabase.from("assessment_sections").select("*").order("section_order");
+  return ((data ?? []) as Section[]).filter(
+    s => normalizeSubject(s.subject) === subj && normalizeYearBand(s.year_band) === band
+  );
 }
 export async function listQuestionsForBand(subject: Subject, yearBand: string): Promise<{ sections: Section[]; questions: Question[] }> {
   const sections = await listSections(subject, yearBand);
