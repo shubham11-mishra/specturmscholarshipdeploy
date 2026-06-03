@@ -16,7 +16,7 @@ import { DEFAULT_WHEEL_SCORES, type WheelScores } from "@/lib/navigator";
 type Sort = "match" | "deadline" | "value" | "az";
 type TierFilter = "all" | "best_fit" | "stretch" | "fast_win";
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 30;
 
 const Scholarships = () => {
   const { user, loading: authLoading, location, yearLevel, interests } = useAuth();
