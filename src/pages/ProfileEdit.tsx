@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { CheckCircle2, MapPin, GraduationCap, Heart, User as UserIcon, Save } from "lucide-react";
+import { CheckCircle2, MapPin, GraduationCap, Heart, User as UserIcon, Save, School as SchoolIcon } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
