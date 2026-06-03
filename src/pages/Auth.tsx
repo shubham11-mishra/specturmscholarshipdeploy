@@ -322,7 +322,14 @@ const Auth = () => {
     setError("");
     if (step < STEPS.length - 1) setStep(step + 1);
   };
-  const goBack = () => { setError(""); setStep(Math.max(needsOnboarding ? 1 : 0, step - 1)); };
+  const goBack = () => {
+    setError("");
+    if (step === 0 || (needsOnboarding && step === 1)) {
+      navigate(-1);
+      return;
+    }
+    setStep(Math.max(0, step - 1));
+  };
 
   const handleFinalSubmit = async () => {
     setError(""); setSubmitting(true);
