@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import {
   YEAR_BANDS, listAvailableBands, listQuestionsForBand,
-  inferYearBand, SUBJECT_THEME, type Subject
+  inferYearBand, nearbyBands, SUBJECT_THEME, type Subject
 } from "@/lib/assessment";
 
 export default function AssessmentYearBand() {
