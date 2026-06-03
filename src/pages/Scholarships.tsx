@@ -293,7 +293,9 @@ const Scholarships = () => {
 
           {/* Results */}
           <div className="text-xs text-muted-foreground mb-3">
-            Showing {visible.length} of {filtered.length} · {shortlistCount} shortlisted
+            {filtered.length === 0
+              ? `Showing 0 of 0 · ${shortlistCount} shortlisted`
+              : `Showing ${startIdx + 1}–${startIdx + visible.length} of ${filtered.length} · ${shortlistCount} shortlisted`}
           </div>
 
           {filtered.length === 0 ? (
