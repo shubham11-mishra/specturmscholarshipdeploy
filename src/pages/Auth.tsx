@@ -233,7 +233,8 @@ const Auth = () => {
   }, [user, navigate]);
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("mode") === "signup") setIsLogin(false);
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("mode") === "signup" || window.location.pathname === "/sign-up") setIsLogin(false);
   }, []);
 
   // postcode → suburb + state
@@ -321,7 +322,14 @@ const Auth = () => {
     setError("");
     if (step < STEPS.length - 1) setStep(step + 1);
   };
-  const goBack = () => { setError(""); setStep(Math.max(needsOnboarding ? 1 : 0, step - 1)); };
+  const goBack = () => {
+    setError("");
+    if (step === 0 || (needsOnboarding && step === 1)) {
+      navigate(-1);
+      return;
+    }
+    setStep(Math.max(0, step - 1));
+  };
 
   const handleFinalSubmit = async () => {
     setError(""); setSubmitting(true);
@@ -490,6 +498,7 @@ const Auth = () => {
               { label: "Refunds", to: "/refunds" },
               { label: "Cookies", to: "/cookies" },
               { label: "Disclaimer", to: "/disclaimer" },
+              { label: "Schools", to: "https://scholarshipsearcher.com.au/#results-grid" },
             ].map((l) => (
               <a
                 key={l.label}
@@ -507,31 +516,32 @@ const Auth = () => {
 
   // ---------- SIGNUP WIZARD ----------
   const StepIndicator = () => (
-    <div className="flex items-start justify-center gap-1 sm:gap-2 mb-8 max-w-3xl mx-auto">
+    <div className="grid grid-cols-5 gap-0 mb-8 max-w-3xl mx-auto relative">
       {STEPS.map((s, i) => {
         const Icon = s.icon;
         const done = i < step;
         const active = i === step;
         return (
-          <div key={s.label} className="flex items-start flex-1">
-            <div className="flex flex-col items-center flex-1 min-w-0">
-              <div
-                className="w-11 h-11 rounded-full flex items-center justify-center transition-all shrink-0"
-                style={{
-                  background: done ? "hsl(var(--ink))" : active ? s.color : "hsl(var(--secondary))",
-                  color: done || active ? "white" : "hsl(var(--muted-foreground))",
-                  boxShadow: active ? `0 4px 16px ${s.color.replace(")", " / 0.4)")}` : "none",
-                }}
-              >
-                {done ? <Check className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
-              </div>
-              <span className={`text-[11px] sm:text-xs mt-2 text-center font-semibold ${active ? "text-foreground" : "text-muted-foreground"}`}>
-                {s.label}
-              </span>
-            </div>
+          <div key={s.label} className="flex flex-col items-center relative">
             {i < STEPS.length - 1 && (
-              <div className="h-0.5 flex-1 mt-[22px] mx-1 rounded-full" style={{ background: i < step ? "hsl(var(--ink))" : "hsl(var(--border))" }} />
+              <div
+                className="absolute top-[22px] left-1/2 w-full h-0.5 rounded-full z-0"
+                style={{ background: i < step ? "hsl(var(--ink))" : "hsl(var(--border))" }}
+              />
             )}
+            <div
+              className="w-11 h-11 rounded-full flex items-center justify-center transition-all shrink-0 relative z-10"
+              style={{
+                background: done ? "hsl(var(--ink))" : active ? s.color : "hsl(var(--secondary))",
+                color: done || active ? "white" : "hsl(var(--muted-foreground))",
+                boxShadow: active ? `0 4px 16px ${s.color.replace(")", " / 0.4)")}` : "none",
+              }}
+            >
+              {done ? <Check className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
+            </div>
+            <span className={`text-[11px] sm:text-xs mt-2 text-center font-semibold px-1 ${active ? "text-foreground" : "text-muted-foreground"}`}>
+              {s.label}
+            </span>
           </div>
         );
       })}
@@ -567,18 +577,17 @@ const Auth = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Field label="Student's First Name *">
-                  <input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Mia" className={inputCls} />
+                  <input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Enter first name" className={inputCls} />
                 </Field>
                 <Field label="Last Name *">
-                  <input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Chen" className={inputCls} />
+                  <input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Enter last name" className={inputCls} />
                 </Field>
 
                 <Field label="Gender *">
-                  <div className="flex flex-wrap gap-2">
-                    {GENDERS.map((g) => (
-                      <Chip key={g.value} active={gender === g.value} onClick={() => setGender(g.value)}>{g.label}</Chip>
-                    ))}
-                  </div>
+                  <select value={gender} onChange={(e) => setGender(e.target.value)} className={inputCls}>
+                    <option value="">Select…</option>
+                    {GENDERS.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
+                  </select>
                 </Field>
                 <Field label="Current Year Level *">
                   <select value={yearLevel} onChange={(e) => setYearLevel(e.target.value)} className={inputCls}>
@@ -588,7 +597,7 @@ const Auth = () => {
                 </Field>
 
                 <Field label="Current School Name">
-                  <input value={currentSchoolName} onChange={(e) => setCurrentSchoolName(e.target.value)} placeholder="e.g. Glen Waverley Primary" className={inputCls} />
+                  <input value={currentSchoolName} onChange={(e) => setCurrentSchoolName(e.target.value)} placeholder="Enter your full school name" className={inputCls} />
                 </Field>
                 <Field label="School Type *">
                   <select value={schoolType} onChange={(e) => setSchoolType(e.target.value)} className={inputCls}>
@@ -616,11 +625,10 @@ const Auth = () => {
               </div>
 
               <Field label="State / Territory *">
-                <div className="flex flex-wrap gap-2">
-                  {AU_STATES.map((s) => (
-                    <Chip key={s} active={stateCode === s} onClick={() => setStateCode(s)}>{s}</Chip>
-                  ))}
-                </div>
+                <select value={stateCode} onChange={(e) => setStateCode(e.target.value)} className={inputCls}>
+                  <option value="">Select…</option>
+                  {AU_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
               </Field>
 
               <div className="border-t border-border pt-5">
@@ -728,11 +736,11 @@ const Auth = () => {
               <div className="border-t border-border pt-5">
                 <p className="font-semibold text-foreground mb-1">💰 Financial need indicator <span className="text-muted-foreground font-normal">(optional)</span></p>
                 <p className="text-sm text-muted-foreground mb-3">This unlocks means-tested and equity scholarships. Never shown to schools.</p>
-                <div className="flex flex-wrap gap-2">
+                <select value={financial} onChange={(e) => setFinancial(e.target.value)} className={inputCls}>
                   {FINANCIAL_OPTIONS.map((opt) => (
-                    <Chip key={opt.value} active={financial === opt.value} onClick={() => setFinancial(opt.value)}>{opt.label}</Chip>
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
-                </div>
+                </select>
               </div>
             </div>
           )}
@@ -870,6 +878,7 @@ const Auth = () => {
             { label: "Refunds", to: "/refunds" },
             { label: "Cookies", to: "/cookies" },
             { label: "Disclaimer", to: "/disclaimer" },
+            { label: "Schools", to: "https://scholarshipsearcher.com.au/#results-grid" },
           ].map((l) => (
             <a
               key={l.label}
