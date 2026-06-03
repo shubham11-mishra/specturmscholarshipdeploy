@@ -551,9 +551,6 @@ const Auth = () => {
       </footer>
     </div>
   );
-      </footer>
-    </div>
-  );
 };
 
 const inputCls = "w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/30 transition-all";
