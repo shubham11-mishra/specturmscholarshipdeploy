@@ -418,58 +418,89 @@ const Auth = () => {
   // ---------- LOGIN VIEW ----------
   if (isLogin) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4 py-10" style={{ background: "var(--gradient-canvas)" }}>
-        <div className="w-full max-w-md">
-          <div className="flex flex-col items-center mb-6">
-            <Link to="/" aria-label="Back to home" className="mb-3 no-underline">
-              <img src={logoHorizontal} alt="Opportunity Searcher" className="h-12 w-auto" draggable={false} />
-            </Link>
-            <h1 className="font-display text-3xl font-extrabold text-foreground text-center">Welcome back</h1>
-            <p className="text-sm text-muted-foreground mt-1">Sign in to access your opportunity matches.</p>
-          </div>
-          <div className="bg-card border border-border rounded-2xl p-6 shadow-md">
-            {error && <div className="bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-xl px-4 py-2.5 mb-4">{error}</div>}
-            <form onSubmit={handleLogin} className="space-y-4">
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="Email" className={inputCls} />
-              <div className="relative">
-                <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} placeholder="Password" className={`${inputCls} pr-12`} />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground bg-transparent border-none cursor-pointer">
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+      <div className="min-h-screen flex flex-col" style={{ background: "var(--gradient-canvas)" }}>
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center px-4 py-10 pt-28">
+          <div className="w-full max-w-md">
+            <div className="flex flex-col items-center mb-6">
+              <Link to="/" aria-label="Back to home" className="mb-3 no-underline">
+                <img src={logoHorizontal} alt="Opportunity Searcher" className="h-12 w-auto" draggable={false} />
+              </Link>
+              <h1 className="font-display text-3xl font-extrabold text-foreground text-center">Welcome back</h1>
+              <p className="text-sm text-muted-foreground mt-1">Sign in to access your opportunity matches.</p>
+            </div>
+            <div className="bg-card border border-border rounded-2xl p-6 shadow-md">
+              {error && <div className="bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-xl px-4 py-2.5 mb-4">{error}</div>}
+              <form onSubmit={handleLogin} className="space-y-4">
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="Email" className={inputCls} />
+                <div className="relative">
+                  <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} placeholder="Password" className={`${inputCls} pr-12`} />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground bg-transparent border-none cursor-pointer">
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <button type="submit" disabled={submitting} className="w-full bg-primary text-primary-foreground rounded-xl px-4 py-3.5 text-sm font-bold uppercase tracking-[0.12em] cursor-pointer hover:opacity-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 border-none shadow-brand">
+                  <Sparkles className="w-4 h-4" />{submitting ? "Please wait..." : "Sign In"}
+                </button>
+              </form>
+              <div className="mt-3 text-center text-sm">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setError("");
+                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+                      setError("Enter your email above, then click Forgot password.");
+                      return;
+                    }
+                    setSubmitting(true);
+                    const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+                      redirectTo: `${window.location.origin}/reset-password`,
+                    });
+                    setSubmitting(false);
+                    if (err) setError(err.message);
+                    else setError("Password reset link sent. Check your email.");
+                  }}
+                  className="text-accent font-semibold hover:text-accent/80 bg-transparent border-none cursor-pointer"
+                >
+                  Forgot password?
                 </button>
               </div>
-              <button type="submit" disabled={submitting} className="w-full bg-primary text-primary-foreground rounded-xl px-4 py-3.5 text-sm font-bold uppercase tracking-[0.12em] cursor-pointer hover:opacity-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 border-none shadow-brand">
-                <Sparkles className="w-4 h-4" />{submitting ? "Please wait..." : "Sign In"}
-              </button>
-            </form>
-            <div className="mt-3 text-center text-sm">
-              <button
-                type="button"
-                onClick={async () => {
-                  setError("");
-                  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-                    setError("Enter your email above, then click Forgot password.");
-                    return;
-                  }
-                  setSubmitting(true);
-                  const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-                    redirectTo: `${window.location.origin}/reset-password`,
-                  });
-                  setSubmitting(false);
-                  if (err) setError(err.message);
-                  else setError("Password reset link sent. Check your email.");
-                }}
-                className="text-accent font-semibold hover:text-accent/80 bg-transparent border-none cursor-pointer"
-              >
-                Forgot password?
-              </button>
-            </div>
-            <div className="mt-3 text-center text-sm">
-              <span className="text-muted-foreground">Don't have an account? </span>
-              <button onClick={() => { setIsLogin(false); setStep(0); setError(""); }} className="text-accent font-semibold hover:text-accent/80 bg-transparent border-none cursor-pointer">Sign Up</button>
-            </div>
+              <div className="mt-3 text-center text-sm">
+                <span className="text-muted-foreground">Don't have an account? </span>
+                <button onClick={() => { setIsLogin(false); setStep(0); setError(""); }} className="text-accent font-semibold hover:text-accent/80 bg-transparent border-none cursor-pointer">Sign Up</button>
+              </div>
 
+            </div>
           </div>
         </div>
+        <footer className="border-t border-primary/10 py-8 px-4 md:px-8 flex flex-wrap items-center justify-between gap-4 bg-card/40">
+          <div className="flex items-center gap-2.5">
+            <CompassMark size={24} id="auth-footer" />
+            <span className="text-[11px] tracking-[0.12em] text-foreground/40 uppercase">
+              Spectrum · Every School. Every Opportunity.
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-5">
+            {[
+              { label: "About", to: "/about" },
+              { label: "FAQ", to: "/faq" },
+              { label: "Contact", to: "/contact" },
+              { label: "Privacy", to: "/privacy" },
+              { label: "Terms", to: "/terms" },
+              { label: "Refunds", to: "/refunds" },
+              { label: "Cookies", to: "/cookies" },
+              { label: "Disclaimer", to: "/disclaimer" },
+            ].map((l) => (
+              <a
+                key={l.label}
+                href={l.to}
+                className="text-[11px] text-foreground/40 tracking-[0.08em] uppercase no-underline hover:text-primary transition-colors"
+              >
+                {l.label}
+              </a>
+            ))}
+          </div>
+        </footer>
       </div>
     );
   }
