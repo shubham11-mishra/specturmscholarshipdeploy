@@ -63,7 +63,7 @@ const expandInterests = (interests: string[]): string[] => {
 };
 
 const Index = () => {
-  const { user, interests, yearLevel } = useAuth();
+  const { user, interests, yearLevel, location } = useAuth();
   const navigate = useNavigate();
   const [rows, setRows] = useState<SchoolScholarship[]>([]);
   const [total, setTotal] = useState(0);
@@ -148,10 +148,14 @@ const Index = () => {
     let cancelled = false;
     setLoading(true);
     const academicSelected = categoryFilters.includes("Academic");
+    const effectiveStateFilters =
+      stateFilters.length === 0 && user && location.state && showPersonalized && !searchQuery
+        ? [location.state]
+        : stateFilters;
     fetchScholarshipsPage({
       search: searchQuery,
       confidence: confidenceFilter,
-      states: stateFilters,
+      states: effectiveStateFilters,
       sectors: sectorFilters,
       categories: expandCategoryBuckets(categoryFilters),
       genders: genderFilters,
@@ -177,7 +181,7 @@ const Index = () => {
   }, [
     searchQuery, sortBy, confidenceFilter, page,
     sectorFilters, stateFilters, categoryFilters, genderFilters, valueTypeFilters,
-    interestCategories, yearLevel, showPersonalized,
+    interestCategories, yearLevel, showPersonalized, user, location.state,
   ]);
 
   const handleSearch = () => {
