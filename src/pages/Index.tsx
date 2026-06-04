@@ -148,10 +148,14 @@ const Index = () => {
     let cancelled = false;
     setLoading(true);
     const academicSelected = categoryFilters.includes("Academic");
+    const effectiveStateFilters =
+      stateFilters.length === 0 && user && location.state && showPersonalized && !searchQuery
+        ? [location.state]
+        : stateFilters;
     fetchScholarshipsPage({
       search: searchQuery,
       confidence: confidenceFilter,
-      states: stateFilters,
+      states: effectiveStateFilters,
       sectors: sectorFilters,
       categories: expandCategoryBuckets(categoryFilters),
       genders: genderFilters,
