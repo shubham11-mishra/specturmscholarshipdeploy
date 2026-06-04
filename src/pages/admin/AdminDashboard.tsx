@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
-import { FileQuestion, BookOpen, Users, Trophy, Wrench, CheckCircle2, ClipboardList, TrendingUp } from "lucide-react";
+import { FileQuestion, BookOpen, Users, Trophy, Wrench, CheckCircle2, ClipboardList, ClipboardCheck, TrendingUp } from "lucide-react";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -34,6 +34,7 @@ type Kpis = {
 type ProfileRow = { created_at: string | null; state: string | null; year_level: string | null };
 
 const tiles = [
+  { label: "Pending Approvals", path: "/admin/pending-approvals", icon: ClipboardCheck, desc: "Review and approve fresh scholarship data." },
   { label: "Assessment Editor", path: "/admin/assessments", icon: Wrench, desc: "Create, edit, import and preview questions." },
   { label: "Question Bank", path: "/admin/questions", icon: FileQuestion, desc: "Searchable index of every question." },
   { label: "Passage Manager", path: "/admin/passages", icon: BookOpen, desc: "Reusable reading passages." },

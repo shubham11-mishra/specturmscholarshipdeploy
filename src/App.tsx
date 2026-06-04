@@ -34,6 +34,8 @@ import AdminPlaceholder from "./pages/admin/AdminPlaceholder.tsx";
 import QuestionBank from "./pages/admin/QuestionBank.tsx";
 import PassageManager from "./pages/admin/PassageManager.tsx";
 import UserManagement from "./pages/admin/UserManagement.tsx";
+import PendingApprovals from "./pages/admin/PendingApprovals.tsx";
+import AdminLogin from "./pages/admin/AdminLogin.tsx";
 import StudentDashboard from "./pages/StudentDashboard.tsx";
 import ParentGuard from "./components/admin/ParentGuard.tsx";
 import About from "./pages/legal/About.tsx";
@@ -97,7 +99,9 @@ const Root = () => (
               <Route path="/assessments/:subject/select" element={<App title="Choose Year Band"><AssessmentYearBand /></App>} />
               <Route path="/assessments/:subject/:yearBand/take" element={<App title="Assessment"><AssessmentTake /></App>} />
               <Route path="/assessments/results/:id" element={<App title="Results"><AssessmentResults /></App>} />
+              <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin" element={<Admin title="Admin Dashboard"><AdminDashboard /></Admin>} />
+              <Route path="/admin/pending-approvals" element={<Admin title="Pending Approvals"><PendingApprovals /></Admin>} />
               <Route path="/admin/assessments" element={<Admin title="Assessment Editor"><AdminAssessments /></Admin>} />
               <Route path="/admin/questions" element={<Admin title="Question Bank"><QuestionBank /></Admin>} />
               <Route path="/admin/passages" element={<Admin title="Passage Manager"><PassageManager /></Admin>} />

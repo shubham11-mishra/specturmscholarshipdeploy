@@ -606,6 +606,87 @@ export type Database = {
         }
         Relationships: []
       }
+      scholarship_imports: {
+        Row: {
+          approved_scholarship_id: string | null
+          category: string | null
+          created_at: string
+          description: string | null
+          fetched_at: string
+          id: string
+          link_broken: boolean
+          link_note: string | null
+          link_status_code: number | null
+          payload: Json
+          postcode: string | null
+          program_name: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          scholarship_url: string | null
+          school_name: string
+          source: string | null
+          state: string | null
+          status: string
+          suburb: string | null
+          updated_at: string
+          value_aud: string | null
+          website_url: string | null
+          year_levels: string | null
+        }
+        Insert: {
+          approved_scholarship_id?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          fetched_at?: string
+          id?: string
+          link_broken?: boolean
+          link_note?: string | null
+          link_status_code?: number | null
+          payload?: Json
+          postcode?: string | null
+          program_name?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          scholarship_url?: string | null
+          school_name: string
+          source?: string | null
+          state?: string | null
+          status?: string
+          suburb?: string | null
+          updated_at?: string
+          value_aud?: string | null
+          website_url?: string | null
+          year_levels?: string | null
+        }
+        Update: {
+          approved_scholarship_id?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          fetched_at?: string
+          id?: string
+          link_broken?: boolean
+          link_note?: string | null
+          link_status_code?: number | null
+          payload?: Json
+          postcode?: string | null
+          program_name?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          scholarship_url?: string | null
+          school_name?: string
+          source?: string | null
+          state?: string | null
+          status?: string
+          suburb?: string | null
+          updated_at?: string
+          value_aud?: string | null
+          website_url?: string | null
+          year_levels?: string | null
+        }
+        Relationships: []
+      }
       scholarships: {
         Row: {
           acara_id: string | null
