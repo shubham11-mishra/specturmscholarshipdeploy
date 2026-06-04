@@ -34,6 +34,8 @@ import AdminPlaceholder from "./pages/admin/AdminPlaceholder.tsx";
 import QuestionBank from "./pages/admin/QuestionBank.tsx";
 import PassageManager from "./pages/admin/PassageManager.tsx";
 import UserManagement from "./pages/admin/UserManagement.tsx";
+import PendingApprovals from "./pages/admin/PendingApprovals.tsx";
+import AdminLogin from "./pages/admin/AdminLogin.tsx";
 import StudentDashboard from "./pages/StudentDashboard.tsx";
 import ParentGuard from "./components/admin/ParentGuard.tsx";
 import About from "./pages/legal/About.tsx";
