@@ -63,7 +63,7 @@ const expandInterests = (interests: string[]): string[] => {
 };
 
 const Index = () => {
-  const { user, interests, yearLevel } = useAuth();
+  const { user, interests, yearLevel, location } = useAuth();
   const navigate = useNavigate();
   const [rows, setRows] = useState<SchoolScholarship[]>([]);
   const [total, setTotal] = useState(0);
