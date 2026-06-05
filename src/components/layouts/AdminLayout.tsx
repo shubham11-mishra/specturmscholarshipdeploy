@@ -13,6 +13,11 @@ const adminNav = [
 ];
 
 const AdminLayout = ({ children, pageTitle }: { children: ReactNode; pageTitle: string }) => {
+  const navigate = useNavigate();
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate("/admin/login", { replace: true });
+  };
   return (
     <AdminGuard>
       <div className="flex h-screen overflow-hidden bg-secondary/40">
