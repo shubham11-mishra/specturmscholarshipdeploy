@@ -78,7 +78,7 @@ export default function UserManagement() {
     }
 
     const { data, error } = await supabase.functions.invoke("invite-admin", {
-      body: { email, redirectTo: `${window.location.origin}/reset-password` },
+      body: { email, redirectTo: "https://scholarshipsearcher.com.au/reset-password" },
     });
     if (error || (data && (data as any).error)) {
       toast.error(error?.message || (data as any)?.error || "Invite failed");
