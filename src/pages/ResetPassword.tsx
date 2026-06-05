@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import type { User } from "@supabase/supabase-js";
 import { Eye, EyeOff, KeyRound } from "lucide-react";
 
 const ResetPassword = () => {
@@ -24,7 +25,7 @@ const ResetPassword = () => {
     );
   };
 
-  const allowAdminInviteSetup = async (sessionUser: any) => {
+  const allowAdminInviteSetup = async (sessionUser?: User | null) => {
     if (!sessionUser) return false;
     if (sessionUser.user_metadata?.admin_invite_pending === true) return true;
     if (!sessionUser.invited_at || sessionUser.user_metadata?.admin_password_set_at) return false;
@@ -118,8 +119,8 @@ const ResetPassword = () => {
         if (roles && roles.length > 0) dest = "/admin";
       }
       setTimeout(() => navigate(dest), 1500);
-    } catch (err: any) {
-      setError(err.message || "Something went wrong");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setSubmitting(false);
     }
