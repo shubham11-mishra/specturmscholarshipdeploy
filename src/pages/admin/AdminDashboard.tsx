@@ -246,18 +246,6 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
-      {/* Year-level breakdown list */}
-      <Card className="p-5 rounded-2xl">
-        <h3 className="font-semibold text-sm mb-3">Registered students by year level · {year}</h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-          {byBand.map(b => (
-            <div key={b.band} className="rounded-xl border bg-background p-3">
-              <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">{b.band}</div>
-              <div className="text-2xl font-bold mt-1">{b.students}</div>
-            </div>
-          ))}
-        </div>
-      </Card>
     </div>
   );
 };
