@@ -24,6 +24,20 @@ const ResetPassword = () => {
     );
   };
 
+  const allowAdminInviteSetup = async (sessionUser: any) => {
+    if (!sessionUser) return false;
+    if (sessionUser.user_metadata?.admin_invite_pending === true) return true;
+    if (!sessionUser.invited_at || sessionUser.user_metadata?.admin_password_set_at) return false;
+
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", sessionUser.id)
+      .eq("role", "admin")
+      .limit(1);
+    return !!roles?.length;
+  };
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -34,6 +48,9 @@ const ResetPassword = () => {
         ) {
           setReady(true);
         }
+        void allowAdminInviteSetup(session?.user).then((allowed) => {
+          if (allowed) setReady(true);
+        });
       }
     );
 
@@ -43,6 +60,11 @@ const ResetPassword = () => {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user?.user_metadata?.admin_invite_pending === true) {
+        setReady(true);
+      }
+      return allowAdminInviteSetup(session?.user);
+    }).then((allowed) => {
+      if (allowed) {
         setReady(true);
       }
     });
