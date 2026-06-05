@@ -19,11 +19,15 @@ export function useUserRole() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading) {
+      setLoading(true);
+      return;
+    }
     if (!user) {
       setRole("student"); setIsAdmin(false); setIsParent(false); setLoading(false);
       return;
     }
+    setLoading(true);
     let cancelled = false;
     (async () => {
       const [rolesRes, parentRes, profileRes] = await Promise.all([
