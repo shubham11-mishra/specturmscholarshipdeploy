@@ -70,20 +70,25 @@ export default function UserManagement() {
     const email = newAdminEmail.trim().toLowerCase();
     if (!email) return;
     setAdding(true);
-    const match = profiles.find(p => (p.email ?? "").toLowerCase() === email);
-    if (!match) {
-      toast.error("No user found with that email. They must sign up first.");
-      setAdding(false);
-      return;
-    }
-    if (adminIds.has(match.id)) {
+    const existing = profiles.find(p => (p.email ?? "").toLowerCase() === email);
+    if (existing && adminIds.has(existing.id)) {
       toast.info("That user is already an admin.");
       setAdding(false);
       return;
     }
-    await grant(match.id);
+
+    const { data, error } = await supabase.functions.invoke("invite-admin", {
+      body: { email, redirectTo: `${window.location.origin}/reset-password` },
+    });
+    if (error || (data && (data as any).error)) {
+      toast.error(error?.message || (data as any)?.error || "Invite failed");
+      setAdding(false);
+      return;
+    }
+    toast.success((data as any)?.invited ? "Invitation email sent — admin role will be active after they accept." : "Admin role granted.");
     setNewAdminEmail("");
     setAdding(false);
+    load();
   };
 
   // Admins shown only in the Administrators section
