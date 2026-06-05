@@ -187,6 +187,27 @@ export default function UserManagement() {
             );
           })}
         </div>
+
+        {pendingInvites.length > 0 && (
+          <div className="mt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-muted-foreground" />
+              <h3 className="text-sm font-semibold">Pending invitations</h3>
+              <Badge variant="outline" className="text-[10px]">{pendingInvites.length}</Badge>
+            </div>
+            <div className="divide-y border rounded-lg">
+              {pendingInvites.map(inv => (
+                <div key={inv.id} className="p-3 flex items-center gap-3 text-sm">
+                  <div className="flex-1 min-w-0 truncate">{inv.email}</div>
+                  <Badge variant="outline" className="text-[10px]">Awaiting setup</Badge>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(inv.invited_at).toLocaleDateString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* All users browser (admins excluded — they appear above) */}
