@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { LayoutDashboard, Users, Trophy, Wrench, ArrowLeft, ClipboardCheck } from "lucide-react";
+import { LayoutDashboard, Users, Wrench, ArrowLeft, ClipboardCheck } from "lucide-react";
 import AdminGuard from "@/components/admin/AdminGuard";
 import { cn } from "@/lib/utils";
 
@@ -9,7 +9,6 @@ const adminNav = [
   { label: "Pending Approvals", path: "/admin/pending-approvals", icon: ClipboardCheck },
   { label: "Assessment Editor", path: "/admin/assessments", icon: Wrench },
   { label: "User Management", path: "/admin/users", icon: Users },
-  { label: "Gamification Settings", path: "/admin/gamification", icon: Trophy },
 ];
 
 const AdminLayout = ({ children, pageTitle }: { children: ReactNode; pageTitle: string }) => {
