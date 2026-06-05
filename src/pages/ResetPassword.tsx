@@ -58,7 +58,15 @@ const ResetPassword = () => {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
       setSuccess(true);
-      setTimeout(() => navigate("/"), 2000);
+      // Route admins to /admin, everyone else to /
+      const { data: { user } } = await supabase.auth.getUser();
+      let dest = "/";
+      if (user) {
+        const { data: roles } = await supabase
+          .from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").limit(1);
+        if (roles && roles.length > 0) dest = "/admin";
+      }
+      setTimeout(() => navigate(dest), 1500);
     } catch (err: any) {
       setError(err.message || "Something went wrong");
     } finally {
