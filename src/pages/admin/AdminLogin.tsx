@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -12,29 +12,35 @@ import { Loader2, ShieldCheck, Eye, EyeOff } from "lucide-react";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
-  const { isAdmin, loading: roleLoading } = useUserRole();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const { user, loading: authLoading } = useAuth();
+  const { isAdmin, loading: roleLoading } = useUserRole();
 
-  // If already signed in as admin, send through.
+  // Wait until both auth and role checks are fully resolved before redirecting or signing out.
   useEffect(() => {
-    if (!authLoading && !roleLoading && user && isAdmin) {
+    if (authLoading || roleLoading || !user) return;
+
+    if (isAdmin) {
       navigate("/admin", { replace: true });
+      return;
     }
-  }, [authLoading, roleLoading, user, isAdmin, navigate]);
 
-  // If signed in but NOT admin, bounce them out so they don't sit on this page logged in.
-  useEffect(() => {
-    if (!authLoading && !roleLoading && user && !isAdmin) {
-      (async () => {
-        await supabase.auth.signOut();
+    let cancelled = false;
+    (async () => {
+      await supabase.auth.signOut();
+      if (!cancelled) {
         toast.error("You do not have admin access.");
-      })();
-    }
-  }, [authLoading, roleLoading, user, isAdmin]);
+        setSubmitting(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, roleLoading, user, isAdmin, navigate]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -64,10 +70,6 @@ export default function AdminLogin() {
     toast.success("Welcome back, admin.");
     navigate("/admin", { replace: true });
   };
-
-  if (!authLoading && !roleLoading && user && isAdmin) {
-    return <Navigate to="/admin" replace />;
-  }
 
   return (
     <div
