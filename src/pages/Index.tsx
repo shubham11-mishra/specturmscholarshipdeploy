@@ -107,6 +107,9 @@ const Index = () => {
         return;
       }
 
+      const wasCreatedFromInvite = Boolean((user as any).invited_at);
+      if (!wasCreatedFromInvite) return;
+
       const { data: roles } = await supabase
         .from("user_roles")
         .select("role")
