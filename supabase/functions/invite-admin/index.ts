@@ -72,6 +72,18 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: inviteErr?.message || "Invite failed (email service may be rate-limited)" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       console.log("[invite-admin] invite sent", { userId: invited.user.id });
+      const { error: metadataErr } = await admin.auth.admin.updateUserById(invited.user.id, {
+        user_metadata: {
+          ...(invited.user.user_metadata ?? {}),
+          admin_invite_pending: true,
+          admin_invite_email: email,
+          admin_invite_created_at: new Date().toISOString(),
+        },
+      });
+      if (metadataErr) {
+        console.error("[invite-admin] admin invite metadata failed", metadataErr);
+        return new Response(JSON.stringify({ error: metadataErr.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
       targetUserId = invited.user.id;
     }
 
