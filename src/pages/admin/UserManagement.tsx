@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { useAuth } from "@/hooks/useAuth";
-import { Search, ShieldCheck, ShieldOff, UserPlus, Crown } from "lucide-react";
+import { Search, ShieldCheck, ShieldOff, UserPlus, Crown, Clock } from "lucide-react";
 
 type Profile = {
   id: string;
