@@ -239,7 +239,12 @@ export default function UserManagement() {
                   </Tooltip>
                 ) : (
                   <ConfirmDialog
-                    trigger={<Button variant="outline" size="sm"><ShieldOff className="w-4 h-4 mr-1" /> Remove</Button>}
+                    trigger={
+                      <Button variant="outline" size="sm" disabled={busyIds.has(a.id)}>
+                        <ShieldOff className="w-4 h-4 mr-1" />
+                        {busyIds.has(a.id) ? "Removing…" : "Remove"}
+                      </Button>
+                    }
                     title="Remove admin role?"
                     description={`${displayName(a)} will lose access to the admin panel.`}
                     confirmLabel="Remove"
