@@ -1,8 +1,9 @@
 import { ReactNode } from "react";
-import { Link, NavLink } from "react-router-dom";
-import { LayoutDashboard, Users, Wrench, ArrowLeft, ClipboardCheck } from "lucide-react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { LayoutDashboard, Users, Wrench, LogOut, ClipboardCheck } from "lucide-react";
 import AdminGuard from "@/components/admin/AdminGuard";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const adminNav = [
   { label: "Admin Dashboard", path: "/admin", icon: LayoutDashboard, end: true },
