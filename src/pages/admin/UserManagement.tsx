@@ -1,314 +1,368 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
+} from "@/components/ui/table";
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { useAuth } from "@/hooks/useAuth";
-import { Search, ShieldCheck, ShieldOff, UserPlus, Crown, Clock } from "lucide-react";
+import {
+  Search, Plus, MoreHorizontal, ArrowUpDown, ArrowUp, ArrowDown,
+  Pencil, ShieldOff, KeyRound, UserCog, Loader2,
+} from "lucide-react";
 
 type Profile = {
   id: string;
   full_name: string | null;
   last_name: string | null;
   email: string | null;
-  year_level: string | null;
-};
-
-const displayName = (p: Profile) => {
-  const first = (p.full_name ?? "").trim();
-  const last = (p.last_name ?? "").trim();
-  const combined = [first, last].filter(Boolean).join(" ").trim();
-  if (combined) return combined;
-  if (p.email) return p.email;
-  return "Unnamed";
-};
-
-type AdminInvite = {
-  id: string;
-  email: string;
-  invited_user_id: string | null;
-  status: string;
-  invited_at: string;
-  accepted_at: string | null;
+  created_at: string;
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const RESET_REDIRECT = `${typeof window !== "undefined" ? window.location.origin : ""}/reset-password`;
+
+type SortKey = "name" | "email" | "joined";
+type SortDir = "asc" | "desc";
+
+const fmtDate = (iso: string) => {
+  try { return new Date(iso).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" }); }
+  catch { return "—"; }
+};
 
 export default function UserManagement() {
   const { user } = useAuth();
-  const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [adminIds, setAdminIds] = useState<Set<string>>(new Set());
-  const [pendingInvites, setPendingInvites] = useState<AdminInvite[]>([]);
+  const [admins, setAdmins] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
-  const [newAdminEmail, setNewAdminEmail] = useState("");
-  const [adding, setAdding] = useState(false);
+  const [sortKey, setSortKey] = useState<SortKey>("joined");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [busyIds, setBusyIds] = useState<Set<string>>(new Set());
 
+  // Add dialog
+  const [addOpen, setAddOpen] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [adding, setAdding] = useState(false);
+
+  // Edit dialog
+  const [editOpen, setEditOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<Profile | null>(null);
+  const [editFirst, setEditFirst] = useState("");
+  const [editLast, setEditLast] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+
   const setBusy = (id: string, on: boolean) =>
-    setBusyIds(prev => {
-      const next = new Set(prev);
-      if (on) next.add(id); else next.delete(id);
-      return next;
-    });
+    setBusyIds(prev => { const n = new Set(prev); on ? n.add(id) : n.delete(id); return n; });
 
   const load = async () => {
     setLoading(true);
-    const [pRes, rRes, iRes] = await Promise.all([
-      supabase.from("profiles").select("id,full_name,last_name,email,year_level").limit(1000),
-      supabase.from("user_roles").select("user_id").eq("role", "admin"),
-      supabase.from("admin_invitations").select("id,email,invited_user_id,status,invited_at,accepted_at").eq("status", "pending").order("invited_at", { ascending: false }),
-    ]);
-    setProfiles((pRes.data ?? []) as Profile[]);
-    setAdminIds(new Set((rRes.data ?? []).map((r: any) => r.user_id)));
-    setPendingInvites((iRes.data ?? []) as AdminInvite[]);
+    // Fetch admin role rows then their profiles. Always joins live DB state.
+    const { data: roles, error: rErr } = await supabase
+      .from("user_roles").select("user_id").eq("role", "admin");
+    if (rErr) { toast.error(rErr.message); setLoading(false); return; }
+    const ids = (roles ?? []).map((r: any) => r.user_id);
+    if (ids.length === 0) { setAdmins([]); setLoading(false); return; }
+    const { data: profs, error: pErr } = await supabase
+      .from("profiles")
+      .select("id,full_name,last_name,email,created_at")
+      .in("id", ids);
+    if (pErr) { toast.error(pErr.message); setLoading(false); return; }
+    setAdmins((profs ?? []) as Profile[]);
     setLoading(false);
   };
   useEffect(() => { load(); }, []);
 
-  // Grant: writes user_roles + admin_profiles + admin_invitations(accepted) so all 3
-  // tables stay in sync with the UI.
-  const grant = async (userId: string) => {
-    const target = profiles.find(p => p.id === userId);
-    if (!target) { toast.error("User not found"); return; }
-    if (adminIds.has(userId)) { toast.info("Already an admin."); return; }
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir(d => (d === "asc" ? "desc" : "asc"));
+    else { setSortKey(key); setSortDir("asc"); }
+  };
 
-    setBusy(userId, true);
-    // Optimistic
-    setAdminIds(prev => new Set(prev).add(userId));
-
-    const [{ error: roleErr }, { error: apErr }] = await Promise.all([
-      supabase.from("user_roles").upsert(
-        { user_id: userId, role: "admin" },
-        { onConflict: "user_id,role" },
-      ),
-      supabase.from("admin_profiles").upsert(
-        { id: userId, email: target.email ?? "", full_name: target.full_name },
-        { onConflict: "id" },
-      ),
-    ]);
-
-    if (roleErr || apErr) {
-      // rollback
-      setAdminIds(prev => { const n = new Set(prev); n.delete(userId); return n; });
-      setBusy(userId, false);
-      toast.error(roleErr?.message || apErr?.message || "Failed to grant admin");
-      return;
-    }
-
-    await supabase.from("admin_invitations").insert({
-      email: (target.email ?? "").toLowerCase(),
-      invited_user_id: userId,
-      invited_by: user?.id ?? null,
-      status: "accepted",
-      accepted_at: new Date().toISOString(),
+  const filtered = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    const list = admins.filter(a => {
+      if (!term) return true;
+      const name = `${a.full_name ?? ""} ${a.last_name ?? ""}`.toLowerCase();
+      return name.includes(term) || (a.email ?? "").toLowerCase().includes(term);
     });
+    const dir = sortDir === "asc" ? 1 : -1;
+    return [...list].sort((a, b) => {
+      if (sortKey === "name") {
+        const an = `${a.full_name ?? ""} ${a.last_name ?? ""}`.trim().toLowerCase();
+        const bn = `${b.full_name ?? ""} ${b.last_name ?? ""}`.trim().toLowerCase();
+        return an.localeCompare(bn) * dir;
+      }
+      if (sortKey === "email") return (a.email ?? "").localeCompare(b.email ?? "") * dir;
+      return (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) * dir;
+    });
+  }, [admins, q, sortKey, sortDir]);
 
-    setBusy(userId, false);
-    toast.success("Admin role granted");
-  };
-
-  // Revoke: removes role + clears any pending invitation for that user.
-  // Does NOT delete admin_profiles (keeps audit trail).
-  const revoke = async (userId: string) => {
-    if (userId === user?.id && adminIds.size <= 1) {
-      toast.error("You are the only administrator. Promote another admin before revoking your own access.");
-      return;
-    }
-    setBusy(userId, true);
-    // Optimistic
-    const prevAdmins = adminIds;
-    setAdminIds(prev => { const n = new Set(prev); n.delete(userId); return n; });
-
-    const { error } = await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", "admin");
-    if (error) {
-      setAdminIds(prevAdmins);
-      setBusy(userId, false);
-      toast.error(error.message);
-      return;
-    }
-    await supabase
-      .from("admin_invitations")
-      .update({ status: "revoked" })
-      .eq("invited_user_id", userId)
-      .eq("status", "pending");
-    setPendingInvites(prev => prev.filter(p => p.invited_user_id !== userId));
-    setBusy(userId, false);
-    toast.success("Admin role revoked");
-  };
-
-  const addAdminByEmail = async () => {
-    const email = newAdminEmail.trim().toLowerCase();
-    if (!email) return;
+  const addAdmin = async () => {
+    const email = newEmail.trim().toLowerCase();
     if (!EMAIL_RE.test(email)) { toast.error("Enter a valid email address."); return; }
-    const existing = profiles.find(p => (p.email ?? "").toLowerCase() === email);
-    if (existing && adminIds.has(existing.id)) {
+    if (admins.some(a => (a.email ?? "").toLowerCase() === email)) {
       toast.info("That user is already an admin.");
       return;
     }
     setAdding(true);
-
     const { data, error } = await supabase.functions.invoke("invite-admin", {
-      body: { email, redirectTo: "https://scholarshipsearcher.com.au/reset-password" },
+      body: { email, redirectTo: RESET_REDIRECT },
     });
     if (error || (data && (data as any).error)) {
       toast.error(error?.message || (data as any)?.error || "Invite failed");
       setAdding(false);
       return;
     }
-    toast.success((data as any)?.invited ? "Invitation email sent — admin role will be active after they accept." : "Admin role granted.");
-    setNewAdminEmail("");
+    toast.success((data as any)?.invited
+      ? "Invitation email sent — admin will appear once they finish set-up."
+      : "Admin role granted.");
+    setNewEmail("");
+    setAddOpen(false);
     setAdding(false);
     load();
   };
 
-  // Admins shown only in the Administrators section
-  const admins = profiles.filter(p => adminIds.has(p.id));
-  // Lower list excludes admins (dedupe) and applies search
-  const nonAdmins = profiles.filter(p => !adminIds.has(p.id));
-  const filtered = nonAdmins.filter(p =>
-    !q ||
-    displayName(p).toLowerCase().includes(q.toLowerCase()) ||
-    (p.email ?? "").toLowerCase().includes(q.toLowerCase()),
+  const removeAdmin = async (p: Profile) => {
+    if (admins.length <= 1) {
+      toast.error("Cannot remove the last administrator.");
+      return;
+    }
+    if (p.id === user?.id) {
+      toast.error("You cannot remove your own admin role.");
+      return;
+    }
+    setBusy(p.id, true);
+    const prev = admins;
+    setAdmins(a => a.filter(x => x.id !== p.id));
+    const { error } = await supabase
+      .from("user_roles").delete().eq("user_id", p.id).eq("role", "admin");
+    if (error) {
+      setAdmins(prev);
+      toast.error(error.message);
+    } else {
+      await supabase.from("admin_invitations")
+        .update({ status: "revoked" })
+        .eq("invited_user_id", p.id).eq("status", "pending");
+      toast.success("Admin role removed.");
+    }
+    setBusy(p.id, false);
+  };
+
+  const sendReset = async (p: Profile) => {
+    if (!p.email) { toast.error("No email on file."); return; }
+    setBusy(p.id, true);
+    const { error } = await supabase.auth.resetPasswordForEmail(p.email, { redirectTo: RESET_REDIRECT });
+    setBusy(p.id, false);
+    if (error) toast.error(error.message);
+    else toast.success("Password reset email sent.");
+  };
+
+  const openEdit = (p: Profile) => {
+    setEditTarget(p);
+    setEditFirst(p.full_name ?? "");
+    setEditLast(p.last_name ?? "");
+    setEditOpen(true);
+  };
+  const saveEdit = async () => {
+    if (!editTarget) return;
+    setEditSaving(true);
+    const { error } = await supabase.from("profiles")
+      .update({ full_name: editFirst.trim() || null, last_name: editLast.trim() || null })
+      .eq("id", editTarget.id);
+    setEditSaving(false);
+    if (error) { toast.error(error.message); return; }
+    setAdmins(a => a.map(x => x.id === editTarget.id
+      ? { ...x, full_name: editFirst.trim() || null, last_name: editLast.trim() || null }
+      : x));
+    setEditOpen(false);
+    toast.success("Profile updated.");
+  };
+
+  const SortIcon = ({ k }: { k: SortKey }) => {
+    if (sortKey !== k) return <ArrowUpDown className="w-3 h-3 opacity-50" />;
+    return sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
+  };
+
+  const SortBtn = ({ k, children }: { k: SortKey; children: React.ReactNode }) => (
+    <button onClick={() => toggleSort(k)} className="inline-flex items-center gap-1 font-medium hover:text-foreground">
+      {children} <SortIcon k={k} />
+    </button>
   );
 
-  const isSoleAdmin = adminIds.size <= 1;
-
   return (
-    <div className="space-y-6">
-      {/* Admin management section */}
+    <div className="space-y-4">
       <Card className="p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <Crown className="w-5 h-5 text-primary" />
-          <h2 className="font-bold text-base">Administrators</h2>
-          <Badge variant="outline" className="ml-1 text-[10px]">{admins.length}</Badge>
+        <div className="flex flex-col md:flex-row md:items-center gap-3 mb-4">
+          <div>
+            <h2 className="font-bold text-lg flex items-center gap-2">
+              <UserCog className="w-5 h-5 text-primary" /> Administrators
+              <Badge variant="outline" className="ml-1 text-[10px]">{admins.length}</Badge>
+            </h2>
+            <p className="text-xs text-muted-foreground mt-1">Manage admin access. Changes sync to the database immediately.</p>
+          </div>
+          <div className="md:ml-auto flex items-center gap-2 w-full md:w-auto">
+            <div className="relative flex-1 md:w-72">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input className="pl-9" placeholder="Search name or email…" value={q} onChange={e => setQ(e.target.value)} />
+            </div>
+            <Button onClick={() => setAddOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Plus className="w-4 h-4 mr-1" /> Add an Admin
+            </Button>
+          </div>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-2 mb-4">
-          <div className="relative flex-1">
-            <UserPlus className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        <div className="border rounded-lg overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/40">
+                <TableHead><SortBtn k="name">First Name</SortBtn></TableHead>
+                <TableHead>Surname</TableHead>
+                <TableHead><SortBtn k="email">Email</SortBtn></TableHead>
+                <TableHead><SortBtn k="joined">Joined Date</SortBtn></TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <TableRow key={i}>
+                    {Array.from({ length: 6 }).map((__, j) => (
+                      <TableCell key={j}><Skeleton className="h-5" /></TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-10">
+                    {q ? "No admins match your search." : "No administrators yet."}
+                  </TableCell>
+                </TableRow>
+              ) : filtered.map(a => {
+                const isMe = a.id === user?.id;
+                const busy = busyIds.has(a.id);
+                const canRemove = !isMe && admins.length > 1;
+                return (
+                  <TableRow key={a.id}>
+                    <TableCell className="font-medium">{a.full_name?.trim() || "—"}</TableCell>
+                    <TableCell>{a.last_name?.trim() || "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">{a.email || "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">{fmtDate(a.created_at)}</TableCell>
+                    <TableCell>
+                      <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-0">Active</Badge>
+                      {isMe && <Badge variant="outline" className="ml-1 text-[10px]">You</Badge>}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" disabled={busy}>
+                            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <MoreHorizontal className="w-4 h-4" />}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem onClick={() => openEdit(a)}>
+                            <Pencil className="w-4 h-4 mr-2" /> Edit Profile
+                          </DropdownMenuItem>
+                          <DropdownMenuItem disabled>
+                            <UserCog className="w-4 h-4 mr-2" /> Change Role
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => sendReset(a)}>
+                            <KeyRound className="w-4 h-4 mr-2" /> Reset Password
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <ConfirmDialog
+                            trigger={
+                              <DropdownMenuItem
+                                onSelect={(e) => { e.preventDefault(); }}
+                                disabled={!canRemove}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <ShieldOff className="w-4 h-4 mr-2" /> Remove Admin
+                              </DropdownMenuItem>
+                            }
+                            title="Remove admin role?"
+                            description={`${a.full_name ?? a.email ?? "This user"} will lose access to the admin panel.`}
+                            confirmLabel="Remove"
+                            variant="destructive"
+                            onConfirm={() => removeAdmin(a)}
+                          />
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </Card>
+
+      {/* Add admin dialog */}
+      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add an Admin</DialogTitle>
+            <DialogDescription>
+              Send an invitation. The user will receive an email to set their password, then appear in this table.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="admin-email">Email address</Label>
             <Input
-              className="pl-9"
-              placeholder="Invite admin by email — they'll receive a set-password link"
-              value={newAdminEmail}
-              onChange={e => setNewAdminEmail(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && addAdminByEmail()}
+              id="admin-email"
+              type="email"
+              placeholder="admin@example.com"
+              value={newEmail}
+              onChange={e => setNewEmail(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && addAdmin()}
+              autoFocus
             />
           </div>
-          <Button onClick={addAdminByEmail} disabled={adding || !newAdminEmail.trim()}>
-            <ShieldCheck className="w-4 h-4 mr-1" /> Grant admin
-          </Button>
-        </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddOpen(false)} disabled={adding}>Cancel</Button>
+            <Button onClick={addAdmin} disabled={adding || !newEmail.trim()} className="bg-blue-600 hover:bg-blue-700 text-white">
+              {adding ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending…</> : <><Plus className="w-4 h-4 mr-1" />Send Invitation</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-        <div className="divide-y border rounded-lg">
-          {loading ? (
-            <div className="p-4"><Skeleton className="h-10" /></div>
-          ) : admins.length === 0 ? (
-            <div className="p-6 text-center text-sm text-muted-foreground">No administrators yet.</div>
-          ) : admins.map(a => {
-            const isMe = a.id === user?.id;
-            const disableRevoke = isMe && isSoleAdmin;
-            return (
-              <div key={a.id} className="p-3 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold text-sm">
-                  {displayName(a).slice(0, 1).toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-sm truncate">{displayName(a)}</div>
-                  <div className="text-xs text-muted-foreground truncate">{a.email}</div>
-                </div>
-                <Badge className="bg-primary text-[10px]">ADMIN</Badge>
-                {isMe && <Badge variant="outline" className="text-[10px]">You</Badge>}
-                {disableRevoke ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span tabIndex={0}>
-                        <Button variant="outline" size="sm" disabled>
-                          <ShieldOff className="w-4 h-4 mr-1" /> Remove
-                        </Button>
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      You are the only administrator. Promote another admin before removing your own access.
-                    </TooltipContent>
-                  </Tooltip>
-                ) : (
-                  <ConfirmDialog
-                    trigger={
-                      <Button variant="outline" size="sm" disabled={busyIds.has(a.id)}>
-                        <ShieldOff className="w-4 h-4 mr-1" />
-                        {busyIds.has(a.id) ? "Removing…" : "Remove"}
-                      </Button>
-                    }
-                    title="Remove admin role?"
-                    description={`${displayName(a)} will lose access to the admin panel.`}
-                    confirmLabel="Remove"
-                    variant="destructive"
-                    onConfirm={() => revoke(a.id)}
-                  />
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {pendingInvites.length > 0 && (
-          <div className="mt-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Clock className="w-4 h-4 text-muted-foreground" />
-              <h3 className="text-sm font-semibold">Pending invitations</h3>
-              <Badge variant="outline" className="text-[10px]">{pendingInvites.length}</Badge>
+      {/* Edit profile dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Admin Profile</DialogTitle>
+            <DialogDescription>{editTarget?.email}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="edit-first">First Name</Label>
+              <Input id="edit-first" value={editFirst} onChange={e => setEditFirst(e.target.value)} />
             </div>
-            <div className="divide-y border rounded-lg">
-              {pendingInvites.map(inv => (
-                <div key={inv.id} className="p-3 flex items-center gap-3 text-sm">
-                  <div className="flex-1 min-w-0 truncate">{inv.email}</div>
-                  <Badge variant="outline" className="text-[10px]">Awaiting setup</Badge>
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(inv.invited_at).toLocaleDateString()}
-                  </span>
-                </div>
-              ))}
+            <div className="space-y-2">
+              <Label htmlFor="edit-last">Surname</Label>
+              <Input id="edit-last" value={editLast} onChange={e => setEditLast(e.target.value)} />
             </div>
           </div>
-        )}
-      </Card>
-
-      {/* All users browser (admins excluded — they appear above) */}
-      <Card className="p-4">
-        <div className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input className="pl-9" placeholder="Search by name or email…" value={q} onChange={e => setQ(e.target.value)} />
-        </div>
-      </Card>
-
-      <Card className="divide-y">
-        {loading ? Array.from({ length: 5 }).map((_, i) => <div key={i} className="p-4"><Skeleton className="h-10" /></div>) : (
-          filtered.length === 0 ? (
-            <div className="p-10 text-center text-sm text-muted-foreground">No users match.</div>
-          ) : filtered.map(p => (
-            <div key={p.id} className="p-4 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm">
-                {displayName(p).slice(0, 1).toUpperCase()}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-sm truncate">{displayName(p)}</div>
-                <div className="text-xs text-muted-foreground truncate">{p.email}</div>
-              </div>
-              {p.year_level && <Badge variant="outline" className="text-[10px]">Year {p.year_level}</Badge>}
-              <Button size="sm" onClick={() => grant(p.id)} disabled={busyIds.has(p.id)}>
-                <ShieldCheck className="w-4 h-4 mr-1" />
-                {busyIds.has(p.id) ? "Granting…" : "Make admin"}
-              </Button>
-            </div>
-          ))
-        )}
-      </Card>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)} disabled={editSaving}>Cancel</Button>
+            <Button onClick={saveEdit} disabled={editSaving}>
+              {editSaving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving…</> : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
