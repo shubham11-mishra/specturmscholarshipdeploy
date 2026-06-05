@@ -13,19 +13,39 @@ const ResetPassword = () => {
   const [ready, setReady] = useState(false);
   const navigate = useNavigate();
 
+  const hasInviteOrRecoveryToken = () => {
+    const hash = window.location.hash || "";
+    const search = window.location.search || "";
+    return (
+      hash.includes("type=recovery") ||
+      hash.includes("type=invite") ||
+      search.includes("type=recovery") ||
+      search.includes("type=invite")
+    );
+  };
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event) => {
-        if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+      (event, session) => {
+        if (
+          event === "PASSWORD_RECOVERY" ||
+          hasInviteOrRecoveryToken() ||
+          session?.user?.user_metadata?.admin_invite_pending === true
+        ) {
           setReady(true);
         }
       }
     );
 
-    const hash = window.location.hash;
-    if (hash.includes("type=recovery") || hash.includes("type=invite")) {
+    if (hasInviteOrRecoveryToken()) {
       setReady(true);
     }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.user_metadata?.admin_invite_pending === true) {
+        setReady(true);
+      }
+    });
 
     return () => subscription.unsubscribe();
   }, []);
@@ -55,7 +75,16 @@ const ResetPassword = () => {
 
     setSubmitting(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      const { data: current } = await supabase.auth.getUser();
+      const existingMetadata = current.user?.user_metadata ?? {};
+      const { error } = await supabase.auth.updateUser({
+        password,
+        data: {
+          ...existingMetadata,
+          admin_invite_pending: false,
+          admin_password_set_at: new Date().toISOString(),
+        },
+      });
       if (error) throw error;
       setSuccess(true);
       // Route admins to /admin, everyone else to /
