@@ -61,13 +61,17 @@ Deno.serve(async (req) => {
 
     if (existingProfile?.id) {
       targetUserId = existingProfile.id;
+      console.log("[invite-admin] existing user found", { email, userId: targetUserId });
     } else {
+      console.log("[invite-admin] inviting new user", { email, redirectTo });
       const { data: invited, error: inviteErr } = await admin.auth.admin.inviteUserByEmail(email, {
         redirectTo: redirectTo || undefined,
       });
       if (inviteErr || !invited.user) {
-        return new Response(JSON.stringify({ error: inviteErr?.message || "Invite failed" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        console.error("[invite-admin] inviteUserByEmail failed", inviteErr);
+        return new Response(JSON.stringify({ error: inviteErr?.message || "Invite failed (email service may be rate-limited)" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
+      console.log("[invite-admin] invite sent", { userId: invited.user.id });
       targetUserId = invited.user.id;
     }
 
