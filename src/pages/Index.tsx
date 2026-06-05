@@ -18,6 +18,7 @@ import {
 } from "@/data/csvScholarships";
 import { Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 type SortOption = "closing" | "name" | "suburb" | "confidence" | "value";
 type ConfidenceFilter = "all" | "high" | "medium" | "low";
@@ -94,18 +95,24 @@ const Index = () => {
   const [rawCategoryCounts, setRawCategoryCounts] = useState<Record<string, number>>({});
   const [giftedCount, setGiftedCount] = useState(0);
 
+  // Some managed invite links land on the site root after accepting. If that
+  // happens for a pending admin invite, continue the setup flow immediately.
+  useEffect(() => {
+    if (user?.user_metadata?.admin_invite_pending === true) {
+      navigate("/reset-password", { replace: true });
+    }
+  }, [user, navigate]);
+
   // One-time: load filter options + counts
   useEffect(() => {
     fetchFilterOptions().then(setFilterOptions);
     fetchConfidenceCounts().then(setCounts);
     fetchCategoryCounts().then(setRawCategoryCounts);
-    import("@/integrations/supabase/client").then(({ supabase }) =>
-      supabase
-        .from("scholarships")
-        .select("*", { count: "exact", head: true })
-        .eq("dataset_type", "gifted_program")
-        .then(({ count }) => setGiftedCount(count ?? 0))
-    );
+    supabase
+      .from("scholarships")
+      .select("*", { count: "exact", head: true })
+      .eq("dataset_type", "gifted_program")
+      .then(({ count }) => setGiftedCount(count ?? 0));
   }, []);
 
   // Debounce search input
