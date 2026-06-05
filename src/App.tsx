@@ -102,8 +102,9 @@ const Root = () => (
               <Route path="/admin" element={<Admin title="Admin Dashboard"><AdminDashboard /></Admin>} />
               <Route path="/admin/pending-approvals" element={<Admin title="Pending Approvals"><PendingApprovals /></Admin>} />
               <Route path="/admin/assessments" element={<Admin title="Assessment Editor"><AdminAssessments /></Admin>} />
-              <Route path="/admin/questions" element={<Admin title="Question Bank"><QuestionBank /></Admin>} />
-              <Route path="/admin/passages" element={<Admin title="Passage Manager"><PassageManager /></Admin>} />
+              <Route path="/admin/assessments/:subject/:yearBand" element={<Admin title="Assessment Editor"><AdminAssessmentDetail /></Admin>} />
+              <Route path="/admin/questions" element={<Navigate to="/admin/assessments" replace />} />
+              <Route path="/admin/passages" element={<Navigate to="/admin/assessments" replace />} />
               <Route path="/admin/users" element={<Admin title="User Management"><UserManagement /></Admin>} />
               <Route path="/admin/gamification" element={<Admin title="Gamification Settings"><AdminPlaceholder title="Gamification Settings" description="Tune Readiness points, badge thresholds and streak rewards. Editable settings are coming next — current values are defined in code." /></Admin>} />
 
