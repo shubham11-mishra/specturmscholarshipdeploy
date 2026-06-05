@@ -14,28 +14,26 @@ const ResetPassword = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Listen for the PASSWORD_RECOVERY event from Supabase
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === "PASSWORD_RECOVERY") {
+      (event) => {
+        if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
           setReady(true);
         }
       }
     );
 
-    // Also check URL hash for recovery token
     const hash = window.location.hash;
-    if (hash.includes("type=recovery")) {
+    if (hash.includes("type=recovery") || hash.includes("type=invite")) {
       setReady(true);
     }
 
     return () => subscription.unsubscribe();
   }, []);
 
-  // If no recovery token at all after a delay, redirect
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (!ready && !window.location.hash.includes("type=recovery")) {
+      const hash = window.location.hash;
+      if (!ready && !hash.includes("type=recovery") && !hash.includes("type=invite")) {
         navigate("/sign-in");
       }
     }, 3000);
@@ -60,7 +58,15 @@ const ResetPassword = () => {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
       setSuccess(true);
-      setTimeout(() => navigate("/"), 2000);
+      // Route admins to /admin, everyone else to /
+      const { data: { user } } = await supabase.auth.getUser();
+      let dest = "/";
+      if (user) {
+        const { data: roles } = await supabase
+          .from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").limit(1);
+        if (roles && roles.length > 0) dest = "/admin";
+      }
+      setTimeout(() => navigate(dest), 1500);
     } catch (err: any) {
       setError(err.message || "Something went wrong");
     } finally {
