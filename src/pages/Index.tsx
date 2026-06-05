@@ -96,11 +96,30 @@ const Index = () => {
   const [giftedCount, setGiftedCount] = useState(0);
 
   // Some managed invite links land on the site root after accepting. If that
-  // happens for a pending admin invite, continue the setup flow immediately.
+  // happens for an admin account that has not completed setup, continue the flow.
   useEffect(() => {
-    if (user?.user_metadata?.admin_invite_pending === true) {
-      navigate("/reset-password", { replace: true });
-    }
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const hasCompletedAdminSetup = Boolean(user.user_metadata?.admin_password_set_at);
+      if (user.user_metadata?.admin_invite_pending === true && !hasCompletedAdminSetup) {
+        navigate("/reset-password", { replace: true });
+        return;
+      }
+
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .limit(1);
+      if (!cancelled && roles && roles.length > 0 && !hasCompletedAdminSetup) {
+        navigate("/reset-password", { replace: true });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [user, navigate]);
 
   // One-time: load filter options + counts
