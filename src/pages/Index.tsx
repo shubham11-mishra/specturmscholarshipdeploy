@@ -18,6 +18,7 @@ import {
 } from "@/data/csvScholarships";
 import { Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 type SortOption = "closing" | "name" | "suburb" | "confidence" | "value";
 type ConfidenceFilter = "all" | "high" | "medium" | "low";
@@ -94,18 +95,46 @@ const Index = () => {
   const [rawCategoryCounts, setRawCategoryCounts] = useState<Record<string, number>>({});
   const [giftedCount, setGiftedCount] = useState(0);
 
+  // Some managed invite links land on the site root after accepting. If that
+  // happens for an admin account that has not completed setup, continue the flow.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const hasCompletedAdminSetup = Boolean(user.user_metadata?.admin_password_set_at);
+      if (user.user_metadata?.admin_invite_pending === true && !hasCompletedAdminSetup) {
+        navigate("/reset-password", { replace: true });
+        return;
+      }
+
+      const wasCreatedFromInvite = Boolean(user.invited_at);
+      if (!wasCreatedFromInvite) return;
+
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .limit(1);
+      if (!cancelled && roles && roles.length > 0 && !hasCompletedAdminSetup) {
+        navigate("/reset-password", { replace: true });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, navigate]);
+
   // One-time: load filter options + counts
   useEffect(() => {
     fetchFilterOptions().then(setFilterOptions);
     fetchConfidenceCounts().then(setCounts);
     fetchCategoryCounts().then(setRawCategoryCounts);
-    import("@/integrations/supabase/client").then(({ supabase }) =>
-      supabase
-        .from("scholarships")
-        .select("*", { count: "exact", head: true })
-        .eq("dataset_type", "gifted_program")
-        .then(({ count }) => setGiftedCount(count ?? 0))
-    );
+    supabase
+      .from("scholarships")
+      .select("*", { count: "exact", head: true })
+      .eq("dataset_type", "gifted_program")
+      .then(({ count }) => setGiftedCount(count ?? 0));
   }, []);
 
   // Debounce search input

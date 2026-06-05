@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import type { User } from "@supabase/supabase-js";
 import { Eye, EyeOff, KeyRound } from "lucide-react";
 
 const ResetPassword = () => {
@@ -13,19 +14,61 @@ const ResetPassword = () => {
   const [ready, setReady] = useState(false);
   const navigate = useNavigate();
 
+  const hasInviteOrRecoveryToken = () => {
+    const hash = window.location.hash || "";
+    const search = window.location.search || "";
+    return (
+      hash.includes("type=recovery") ||
+      hash.includes("type=invite") ||
+      search.includes("type=recovery") ||
+      search.includes("type=invite")
+    );
+  };
+
+  const allowAdminInviteSetup = async (sessionUser?: User | null) => {
+    if (!sessionUser) return false;
+    if (sessionUser.user_metadata?.admin_invite_pending === true) return true;
+    if (!sessionUser.invited_at || sessionUser.user_metadata?.admin_password_set_at) return false;
+
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", sessionUser.id)
+      .eq("role", "admin")
+      .limit(1);
+    return !!roles?.length;
+  };
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event) => {
-        if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+      (event, session) => {
+        if (
+          event === "PASSWORD_RECOVERY" ||
+          hasInviteOrRecoveryToken() ||
+          session?.user?.user_metadata?.admin_invite_pending === true
+        ) {
           setReady(true);
         }
+        void allowAdminInviteSetup(session?.user).then((allowed) => {
+          if (allowed) setReady(true);
+        });
       }
     );
 
-    const hash = window.location.hash;
-    if (hash.includes("type=recovery") || hash.includes("type=invite")) {
+    if (hasInviteOrRecoveryToken()) {
       setReady(true);
     }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.user_metadata?.admin_invite_pending === true) {
+        setReady(true);
+      }
+      return allowAdminInviteSetup(session?.user);
+    }).then((allowed) => {
+      if (allowed) {
+        setReady(true);
+      }
+    });
 
     return () => subscription.unsubscribe();
   }, []);
@@ -55,7 +98,16 @@ const ResetPassword = () => {
 
     setSubmitting(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      const { data: current } = await supabase.auth.getUser();
+      const existingMetadata = current.user?.user_metadata ?? {};
+      const { error } = await supabase.auth.updateUser({
+        password,
+        data: {
+          ...existingMetadata,
+          admin_invite_pending: false,
+          admin_password_set_at: new Date().toISOString(),
+        },
+      });
       if (error) throw error;
       setSuccess(true);
       // Route admins to /admin, everyone else to /
@@ -67,8 +119,8 @@ const ResetPassword = () => {
         if (roles && roles.length > 0) dest = "/admin";
       }
       setTimeout(() => navigate(dest), 1500);
-    } catch (err: any) {
-      setError(err.message || "Something went wrong");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setSubmitting(false);
     }
