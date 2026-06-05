@@ -301,7 +301,10 @@ export default function UserManagement() {
                 <div className="text-xs text-muted-foreground truncate">{p.email}</div>
               </div>
               {p.year_level && <Badge variant="outline" className="text-[10px]">Year {p.year_level}</Badge>}
-              <Button size="sm" onClick={() => grant(p.id)}><ShieldCheck className="w-4 h-4 mr-1" /> Make admin</Button>
+              <Button size="sm" onClick={() => grant(p.id)} disabled={busyIds.has(p.id)}>
+                <ShieldCheck className="w-4 h-4 mr-1" />
+                {busyIds.has(p.id) ? "Granting…" : "Make admin"}
+              </Button>
             </div>
           ))
         )}
