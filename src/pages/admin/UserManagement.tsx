@@ -37,6 +37,8 @@ type AdminInvite = {
   accepted_at: string | null;
 };
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function UserManagement() {
   const { user } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -46,6 +48,14 @@ export default function UserManagement() {
   const [q, setQ] = useState("");
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [adding, setAdding] = useState(false);
+  const [busyIds, setBusyIds] = useState<Set<string>>(new Set());
+
+  const setBusy = (id: string, on: boolean) =>
+    setBusyIds(prev => {
+      const next = new Set(prev);
+      if (on) next.add(id); else next.delete(id);
+      return next;
+    });
 
   const load = async () => {
     setLoading(true);
@@ -61,33 +71,87 @@ export default function UserManagement() {
   };
   useEffect(() => { load(); }, []);
 
+  // Grant: writes user_roles + admin_profiles + admin_invitations(accepted) so all 3
+  // tables stay in sync with the UI.
   const grant = async (userId: string) => {
-    const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: "admin" });
-    if (error) { toast.error(error.message); return; }
+    const target = profiles.find(p => p.id === userId);
+    if (!target) { toast.error("User not found"); return; }
+    if (adminIds.has(userId)) { toast.info("Already an admin."); return; }
+
+    setBusy(userId, true);
+    // Optimistic
+    setAdminIds(prev => new Set(prev).add(userId));
+
+    const [{ error: roleErr }, { error: apErr }] = await Promise.all([
+      supabase.from("user_roles").upsert(
+        { user_id: userId, role: "admin" },
+        { onConflict: "user_id,role" },
+      ),
+      supabase.from("admin_profiles").upsert(
+        { id: userId, email: target.email ?? "", full_name: target.full_name },
+        { onConflict: "id" },
+      ),
+    ]);
+
+    if (roleErr || apErr) {
+      // rollback
+      setAdminIds(prev => { const n = new Set(prev); n.delete(userId); return n; });
+      setBusy(userId, false);
+      toast.error(roleErr?.message || apErr?.message || "Failed to grant admin");
+      return;
+    }
+
+    await supabase.from("admin_invitations").insert({
+      email: (target.email ?? "").toLowerCase(),
+      invited_user_id: userId,
+      invited_by: user?.id ?? null,
+      status: "accepted",
+      accepted_at: new Date().toISOString(),
+    });
+
+    setBusy(userId, false);
     toast.success("Admin role granted");
-    load();
   };
+
+  // Revoke: removes role + clears any pending invitation for that user.
+  // Does NOT delete admin_profiles (keeps audit trail).
   const revoke = async (userId: string) => {
     if (userId === user?.id && adminIds.size <= 1) {
       toast.error("You are the only administrator. Promote another admin before revoking your own access.");
       return;
     }
+    setBusy(userId, true);
+    // Optimistic
+    const prevAdmins = adminIds;
+    setAdminIds(prev => { const n = new Set(prev); n.delete(userId); return n; });
+
     const { error } = await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", "admin");
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      setAdminIds(prevAdmins);
+      setBusy(userId, false);
+      toast.error(error.message);
+      return;
+    }
+    await supabase
+      .from("admin_invitations")
+      .update({ status: "revoked" })
+      .eq("invited_user_id", userId)
+      .eq("status", "pending");
+    setPendingInvites(prev => prev.filter(p => p.invited_user_id !== userId));
+    setBusy(userId, false);
     toast.success("Admin role revoked");
-    load();
   };
 
   const addAdminByEmail = async () => {
     const email = newAdminEmail.trim().toLowerCase();
     if (!email) return;
-    setAdding(true);
+    if (!EMAIL_RE.test(email)) { toast.error("Enter a valid email address."); return; }
     const existing = profiles.find(p => (p.email ?? "").toLowerCase() === email);
     if (existing && adminIds.has(existing.id)) {
       toast.info("That user is already an admin.");
-      setAdding(false);
       return;
     }
+    setAdding(true);
 
     const { data, error } = await supabase.functions.invoke("invite-admin", {
       body: { email, redirectTo: "https://scholarshipsearcher.com.au/reset-password" },
@@ -175,7 +239,12 @@ export default function UserManagement() {
                   </Tooltip>
                 ) : (
                   <ConfirmDialog
-                    trigger={<Button variant="outline" size="sm"><ShieldOff className="w-4 h-4 mr-1" /> Remove</Button>}
+                    trigger={
+                      <Button variant="outline" size="sm" disabled={busyIds.has(a.id)}>
+                        <ShieldOff className="w-4 h-4 mr-1" />
+                        {busyIds.has(a.id) ? "Removing…" : "Remove"}
+                      </Button>
+                    }
                     title="Remove admin role?"
                     description={`${displayName(a)} will lose access to the admin panel.`}
                     confirmLabel="Remove"
@@ -232,7 +301,10 @@ export default function UserManagement() {
                 <div className="text-xs text-muted-foreground truncate">{p.email}</div>
               </div>
               {p.year_level && <Badge variant="outline" className="text-[10px]">Year {p.year_level}</Badge>}
-              <Button size="sm" onClick={() => grant(p.id)}><ShieldCheck className="w-4 h-4 mr-1" /> Make admin</Button>
+              <Button size="sm" onClick={() => grant(p.id)} disabled={busyIds.has(p.id)}>
+                <ShieldCheck className="w-4 h-4 mr-1" />
+                {busyIds.has(p.id) ? "Granting…" : "Make admin"}
+              </Button>
             </div>
           ))
         )}
