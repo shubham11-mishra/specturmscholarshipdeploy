@@ -7,27 +7,23 @@ export type Role = "admin" | "parent" | "student";
 /**
  * Resolve the active role for the current user.
  * Priority: admin (user_roles) > parent (parent_links as parent_id) > student (default).
- * `viewMode` reflects the manually chosen portal (profiles.view_mode) so we don't
- * force admins/parents into one view if they prefer browsing as a student.
  */
 export function useUserRole() {
   const { user, loading: authLoading } = useAuth();
-  const [role, setRole] = useState<Role>("student");
   const [isAdmin, setIsAdmin] = useState(false);
   const [isParent, setIsParent] = useState(false);
   const [viewMode, setViewMode] = useState<Role>("student");
-  const [loading, setLoading] = useState(true);
+  const [loadedForUserId, setLoadedForUserId] = useState<string | null>(null);
+
+  const currentUserId = user?.id ?? null;
 
   useEffect(() => {
-    if (authLoading) {
-      setLoading(true);
-      return;
-    }
+    if (authLoading) return;
     if (!user) {
-      setRole("student"); setIsAdmin(false); setIsParent(false); setLoading(false);
+      setIsAdmin(false); setIsParent(false); setViewMode("student");
+      setLoadedForUserId(null);
       return;
     }
-    setLoading(true);
     let cancelled = false;
     (async () => {
       const [rolesRes, parentRes, profileRes] = await Promise.all([
@@ -42,12 +38,14 @@ export function useUserRole() {
       setIsAdmin(admin);
       setIsParent(parent);
       setViewMode(vm);
-      // Resolved "true" role used for default redirects
-      setRole(admin ? "admin" : parent ? "parent" : "student");
-      setLoading(false);
+      setLoadedForUserId(user.id);
     })();
     return () => { cancelled = true; };
   }, [user, authLoading]);
 
-  return { role, isAdmin, isParent, viewMode, loading };
+  // Computed during render — no gap between user changing and "loading" becoming true.
+  const loading = authLoading || (!!currentUserId && loadedForUserId !== currentUserId);
+  const role: Role = loading ? "student" : isAdmin ? "admin" : isParent ? "parent" : "student";
+
+  return { role, isAdmin: loading ? false : isAdmin, isParent: loading ? false : isParent, viewMode, loading };
 }
