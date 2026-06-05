@@ -118,7 +118,7 @@ export default function UserManagement() {
             <UserPlus className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               className="pl-9"
-              placeholder="Add admin by email (user must already have an account)"
+              placeholder="Invite admin by email — they'll receive a set-password link"
               value={newAdminEmail}
               onChange={e => setNewAdminEmail(e.target.value)}
               onKeyDown={e => e.key === "Enter" && addAdminByEmail()}
