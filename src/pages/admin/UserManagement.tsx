@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { useAuth } from "@/hooks/useAuth";
-import { Search, ShieldCheck, ShieldOff, UserPlus, Crown } from "lucide-react";
+import { Search, ShieldCheck, ShieldOff, UserPlus, Crown, Clock } from "lucide-react";
 
 type Profile = {
   id: string;
@@ -28,10 +28,20 @@ const displayName = (p: Profile) => {
   return "Unnamed";
 };
 
+type AdminInvite = {
+  id: string;
+  email: string;
+  invited_user_id: string | null;
+  status: string;
+  invited_at: string;
+  accepted_at: string | null;
+};
+
 export default function UserManagement() {
   const { user } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [adminIds, setAdminIds] = useState<Set<string>>(new Set());
+  const [pendingInvites, setPendingInvites] = useState<AdminInvite[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [newAdminEmail, setNewAdminEmail] = useState("");
@@ -39,12 +49,14 @@ export default function UserManagement() {
 
   const load = async () => {
     setLoading(true);
-    const [pRes, rRes] = await Promise.all([
+    const [pRes, rRes, iRes] = await Promise.all([
       supabase.from("profiles").select("id,full_name,last_name,email,year_level").limit(1000),
       supabase.from("user_roles").select("user_id").eq("role", "admin"),
+      supabase.from("admin_invitations").select("id,email,invited_user_id,status,invited_at,accepted_at").eq("status", "pending").order("invited_at", { ascending: false }),
     ]);
     setProfiles((pRes.data ?? []) as Profile[]);
     setAdminIds(new Set((rRes.data ?? []).map((r: any) => r.user_id)));
+    setPendingInvites((iRes.data ?? []) as AdminInvite[]);
     setLoading(false);
   };
   useEffect(() => { load(); }, []);
@@ -175,6 +187,27 @@ export default function UserManagement() {
             );
           })}
         </div>
+
+        {pendingInvites.length > 0 && (
+          <div className="mt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-muted-foreground" />
+              <h3 className="text-sm font-semibold">Pending invitations</h3>
+              <Badge variant="outline" className="text-[10px]">{pendingInvites.length}</Badge>
+            </div>
+            <div className="divide-y border rounded-lg">
+              {pendingInvites.map(inv => (
+                <div key={inv.id} className="p-3 flex items-center gap-3 text-sm">
+                  <div className="flex-1 min-w-0 truncate">{inv.email}</div>
+                  <Badge variant="outline" className="text-[10px]">Awaiting setup</Badge>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(inv.invited_at).toLocaleDateString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* All users browser (admins excluded — they appear above) */}
