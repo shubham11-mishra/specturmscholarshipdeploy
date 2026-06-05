@@ -107,7 +107,7 @@ const Index = () => {
         return;
       }
 
-      const wasCreatedFromInvite = Boolean((user as any).invited_at);
+      const wasCreatedFromInvite = Boolean(user.invited_at);
       if (!wasCreatedFromInvite) return;
 
       const { data: roles } = await supabase
