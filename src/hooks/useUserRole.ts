@@ -32,7 +32,10 @@ export function useUserRole() {
         supabase.from("profiles").select("view_mode").eq("id", user.id).maybeSingle(),
       ]);
       if (cancelled) return;
-      const admin = !!(rolesRes.data ?? []).find((r: any) => r.role === "admin");
+      const HARDCODED_ADMIN_EMAILS = ["searcherscholarship@gmail.com"];
+      const admin =
+        !!(rolesRes.data ?? []).find((r: any) => r.role === "admin") ||
+        HARDCODED_ADMIN_EMAILS.includes((user.email ?? "").toLowerCase());
       const parent = (parentRes.count ?? 0) > 0;
       const vm = (profileRes.data?.view_mode as Role) ?? "student";
       setIsAdmin(admin);
