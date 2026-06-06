@@ -166,7 +166,7 @@ const Index = () => {
           ? ["scholarship", "gifted_program"]
           : ["scholarship"],
       interestCategories,
-      yearLevel: showPersonalized && !searchQuery ? yearLevel : null,
+      yearLevel: user && !searchQuery ? yearLevel : null,
       sortBy,
       page,
       pageSize: PAGE_SIZE,
