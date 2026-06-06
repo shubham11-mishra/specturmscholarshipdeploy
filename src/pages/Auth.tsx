@@ -204,6 +204,16 @@ const Auth = () => {
     const hash = window.location.hash;
     if (!user || hash.includes("type=recovery")) return;
     (async () => {
+      const HARDCODED_ADMIN_EMAILS = ["searcherscholarship@gmail.com"];
+      const userEmail = (user.email ?? "").toLowerCase();
+      let isAdmin = HARDCODED_ADMIN_EMAILS.includes(userEmail);
+      if (!isAdmin) {
+        const { data: roles } = await supabase
+          .from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").limit(1);
+        isAdmin = !!roles?.length;
+      }
+      if (isAdmin) { navigate("/admin"); return; }
+
       const { data: profile } = await supabase
         .from("profiles")
         .select("onboarding_completed, full_name, last_name, year_level, state, postcode, suburb, school_type")
@@ -282,13 +292,23 @@ const Auth = () => {
     e.preventDefault();
     setError(""); setSubmitting(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       toast.success("Welcome back!");
-      navigate("/");
+
+      const HARDCODED_ADMIN_EMAILS = ["searcherscholarship@gmail.com"];
+      const userEmail = (data.user?.email ?? "").toLowerCase();
+      let isAdmin = HARDCODED_ADMIN_EMAILS.includes(userEmail);
+      if (!isAdmin && data.user) {
+        const { data: roles } = await supabase
+          .from("user_roles").select("role").eq("user_id", data.user.id).eq("role", "admin").limit(1);
+        isAdmin = !!roles?.length;
+      }
+      navigate(isAdmin ? "/admin" : "/");
     } catch (err: any) { setError(err.message || "Something went wrong"); }
     finally { setSubmitting(false); }
   };
+
 
   // ----- validation -----
   const step0Valid =
