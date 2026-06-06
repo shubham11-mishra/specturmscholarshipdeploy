@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { saveOwnProfile } from "@/lib/userProfile";
 import { CheckCircle2, MapPin, GraduationCap, Heart, User as UserIcon, Save, School as SchoolIcon } from "lucide-react";
 import {
   AlertDialog,
@@ -75,17 +76,14 @@ const ProfileEdit = () => {
     if (!user) return;
     setSaving(true);
     try {
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({
+      const { error: profileError } = await saveOwnProfile(user, {
           full_name: fullName.trim(),
           state: stateCode,
           postcode: postcode.trim(),
           suburb: suburb.trim() || null,
           year_level: yearLevel || null,
           current_school_name: schoolName.trim() || null,
-        })
-        .eq("id", user.id);
+        });
       if (profileError) throw profileError;
 
       const { error: delErr } = await supabase.from("user_interests").delete().eq("user_id", user.id);
