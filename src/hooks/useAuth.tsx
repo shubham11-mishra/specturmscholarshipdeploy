@@ -74,19 +74,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     const meta = sessionUser?.user_metadata ?? {};
+    const pick = (dbVal: any, ...metaKeys: string[]) => {
+      if (typeof dbVal === "string" && dbVal.trim()) return dbVal;
+      for (const k of metaKeys) {
+        const v = (meta as any)[k];
+        if (typeof v === "string" && v.trim()) return v;
+      }
+      return null;
+    };
+    const metaState = typeof meta.state === "string" ? meta.state.trim() : "";
+    const metaPostcode = typeof meta.postcode === "string" ? meta.postcode.trim() : "";
+    // Prefer metadata when DB row still holds default placeholders.
+    const stateVal = (!data?.state || (data.state === "NSW" && metaState && metaState !== "NSW")) && metaState
+      ? metaState
+      : (data?.state || metaState || null);
+    const postcodeVal = (!data?.postcode || data.postcode === "0000") && metaPostcode && metaPostcode !== "0000"
+      ? metaPostcode
+      : (data?.postcode || metaPostcode || null);
     setLocation({
-      state: data?.state ?? (typeof meta.state === "string" ? meta.state : null),
-      postcode: data?.postcode ?? (typeof meta.postcode === "string" ? meta.postcode : null),
-      suburb: data?.suburb ?? (typeof meta.suburb === "string" ? meta.suburb : null),
+      state: stateVal,
+      postcode: postcodeVal,
+      suburb: pick(data?.suburb, "suburb"),
     });
-    setYearLevel(data?.year_level ?? (typeof meta.year_level === "string" ? meta.year_level : null));
-    setFullName(
-      data?.full_name ??
-        (typeof meta.full_name === "string" ? meta.full_name : null) ??
-        (typeof meta.name === "string" ? meta.name : null)
-    );
+    setYearLevel(pick(data?.year_level, "year_level"));
+    setFullName(pick(data?.full_name, "full_name", "name"));
     setProfile({
-      gender: data?.gender ?? (typeof meta.gender === "string" ? meta.gender : null),
+      gender: pick(data?.gender, "gender"),
       preferredSectors: Array.isArray(data?.preferred_sectors) ? (data!.preferred_sectors as string[]) : [],
       scholarshipCategories: Array.isArray(data?.scholarship_categories) ? (data!.scholarship_categories as string[]) : [],
       applyingYearLevel: typeof data?.applying_year_level === "number" ? data!.applying_year_level : null,
