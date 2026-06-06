@@ -210,7 +210,14 @@ function applyFilters(query: any, q: ScholarshipQuery) {
   if (q.valueTypes?.length) query = query.in("value_type", q.valueTypes);
   if (q.datasetTypes?.length) query = query.in("dataset_type", q.datasetTypes);
   if (q.interestCategories?.length) query = query.in("category", q.interestCategories);
-  if (q.yearLevel?.trim()) {
+  if (typeof q.yearLevelMin === "number" && q.yearLevelMin >= 3 && q.yearLevelMin <= 12) {
+    const years: number[] = [];
+    for (let y = q.yearLevelMin; y <= 12; y++) years.push(y);
+    // Match if year_levels text mentions this year OR any higher year. Also keep
+    // rows with empty year_levels (unspecified) visible.
+    const clauses = years.map((y) => `year_levels.ilike.%Year ${y}%`).join(",");
+    query = query.or(`year_levels.is.null,year_levels.eq.,${clauses}`);
+  } else if (q.yearLevel?.trim()) {
     // year_levels is a text field that typically contains a comma-separated
     // list like "Year 7, Year 8, Year 9". Use ilike to match the user's level.
     const yl = q.yearLevel.trim().replace(/[%,]/g, " ");
