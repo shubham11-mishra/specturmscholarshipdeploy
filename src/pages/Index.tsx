@@ -220,7 +220,8 @@ const Index = () => {
     if (!hasProfile) return;
     filtersInitRef.current = true;
 
-    if (location.state) setStateFilters([location.state]);
+    const userState = normalizeState(location.state);
+    if (userState) setStateFilters([userState]);
     if (profile.preferredSectors.length) {
       setSectorFilters(profile.preferredSectors.map(capitalize));
     }
