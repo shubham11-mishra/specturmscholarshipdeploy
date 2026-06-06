@@ -83,6 +83,23 @@ const mapGenderToFilters = (gender: string | null): string[] => {
 
 const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
 
+// Normalize any state string (e.g. "Victoria", "vic", "New South Wales") to the
+// 2-3 letter abbreviation used in the scholarships table.
+const STATE_NAME_TO_ABBR: Record<string, string> = {
+  "new south wales": "NSW", nsw: "NSW",
+  "victoria": "VIC", vic: "VIC",
+  "queensland": "QLD", qld: "QLD",
+  "south australia": "SA", sa: "SA",
+  "western australia": "WA", wa: "WA",
+  "tasmania": "TAS", tas: "TAS",
+  "australian capital territory": "ACT", act: "ACT",
+  "northern territory": "NT", nt: "NT",
+};
+const normalizeState = (s: string | null | undefined): string | null => {
+  if (!s) return null;
+  return STATE_NAME_TO_ABBR[s.trim().toLowerCase()] ?? s.trim().toUpperCase();
+};
+
 const parseYearNumber = (yearLevel: string | null, applyingYearLevel: number | null): number | null => {
   if (typeof applyingYearLevel === "number" && applyingYearLevel >= 3 && applyingYearLevel <= 12) {
     return applyingYearLevel;
