@@ -135,7 +135,6 @@ const Index = () => {
   }, [
     searchQuery, sortBy, confidenceFilter,
     sectorFilters, stateFilters, categoryFilters, genderFilters, valueTypeFilters,
-    showPersonalized,
   ]);
 
   const interestCategories = useMemo(() => {
