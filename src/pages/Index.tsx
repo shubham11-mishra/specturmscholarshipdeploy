@@ -96,7 +96,7 @@ const parseYearNumber = (yearLevel: string | null, applyingYearLevel: number | n
 
 
 const Index = () => {
-  const { user, interests, yearLevel, location } = useAuth();
+  const { user, yearLevel, location, profile } = useAuth();
   const navigate = useNavigate();
   const [rows, setRows] = useState<SchoolScholarship[]>([]);
   const [total, setTotal] = useState(0);
