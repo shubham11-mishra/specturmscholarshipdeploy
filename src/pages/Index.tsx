@@ -180,7 +180,7 @@ const Index = () => {
   }, [
     searchQuery, sortBy, confidenceFilter, page,
     sectorFilters, stateFilters, categoryFilters, genderFilters, valueTypeFilters,
-    interestCategories, yearLevel, showPersonalized, user, location.state,
+    interestCategories, yearLevel, user, location.state,
   ]);
 
   const handleSearch = () => {
