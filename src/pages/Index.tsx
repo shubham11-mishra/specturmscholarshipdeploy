@@ -191,33 +191,52 @@ const Index = () => {
     return () => window.removeEventListener("hashchange", reveal);
   }, []);
 
+  // Pre-fill filters from the user's signup profile (one-time after profile loads).
+  // The user can still override / clear them via the sidebar.
+  useEffect(() => {
+    if (!user || filtersInitRef.current) return;
+    const hasProfile =
+      location.state ||
+      profile.gender ||
+      profile.preferredSectors.length ||
+      profile.scholarshipCategories.length;
+    if (!hasProfile) return;
+    filtersInitRef.current = true;
+
+    if (location.state) setStateFilters([location.state]);
+    if (profile.preferredSectors.length) {
+      setSectorFilters(profile.preferredSectors.map(capitalize));
+    }
+    const g = mapGenderToFilters(profile.gender);
+    if (g.length) setGenderFilters(g);
+    const cats = mapSignupCategoriesToBuckets(profile.scholarshipCategories);
+    if (cats.length) setCategoryFilters(cats);
+
+    setFiltersInitialized(true);
+  }, [user, location.state, profile]);
+
   // Reset to page 0 whenever any filter/search changes
   useEffect(() => {
     setPage(0);
   }, [
     searchQuery, sortBy, confidenceFilter,
     sectorFilters, stateFilters, categoryFilters, genderFilters, valueTypeFilters,
-    showPersonalized,
   ]);
 
-  const interestCategories = useMemo(() => {
-    if (!user || interests.length === 0 || !showPersonalized || searchQuery) return undefined;
-    return expandInterests(interests);
-  }, [user, interests, showPersonalized, searchQuery]);
+  const yearLevelMin = useMemo(
+    () => parseYearNumber(yearLevel, profile.applyingYearLevel),
+    [yearLevel, profile.applyingYearLevel],
+  );
 
   // Fetch data when filters/search/sort/page change
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     const academicSelected = categoryFilters.includes("Academic");
-    const effectiveStateFilters =
-      stateFilters.length === 0 && user && location.state && showPersonalized && !searchQuery
-        ? [location.state]
-        : stateFilters;
     fetchScholarshipsPage({
       search: searchQuery,
       confidence: confidenceFilter,
-      states: effectiveStateFilters,
+      states: stateFilters,
       sectors: sectorFilters,
       categories: expandCategoryBuckets(categoryFilters),
       genders: genderFilters,
@@ -227,8 +246,7 @@ const Index = () => {
         : categoryFilters.length === 0 || academicSelected
           ? ["scholarship", "gifted_program"]
           : ["scholarship"],
-      interestCategories,
-      yearLevel: showPersonalized && !searchQuery ? yearLevel : null,
+      yearLevelMin: searchQuery ? null : yearLevelMin,
       sortBy,
       page,
       pageSize: PAGE_SIZE,
@@ -243,8 +261,9 @@ const Index = () => {
   }, [
     searchQuery, sortBy, confidenceFilter, page,
     sectorFilters, stateFilters, categoryFilters, genderFilters, valueTypeFilters,
-    interestCategories, yearLevel, showPersonalized, user, location.state,
+    yearLevelMin,
   ]);
+
 
   const handleSearch = () => {
     setSearchQuery(searchInput.trim());
