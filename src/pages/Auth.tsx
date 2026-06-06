@@ -396,7 +396,7 @@ const Auth = () => {
         });
         if (error && !error.message.toLowerCase().includes("rate limit")) throw error;
         userId = data?.session?.user?.id ?? data?.user?.id;
-        signedUpUser = data?.session?.user ?? data?.user ?? null;
+        signedUpUser = data?.session?.user ?? null;
       }
 
       if (signedUpUser) {
