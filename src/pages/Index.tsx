@@ -139,9 +139,9 @@ const Index = () => {
   ]);
 
   const interestCategories = useMemo(() => {
-    if (!user || interests.length === 0 || !showPersonalized || searchQuery) return undefined;
+    if (!user || interests.length === 0 || categoryFilters.length > 0 || searchQuery) return undefined;
     return expandInterests(interests);
-  }, [user, interests, showPersonalized, searchQuery]);
+  }, [user, interests, categoryFilters, searchQuery]);
 
   // Fetch data when filters/search/sort/page change
   useEffect(() => {
