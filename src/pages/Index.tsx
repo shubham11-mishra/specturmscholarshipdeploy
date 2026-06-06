@@ -15,7 +15,7 @@ import {
   fetchConfidenceCounts,
   fetchCategoryCounts,
 } from "@/data/csvScholarships";
-import { Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
