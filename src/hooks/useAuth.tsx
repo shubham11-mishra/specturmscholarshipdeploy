@@ -137,7 +137,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const ensureUserSetup = (sessionUser: User) => {
     setTimeout(() => syncInterestsFromMetadata(sessionUser), 0);
-    setTimeout(() => fetchLocation(sessionUser.id), 0);
+    setTimeout(() => fetchLocation(sessionUser.id, sessionUser), 0);
     setTimeout(() => ensureWheelScoresForUser(sessionUser.id, sessionUser.user_metadata), 0);
   };
 
