@@ -103,6 +103,8 @@ export interface ScholarshipQuery {
   datasetTypes?: string[]; // e.g. ["scholarship"], ["gifted_program"]
   interestCategories?: string[]; // ORs across these (uses category aliases handled client-side via expansion before passing in)
   yearLevel?: string | null; // e.g. "Year 7" — matches if the row's year_levels text contains it
+  /** When set, matches scholarships whose year_levels contains this year OR any higher year (up to 12). */
+  yearLevelMin?: number | null;
   sortBy?: "closing" | "name" | "suburb" | "confidence" | "value";
   page?: number;
   pageSize?: number;
