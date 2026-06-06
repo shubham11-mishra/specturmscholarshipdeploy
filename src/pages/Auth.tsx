@@ -12,6 +12,7 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import CompassMark from "@/components/CompassMark";
 import { stateFromPostcode, lookupSuburbsForPostcode } from "@/lib/postcode";
+import { saveOwnProfile } from "@/lib/userProfile";
 import { Slider } from "@/components/ui/slider";
 import SpectrumWheel from "@/components/navigator/SpectrumWheel";
 import {
@@ -396,8 +397,38 @@ const Auth = () => {
         userId = data?.session?.user?.id ?? data?.user?.id;
       }
 
-      if (userId) {
-        await supabase.from("profiles").update({
+      if (data?.session?.user) {
+        const { error: profileError } = await saveOwnProfile(data.session.user, {
+          full_name: `${firstName} ${lastName}`.trim() || null,
+          last_name: lastName || null,
+          gender: gender || null,
+          year_level: yearLevel || null,
+          state: stateCode || undefined,
+          postcode: postcode.trim() || undefined,
+          suburb: suburb.trim() || null,
+          school_type: schoolType || null,
+          extracurriculars: extras,
+          financial_need: financial,
+          scholarship_categories: scholarshipCats,
+          target_year: `Year ${yearNum(applyingYearLevel) ?? ""}`,
+          parent_email: parentEmail || null,
+          current_school_name: currentSchoolName || null,
+          current_school_type: schoolType ? schoolType.toLowerCase() : null,
+          is_indigenous: isIndigenous,
+          is_rural: isRural,
+          faith_background: faithToggle ? faith || null : null,
+          preferred_sectors: preferredSectors,
+          willing_to_board: willingToBoard,
+          max_travel_km: maxTravelKm,
+          has_sibling_enrolled: hasSibling,
+          target_start_year: targetStartYear,
+          applying_year_level: yearNum(applyingYearLevel),
+          dream_schools: dreamSchools || null,
+          onboarding_completed: true,
+        });
+        if (profileError) throw profileError;
+      } else if (userId) {
+        const { error: profileError } = await supabase.from("profiles").update({
           full_name: `${firstName} ${lastName}`.trim() || null,
           last_name: lastName || null,
           gender: gender || null,
@@ -425,7 +456,10 @@ const Auth = () => {
           dream_schools: dreamSchools || null,
           onboarding_completed: true,
         }).eq("id", userId);
+        if (profileError) throw profileError;
+      }
 
+      if (userId) {
         const { error: wheelError } = await saveWheelScoresForUser(userId, wheel);
         if (wheelError) throw wheelError;
 
