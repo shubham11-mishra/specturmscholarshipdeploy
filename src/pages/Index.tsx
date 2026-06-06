@@ -316,39 +316,6 @@ const Index = () => {
                     {total === 1 ? "Opportunity" : "Opportunities"}
                   </span>
                 </div>
-                {user && interests.length > 0 && (
-                  <div
-                    role="tablist"
-                    aria-label="Opportunity scope"
-                    className="inline-flex items-center rounded-full border border-border bg-card/60 p-0.5 shadow-sm"
-                  >
-                    <button
-                      role="tab"
-                      aria-selected={showPersonalized}
-                      onClick={() => setShowPersonalized(true)}
-                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] cursor-pointer border-none transition-all ${
-                        showPersonalized
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "bg-transparent text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      My Interests
-                    </button>
-                    <button
-                      role="tab"
-                      aria-selected={!showPersonalized}
-                      onClick={() => setShowPersonalized(false)}
-                      className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] cursor-pointer border-none transition-all ${
-                        !showPersonalized
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "bg-transparent text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      All Opportunities
-                    </button>
-                  </div>
-                )}
               </div>
               <div className="flex items-center gap-2">
                 <label htmlFor="sort-by" className="text-[11px] font-semibold tracking-[0.12em] uppercase text-muted-foreground">
