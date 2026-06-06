@@ -72,7 +72,7 @@ export const profileDataFromUserMetadata = (sessionUser: User) => {
 export const ensureOwnProfile = async (sessionUser: User) => {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id")
+    .select("id, full_name, state, postcode, suburb, year_level, gender")
     .eq("id", sessionUser.id)
     .maybeSingle();
 
@@ -80,16 +80,42 @@ export const ensureOwnProfile = async (sessionUser: User) => {
     console.error("Error checking user profile:", error);
     return { data: null, error };
   }
-  if (data?.id) return { data, error: null };
 
-  const insertResult = await supabase
-    .from("profiles")
-    .upsert(profileDataFromUserMetadata(sessionUser) as any, { onConflict: "id" })
-    .select("id")
-    .maybeSingle();
+  const metaProfile = profileDataFromUserMetadata(sessionUser);
 
-  if (insertResult.error) console.error("Error creating missing user profile:", insertResult.error);
-  return insertResult;
+  // No row yet → insert full profile from metadata.
+  if (!data?.id) {
+    const insertResult = await supabase
+      .from("profiles")
+      .upsert(metaProfile as any, { onConflict: "id" })
+      .select("id")
+      .maybeSingle();
+    if (insertResult.error) console.error("Error creating missing user profile:", insertResult.error);
+    return insertResult;
+  }
+
+  // Row exists — backfill any missing fields from metadata so old/default rows
+  // (e.g. full_name NULL, state defaulted to NSW, postcode '0000') get repaired.
+  const patch: Record<string, unknown> = {};
+  if (!data.full_name && metaProfile.full_name) patch.full_name = metaProfile.full_name;
+  if (!data.suburb && metaProfile.suburb) patch.suburb = metaProfile.suburb;
+  if (!data.year_level && metaProfile.year_level) patch.year_level = metaProfile.year_level;
+  if (!data.gender && metaProfile.gender) patch.gender = metaProfile.gender;
+  const metaState = cleanString(sessionUser.user_metadata?.state);
+  const metaPostcode = cleanString(sessionUser.user_metadata?.postcode);
+  if ((!data.state || (data.state === "NSW" && metaState && metaState !== "NSW")) && metaState) {
+    patch.state = metaState;
+  }
+  if ((!data.postcode || data.postcode === "0000") && metaPostcode && metaPostcode !== "0000") {
+    patch.postcode = metaPostcode;
+  }
+
+  if (Object.keys(patch).length > 0) {
+    const upd = await supabase.from("profiles").update(patch as any).eq("id", sessionUser.id);
+    if (upd.error) console.error("Error backfilling user profile:", upd.error);
+  }
+
+  return { data, error: null };
 };
 
 export const saveOwnProfile = async (sessionUser: User, values: Record<string, unknown>) => {
