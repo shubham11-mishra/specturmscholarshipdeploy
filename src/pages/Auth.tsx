@@ -292,9 +292,7 @@ const Auth = () => {
     e.preventDefault();
     setError(""); setSubmitting(true);
     try {
-      const normalizedEmail = email.trim();
-      const loginPassword = normalizedEmail.toLowerCase() === "searcherscholarship@gmail.com" ? password.trim() : password;
-      const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password: loginPassword });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       toast.success("Welcome back!");
 

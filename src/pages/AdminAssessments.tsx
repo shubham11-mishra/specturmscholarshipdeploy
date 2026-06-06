@@ -1,8 +1,14 @@
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
+import { Loader2 } from "lucide-react";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import AssessmentGroupList from "@/components/assessment/AssessmentGroupList";
 
 export default function AdminAssessments() {
+  const { isAdmin, loading } = useIsAdmin();
   const nav = useNavigate();
+
+  if (loading) return <div className="p-8 flex justify-center"><Loader2 className="w-6 h-6 animate-spin" /></div>;
+  if (!isAdmin) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="space-y-6">
