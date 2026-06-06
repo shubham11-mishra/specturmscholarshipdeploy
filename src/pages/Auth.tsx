@@ -204,6 +204,16 @@ const Auth = () => {
     const hash = window.location.hash;
     if (!user || hash.includes("type=recovery")) return;
     (async () => {
+      const HARDCODED_ADMIN_EMAILS = ["searcherscholarship@gmail.com"];
+      const userEmail = (user.email ?? "").toLowerCase();
+      let isAdmin = HARDCODED_ADMIN_EMAILS.includes(userEmail);
+      if (!isAdmin) {
+        const { data: roles } = await supabase
+          .from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").limit(1);
+        isAdmin = !!roles?.length;
+      }
+      if (isAdmin) { navigate("/admin"); return; }
+
       const { data: profile } = await supabase
         .from("profiles")
         .select("onboarding_completed, full_name, last_name, year_level, state, postcode, suburb, school_type")
