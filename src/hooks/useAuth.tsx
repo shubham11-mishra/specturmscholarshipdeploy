@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { ensureWheelScoresForUser } from "@/lib/wheelScores";
+import { ensureOwnProfile } from "@/lib/userProfile";
 
 interface UserLocation {
   state: string | null;
@@ -113,8 +114,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const existingInterests = await fetchInterests(sessionUser.id);
     if (existingInterests.length > 0) return;
 
-    const metadataInterests = Array.isArray(sessionUser.user_metadata?.interests)
-      ? [...new Set(sessionUser.user_metadata.interests.filter((value): value is string => typeof value === "string" && value.trim().length > 0))]
+    const metadataCategories = Array.isArray(sessionUser.user_metadata?.scholarship_categories)
+      ? sessionUser.user_metadata.scholarship_categories
+      : sessionUser.user_metadata?.interests;
+    const metadataInterests = Array.isArray(metadataCategories)
+      ? [...new Set(metadataCategories.filter((value): value is string => typeof value === "string" && value.trim().length > 0))]
       : [];
 
     if (metadataInterests.length === 0) return;
@@ -136,8 +140,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const ensureUserSetup = (sessionUser: User) => {
-    setTimeout(() => syncInterestsFromMetadata(sessionUser), 0);
-    setTimeout(() => fetchLocation(sessionUser.id, sessionUser), 0);
+    setTimeout(async () => {
+      await ensureOwnProfile(sessionUser);
+      await fetchLocation(sessionUser.id, sessionUser);
+      await syncInterestsFromMetadata(sessionUser);
+    }, 0);
     setTimeout(() => ensureWheelScoresForUser(sessionUser.id, sessionUser.user_metadata), 0);
   };
 

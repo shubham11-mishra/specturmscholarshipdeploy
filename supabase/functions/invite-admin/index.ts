@@ -97,13 +97,7 @@ Deno.serve(async (req) => {
 
     const isNewInvite = !existingProfile?.id;
 
-    // 5. Upsert admin_profiles row
-    await admin.from("admin_profiles").upsert(
-      { id: targetUserId, email, full_name: null },
-      { onConflict: "id" },
-    );
-
-    // 6. Record invitation
+    // 5. Record invitation
     await admin.from("admin_invitations").insert({
       email,
       invited_user_id: targetUserId,

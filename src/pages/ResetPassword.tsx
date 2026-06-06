@@ -118,11 +118,7 @@ const ResetPassword = () => {
           .from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").limit(1);
         if (roles && roles.length > 0) {
           dest = "/admin";
-          // Upsert admin_profiles + mark invitation accepted
-          await supabase.from("admin_profiles").upsert(
-            { id: user.id, email: user.email ?? "", full_name: existingMetadata.full_name ?? null },
-            { onConflict: "id" },
-          );
+          // Mark invitation accepted.
           await supabase
             .from("admin_invitations")
             .update({ status: "accepted", accepted_at: new Date().toISOString() })
