@@ -64,15 +64,6 @@ const AdminLayout = ({ children, pageTitle }: { children: ReactNode; pageTitle: 
             ))}
           </nav>
 
-          <div className="px-3 pb-4 pt-3 border-t border-white/10">
-            <button
-              onClick={handleSignOut}
-              className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-[12px] font-semibold text-white/80 hover:bg-white/10 hover:text-white"
-            >
-              <LogOut className="w-4 h-4" />
-              Sign out
-            </button>
-          </div>
         </aside>
 
         <div className="flex-1 flex flex-col overflow-hidden">
