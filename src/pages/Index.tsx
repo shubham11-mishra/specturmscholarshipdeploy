@@ -45,22 +45,55 @@ const expandCategoryBuckets = (labels: string[]): string[] => {
   return [...out];
 };
 
-// Expand a user interest into the actual category values stored in DB
-const INTEREST_TO_CATEGORIES: Record<string, string[]> = {
-  academic: ["Academic"],
-  music: ["Music", "Performing Arts"],
-  sport: ["Sport", "Sports"],
-  general: ["General", "All Rounder", "Financial Need", "Leadership", "Cultural"],
-};
+// Map a stored scholarship category value (or saved signup category) into the
+// curated bucket label shown in the sidebar. Returns the label if a match is
+// found, otherwise the original value.
+const CATEGORY_VALUE_TO_BUCKET: Record<string, string> = (() => {
+  const map: Record<string, string> = {};
+  CATEGORY_BUCKETS.forEach((b) => {
+    map[b.label.toLowerCase()] = b.label;
+    b.values.forEach((v) => (map[v.toLowerCase()] = b.label));
+  });
+  // common signup aliases
+  map["arts"] = "Arts";
+  map["music"] = "Arts";
+  map["sport"] = "Sports";
+  map["sports"] = "Sports";
+  map["general"] = "Financial Need";
+  map["financial need"] = "Financial Need";
+  return map;
+})();
 
-const expandInterests = (interests: string[]): string[] => {
+const mapSignupCategoriesToBuckets = (cats: string[]): string[] => {
   const out = new Set<string>();
-  interests.forEach((i) => {
-    const key = i.trim().toLowerCase();
-    (INTEREST_TO_CATEGORIES[key] ?? [i]).forEach((c) => out.add(c));
+  cats.forEach((c) => {
+    const b = CATEGORY_VALUE_TO_BUCKET[c.trim().toLowerCase()];
+    if (b) out.add(b);
   });
   return [...out];
 };
+
+const mapGenderToFilters = (gender: string | null): string[] => {
+  if (!gender) return [];
+  const g = gender.toLowerCase();
+  if (g === "male" || g.startsWith("boy")) return ["Boys", "Co-ed"];
+  if (g === "female" || g.startsWith("girl")) return ["Girls", "Co-ed"];
+  return [];
+};
+
+const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
+
+const parseYearNumber = (yearLevel: string | null, applyingYearLevel: number | null): number | null => {
+  if (typeof applyingYearLevel === "number" && applyingYearLevel >= 3 && applyingYearLevel <= 12) {
+    return applyingYearLevel;
+  }
+  if (!yearLevel) return null;
+  const m = yearLevel.match(/\d+/);
+  if (!m) return null;
+  const n = parseInt(m[0], 10);
+  return n >= 3 && n <= 12 ? n : null;
+};
+
 
 const Index = () => {
   const { user, interests, yearLevel, location } = useAuth();
