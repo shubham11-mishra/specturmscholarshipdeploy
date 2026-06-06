@@ -1,276 +1,249 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { FileQuestion, BookOpen, Users, Trophy, Wrench, CheckCircle2, ClipboardList, ClipboardCheck, TrendingUp } from "lucide-react";
 import {
-  Users, GraduationCap, UserCheck, ClipboardList, ClipboardCheck, PlayCircle,
-  CalendarCheck, TrendingUp, Home,
-} from "lucide-react";
-import {
-  ResponsiveContainer, AreaChart, Area, BarChart, Bar, LineChart, Line,
-  XAxis, YAxis, Tooltip, CartesianGrid, Legend,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
 } from "recharts";
-import { ORDERED_BANDS } from "@/lib/assessmentGroups";
-import { inferYearBand } from "@/lib/assessment";
 
-type ProfileRow = { id: string; created_at: string | null; year_level: string | null; view_mode: string | null };
-type AttemptRow = { id: string; status: string | null; started_at: string | null; completed_at: string | null; updated_at: string | null };
+type Kpis = {
+  publishedQuestions: number;
+  draftQuestions: number;
+  passages: number;
+  attempts: number;
+  completedAttempts: number;
+  avgScore: number | null;
+  students: number;
+  newUsers30d: number;
+};
 
-const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-const CURRENT_YEAR = new Date().getFullYear();
-const YEAR_OPTIONS = [CURRENT_YEAR - 2, CURRENT_YEAR - 1, CURRENT_YEAR, CURRENT_YEAR + 1];
+type ProfileRow = { created_at: string | null; state: string | null; year_level: string | null };
 
-// Map a profile.year_level string into one of the canonical 9 bands. Falls back to inferYearBand.
-function bandForYearLevel(yl: string | null): string | null {
-  if (!yl) return null;
-  const low = yl.toLowerCase().trim();
-  if (low.includes("scholarship") || low.includes("sealp")) return "Scholarship/SEALP";
-  if (low.includes("selective")) return "Selective";
-  return inferYearBand(yl);
-}
+const tiles = [
+  { label: "Pending Approvals", path: "/admin/pending-approvals", icon: ClipboardCheck, desc: "Review and approve fresh scholarship data." },
+  { label: "Assessment Editor", path: "/admin/assessments", icon: Wrench, desc: "Create, edit, import and preview questions." },
+  { label: "Question Bank", path: "/admin/questions", icon: FileQuestion, desc: "Searchable index of every question." },
+  { label: "Passage Manager", path: "/admin/passages", icon: BookOpen, desc: "Reusable reading passages." },
+  { label: "User Management", path: "/admin/users", icon: Users, desc: "Roles & platform access." },
+  { label: "Gamification Settings", path: "/admin/gamification", icon: Trophy, desc: "Points, badges & rewards." },
+];
+
+const COLORS = ["hsl(var(--primary))", "hsl(var(--gold))", "hsl(var(--spec-green))", "hsl(var(--spec-red))", "hsl(var(--spec-blue-light))", "hsl(var(--accent))"];
 
 const AdminDashboard = () => {
-  const [year, setYear] = useState<number>(CURRENT_YEAR);
+  const [kpis, setKpis] = useState<Kpis | null>(null);
+  const [signupSeries, setSignupSeries] = useState<{ date: string; users: number; cumulative: number }[]>([]);
+  const [stateSeries, setStateSeries] = useState<{ name: string; value: number }[]>([]);
+  const [yearSeries, setYearSeries] = useState<{ name: string; value: number }[]>([]);
   const [loading, setLoading] = useState(true);
-  const [profiles, setProfiles] = useState<ProfileRow[]>([]);
-  const [attempts, setAttempts] = useState<AttemptRow[]>([]);
-  const [familyCount, setFamilyCount] = useState(0);
-  const [hasAppointments, setHasAppointments] = useState<boolean | null>(null);
-  const [appointmentCount, setAppointmentCount] = useState(0);
 
   useEffect(() => {
-    let cancel = false;
     (async () => {
-      setLoading(true);
-      const [profilesRes, attemptsRes, familyRes] = await Promise.all([
-        supabase.from("profiles").select("id,created_at,year_level,view_mode").limit(5000),
-        supabase.from("assessment_attempts").select("id,status,started_at,completed_at,updated_at").limit(5000),
-        supabase.from("parent_links").select("id", { head: true, count: "exact" }).eq("status", "accepted"),
+      const [pubQ, draftQ, passages, attempts, completed, students, profilesRes] = await Promise.all([
+        supabase.from("assessment_questions").select("id", { head: true, count: "exact" }).eq("status", "published"),
+        supabase.from("assessment_questions").select("id", { head: true, count: "exact" }).eq("status", "draft"),
+        supabase.from("assessment_passages").select("id", { head: true, count: "exact" }),
+        supabase.from("assessment_attempts").select("id", { head: true, count: "exact" }),
+        supabase.from("assessment_attempts").select("total_score", { count: "exact" }).eq("status", "completed").limit(500),
+        supabase.from("profiles").select("id", { head: true, count: "exact" }),
+        supabase.from("profiles").select("created_at,state,year_level").limit(1000),
       ]);
-      // Optional appointments table — may not exist; ignore errors silently
-      const apptRes = await supabase.from("appointments" as any).select("id", { head: true, count: "exact" });
-      if (cancel) return;
-      setProfiles((profilesRes.data ?? []) as ProfileRow[]);
-      setAttempts((attemptsRes.data ?? []) as AttemptRow[]);
-      setFamilyCount(familyRes.count ?? 0);
-      if (apptRes.error) {
-        setHasAppointments(false);
-        setAppointmentCount(0);
-      } else {
-        setHasAppointments(true);
-        setAppointmentCount(apptRes.count ?? 0);
+
+      const scores = (completed.data ?? []).map((r: any) => Number(r.total_score)).filter(n => !Number.isNaN(n));
+      const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+
+      const rows: ProfileRow[] = (profilesRes.data ?? []) as any;
+
+      // Signups per day (last 30 days)
+      const days: { date: string; users: number; cumulative: number }[] = [];
+      const today = new Date();
+      const counts = new Map<string, number>();
+      rows.forEach(r => {
+        if (!r.created_at) return;
+        const key = r.created_at.slice(0, 10);
+        counts.set(key, (counts.get(key) ?? 0) + 1);
+      });
+      // Cumulative total before 30-day window
+      const cutoff = new Date(today); cutoff.setDate(cutoff.getDate() - 29);
+      let cumulative = rows.filter(r => r.created_at && new Date(r.created_at) < cutoff).length;
+      let newUsers30d = 0;
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(today); d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        const n = counts.get(key) ?? 0;
+        cumulative += n;
+        newUsers30d += n;
+        days.push({ date: key.slice(5), users: n, cumulative });
       }
+      setSignupSeries(days);
+
+      // By state
+      const stateMap = new Map<string, number>();
+      rows.forEach(r => {
+        const s = r.state || "Unknown";
+        stateMap.set(s, (stateMap.get(s) ?? 0) + 1);
+      });
+      setStateSeries(Array.from(stateMap.entries()).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value));
+
+      // By year level
+      const yMap = new Map<string, number>();
+      rows.forEach(r => {
+        const y = r.year_level ? `Year ${r.year_level}` : "Unspecified";
+        yMap.set(y, (yMap.get(y) ?? 0) + 1);
+      });
+      setYearSeries(Array.from(yMap.entries()).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value));
+
+      setKpis({
+        publishedQuestions: pubQ.count ?? 0,
+        draftQuestions: draftQ.count ?? 0,
+        passages: passages.count ?? 0,
+        attempts: attempts.count ?? 0,
+        completedAttempts: completed.count ?? 0,
+        avgScore: avg,
+        students: students.count ?? 0,
+        newUsers30d,
+      });
       setLoading(false);
     })();
-    return () => { cancel = true; };
   }, []);
-
-  const inYear = (iso: string | null | undefined) =>
-    !!iso && new Date(iso).getFullYear() === year;
-
-  const stats = useMemo(() => {
-    const students = profiles.filter(p => (p.view_mode ?? "student") === "student");
-    const registeredThisYear = students.filter(p => inYear(p.created_at)).length;
-
-    const completed = attempts.filter(a => a.status === "completed").length;
-    const ongoing   = attempts.filter(a => a.status === "in_progress").length;
-    const started   = attempts.length;
-
-    return {
-      families: familyCount,
-      totalStudents: students.length,
-      registeredThisYear,
-      completed,
-      ongoing,
-      started,
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profiles, attempts, familyCount, year]);
-
-  // Monthly signups for selected year
-  const monthlySignups = useMemo(() => {
-    const buckets = MONTHS.map((m, i) => ({ month: m, idx: i, students: 0 }));
-    profiles.forEach(p => {
-      if (!p.created_at || (p.view_mode ?? "student") !== "student") return;
-      const d = new Date(p.created_at);
-      if (d.getFullYear() !== year) return;
-      buckets[d.getMonth()].students += 1;
-    });
-    return buckets;
-  }, [profiles, year]);
-
-  // Registered students by canonical year band (filtered to selected year)
-  const byBand = useMemo(() => {
-    const counts: Record<string, number> = Object.fromEntries(ORDERED_BANDS.map(b => [b, 0]));
-    profiles.forEach(p => {
-      if ((p.view_mode ?? "student") !== "student") return;
-      if (!inYear(p.created_at)) return;
-      const band = bandForYearLevel(p.year_level);
-      if (band && counts[band] !== undefined) counts[band] += 1;
-    });
-    return ORDERED_BANDS.map(b => ({ band: b, students: counts[b] }));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profiles, year]);
-
-  // Monthly assessment status breakdown (selected year)
-  const monthlyAssessments = useMemo(() => {
-    const buckets = MONTHS.map(m => ({ month: m, started: 0, ongoing: 0, completed: 0 }));
-    attempts.forEach(a => {
-      const startIso = a.started_at;
-      if (startIso) {
-        const d = new Date(startIso);
-        if (d.getFullYear() === year) buckets[d.getMonth()].started += 1;
-      }
-      if (a.status === "in_progress") {
-        const ref = a.updated_at || a.started_at;
-        if (ref) {
-          const d = new Date(ref);
-          if (d.getFullYear() === year) buckets[d.getMonth()].ongoing += 1;
-        }
-      }
-      if (a.status === "completed" && a.completed_at) {
-        const d = new Date(a.completed_at);
-        if (d.getFullYear() === year) buckets[d.getMonth()].completed += 1;
-      }
-    });
-    return buckets;
-  }, [attempts, year]);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h2 className="text-2xl font-bold">Admin Dashboard</h2>
-          <p className="text-muted-foreground text-sm">Live platform statistics from the database.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-muted-foreground">Year</span>
-          <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-            <SelectTrigger className="w-28 h-9 bg-background"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {YEAR_OPTIONS.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
+      <div>
+        <h2 className="text-2xl font-bold">Welcome, admin</h2>
+        <p className="text-muted-foreground text-sm">Manage the Spectrum platform from one place.</p>
       </div>
 
-      {/* KPI cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {loading ? Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-24" />) : (
+      {/* KPIs */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {loading ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24" />) : (
           <>
-            <Kpi icon={Home}           tone="primary" label="Total families"               value={stats.families} />
-            <Kpi icon={Users}          tone="gold"    label="Total student users"          value={stats.totalStudents} />
-            <Kpi icon={UserCheck}      tone="green"   label={`Registered students (${year})`} value={stats.registeredThisYear} />
-            <Kpi icon={PlayCircle}     tone="blue"    label="Assessments started"          value={stats.started} />
-            <Kpi icon={ClipboardList}  tone="gold"    label="Ongoing assessments"          value={stats.ongoing} />
-            <Kpi icon={ClipboardCheck} tone="green"   label="Completed assessments"        value={stats.completed} />
-            <Kpi
-              icon={CalendarCheck}
-              tone="primary"
-              label="Booked appointments"
-              value={hasAppointments ? appointmentCount : "—"}
-              sub={hasAppointments ? undefined : "No data available"}
-            />
+            <Kpi icon={Users} label="Total users" value={kpis!.students} sub={`+${kpis!.newUsers30d} in last 30 days`} />
+            <Kpi icon={FileQuestion} label="Published questions" value={kpis!.publishedQuestions} sub={`${kpis!.draftQuestions} draft`} />
+            <Kpi icon={ClipboardList} label="Attempts" value={kpis!.attempts} sub={`${kpis!.completedAttempts} completed`} />
+            <Kpi icon={CheckCircle2} label="Avg score" value={kpis!.avgScore !== null ? `${kpis!.avgScore}%` : "—"} sub={`${kpis!.passages} passages`} />
           </>
         )}
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="p-5 lg:col-span-2 rounded-2xl">
+        <Card className="p-5 lg:col-span-2">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-4 h-4 text-primary" />
-            <h3 className="font-semibold text-sm">Monthly student sign-ups · {year}</h3>
+            <h3 className="font-semibold text-sm">User growth (last 30 days)</h3>
           </div>
           {loading ? <Skeleton className="h-64" /> : (
             <ResponsiveContainer width="100%" height={260}>
-              <AreaChart data={monthlySignups} margin={{ left: 0, right: 8, top: 4, bottom: 0 }}>
+              <AreaChart data={signupSeries} margin={{ left: 0, right: 8, top: 4, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="signupFill" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="cumFill" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
                     <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={11} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} allowDecimals={false} />
+                <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={11} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} />
                 <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
-                <Area type="monotone" dataKey="students" name="New students" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#signupFill)" />
+                <Area type="monotone" dataKey="cumulative" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#cumFill)" name="Total users" />
               </AreaChart>
             </ResponsiveContainer>
           )}
         </Card>
 
-        <Card className="p-5 rounded-2xl">
-          <div className="flex items-center gap-2 mb-4">
-            <GraduationCap className="w-4 h-4 text-primary" />
-            <h3 className="font-semibold text-sm">By year level · {year}</h3>
-          </div>
-          {loading ? <Skeleton className="h-64" /> : byBand.every(b => b.students === 0) ? (
-            <div className="text-xs text-muted-foreground text-center py-16">No data available</div>
-          ) : (
+        <Card className="p-5">
+          <h3 className="font-semibold text-sm mb-4">Daily signups</h3>
+          {loading ? <Skeleton className="h-64" /> : (
             <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={byBand} layout="vertical" margin={{ left: 8, right: 8, top: 4, bottom: 0 }}>
+              <BarChart data={signupSeries} margin={{ left: 0, right: 4, top: 4, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={11} allowDecimals={false} />
-                <YAxis type="category" dataKey="band" stroke="hsl(var(--muted-foreground))" fontSize={11} width={90} />
+                <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={10} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} allowDecimals={false} />
                 <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
-                <Bar dataKey="students" fill="hsl(var(--gold))" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="users" fill="hsl(var(--gold))" radius={[4, 4, 0, 0]} name="New users" />
               </BarChart>
             </ResponsiveContainer>
           )}
         </Card>
 
-        <Card className="p-5 lg:col-span-3 rounded-2xl">
-          <div className="flex items-center gap-2 mb-4">
-            <ClipboardCheck className="w-4 h-4 text-primary" />
-            <h3 className="font-semibold text-sm">Assessment status by month · {year}</h3>
-          </div>
-          {loading ? <Skeleton className="h-64" /> : monthlyAssessments.every(m => !m.started && !m.ongoing && !m.completed) ? (
-            <div className="text-xs text-muted-foreground text-center py-16">No data available</div>
+        <Card className="p-5">
+          <h3 className="font-semibold text-sm mb-4">Users by state</h3>
+          {loading ? <Skeleton className="h-64" /> : stateSeries.length === 0 ? (
+            <div className="text-xs text-muted-foreground text-center py-10">No data yet.</div>
           ) : (
-            <ResponsiveContainer width="100%" height={280}>
-              <LineChart data={monthlyAssessments} margin={{ left: 0, right: 8, top: 4, bottom: 0 }}>
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie data={stateSeries} dataKey="value" nameKey="name" outerRadius={90} label={(e: any) => e.name}>
+                  {stateSeries.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                </Pie>
+                <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
+        </Card>
+
+        <Card className="p-5 lg:col-span-2">
+          <h3 className="font-semibold text-sm mb-4">Users by year level</h3>
+          {loading ? <Skeleton className="h-64" /> : yearSeries.length === 0 ? (
+            <div className="text-xs text-muted-foreground text-center py-10">No data yet.</div>
+          ) : (
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={yearSeries} margin={{ left: 0, right: 8, top: 4, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={11} />
+                <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={11} />
                 <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} allowDecimals={false} />
                 <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Line type="monotone" dataKey="started"   stroke="hsl(var(--primary))"   strokeWidth={2} dot={false} name="Started" />
-                <Line type="monotone" dataKey="ongoing"   stroke="hsl(var(--gold))"      strokeWidth={2} dot={false} name="Ongoing" />
-                <Line type="monotone" dataKey="completed" stroke="hsl(var(--spec-green))" strokeWidth={2} dot={false} name="Completed" />
-              </LineChart>
+                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Students" />
+              </BarChart>
             </ResponsiveContainer>
           )}
         </Card>
       </div>
 
+      {/* Tiles */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {tiles.map((t) => (
+          <Link key={t.path} to={t.path} className="no-underline">
+            <Card className="p-5 h-full hover:shadow-md transition-shadow">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                  <t.icon className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">{t.label}</h3>
+                  <p className="text-xs text-muted-foreground mt-1">{t.desc}</p>
+                </div>
+              </div>
+            </Card>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 };
 
-const TONES: Record<string, string> = {
-  primary: "bg-primary/10 text-primary",
-  gold:    "bg-[hsl(var(--gold))]/15 text-[hsl(var(--gold))]",
-  green:   "bg-[hsl(var(--spec-green))]/15 text-[hsl(var(--spec-green))]",
-  blue:    "bg-[hsl(var(--spec-blue-light))]/15 text-[hsl(var(--spec-blue-light))]",
-};
-
-function Kpi({ icon: Icon, label, value, sub, tone = "primary" }: { icon: any; label: string; value: any; sub?: string; tone?: keyof typeof TONES | string }) {
-  const toneClass = TONES[tone as string] ?? TONES.primary;
+function Kpi({ icon: Icon, label, value, sub }: { icon: any; label: string; value: any; sub?: string }) {
   return (
-    <Card className="p-4 rounded-2xl">
-      <div className="flex items-start gap-3">
-        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${toneClass}`}>
-          <Icon className="w-5 h-5" />
-        </div>
-        <div className="min-w-0">
-          <div className="text-2xl font-bold leading-tight">{value}</div>
-          <div className="text-xs text-muted-foreground">{label}</div>
-          {sub && <div className="text-[10px] text-muted-foreground mt-0.5">{sub}</div>}
-        </div>
-      </div>
+    <Card className="p-4">
+      <Icon className="w-5 h-5 text-primary" />
+      <div className="mt-2 text-2xl font-bold">{value}</div>
+      <div className="text-xs text-muted-foreground">{label}</div>
+      {sub && <div className="text-[10px] text-muted-foreground mt-0.5">{sub}</div>}
     </Card>
   );
 }

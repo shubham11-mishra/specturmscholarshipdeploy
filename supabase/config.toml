@@ -2,6 +2,3 @@ project_id = "posfclafctgfaxlhktsj"
 
 [functions.copilot-chat]
 verify_jwt = false
-
-[functions.invite-admin]
-verify_jwt = false

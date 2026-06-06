@@ -7,21 +7,21 @@ export type Role = "admin" | "parent" | "student";
 /**
  * Resolve the active role for the current user.
  * Priority: admin (user_roles) > parent (parent_links as parent_id) > student (default).
+ * `viewMode` reflects the manually chosen portal (profiles.view_mode) so we don't
+ * force admins/parents into one view if they prefer browsing as a student.
  */
 export function useUserRole() {
   const { user, loading: authLoading } = useAuth();
+  const [role, setRole] = useState<Role>("student");
   const [isAdmin, setIsAdmin] = useState(false);
   const [isParent, setIsParent] = useState(false);
   const [viewMode, setViewMode] = useState<Role>("student");
-  const [loadedForUserId, setLoadedForUserId] = useState<string | null>(null);
-
-  const currentUserId = user?.id ?? null;
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      setIsAdmin(false); setIsParent(false); setViewMode("student");
-      setLoadedForUserId(null);
+      setRole("student"); setIsAdmin(false); setIsParent(false); setLoading(false);
       return;
     }
     let cancelled = false;
@@ -32,23 +32,18 @@ export function useUserRole() {
         supabase.from("profiles").select("view_mode").eq("id", user.id).maybeSingle(),
       ]);
       if (cancelled) return;
-      const HARDCODED_ADMIN_EMAILS = ["searcherscholarship@gmail.com"];
-      const admin =
-        !!(rolesRes.data ?? []).find((r: any) => r.role === "admin") ||
-        HARDCODED_ADMIN_EMAILS.includes((user.email ?? "").toLowerCase());
+      const admin = !!(rolesRes.data ?? []).find((r: any) => r.role === "admin");
       const parent = (parentRes.count ?? 0) > 0;
       const vm = (profileRes.data?.view_mode as Role) ?? "student";
       setIsAdmin(admin);
       setIsParent(parent);
       setViewMode(vm);
-      setLoadedForUserId(user.id);
+      // Resolved "true" role used for default redirects
+      setRole(admin ? "admin" : parent ? "parent" : "student");
+      setLoading(false);
     })();
     return () => { cancelled = true; };
   }, [user, authLoading]);
 
-  // Computed during render — no gap between user changing and "loading" becoming true.
-  const loading = authLoading || (!!currentUserId && loadedForUserId !== currentUserId);
-  const role: Role = loading ? "student" : isAdmin ? "admin" : isParent ? "parent" : "student";
-
-  return { role, isAdmin: loading ? false : isAdmin, isParent: loading ? false : isParent, viewMode, loading };
+  return { role, isAdmin, isParent, viewMode, loading };
 }

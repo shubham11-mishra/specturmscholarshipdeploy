@@ -135,65 +135,11 @@ export async function ensureSection(subject: string, year_band: string, section_
   const { data: existing } = await supabase.from("assessment_sections")
     .select("*").eq("subject", subject).eq("year_band", year_band).eq("section_name", section_name).maybeSingle();
   if (existing) return existing as AdminSection;
-  const { data: last } = await supabase.from("assessment_sections")
-    .select("section_order").eq("subject", subject).eq("year_band", year_band)
-    .order("section_order", { ascending: false }).limit(1).maybeSingle();
-  const nextOrder = ((last?.section_order ?? 0) as number) + 1;
   const { data, error } = await supabase.from("assessment_sections").insert({
-    subject, year_band, section_name, section_order: nextOrder,
+    subject, year_band, section_name, section_order: 1,
   }).select().single();
   if (error) throw error;
   return data as AdminSection;
-}
-
-/** Update section name and/or order. */
-export async function updateSection(id: string, patch: Partial<Pick<AdminSection, "section_name" | "section_order">>) {
-  const { error } = await supabase.from("assessment_sections").update(patch).eq("id", id);
-  if (error) throw error;
-}
-
-/** Delete section — fails if it still has questions. */
-export async function deleteSection(id: string) {
-  const { count } = await supabase.from("assessment_questions")
-    .select("id", { count: "exact", head: true }).eq("section_id", id);
-  if ((count ?? 0) > 0) {
-    throw new Error(`Cannot delete — section has ${count} question${count === 1 ? "" : "s"}. Move or delete them first.`);
-  }
-  const { error } = await supabase.from("assessment_sections").delete().eq("id", id);
-  if (error) throw error;
-}
-
-/** Move section up or down within its (subject, year_band) group by swapping section_order. */
-export async function moveSection(sectionId: string, direction: "up" | "down") {
-  const { data: sec } = await supabase.from("assessment_sections").select("*").eq("id", sectionId).single();
-  if (!sec) return;
-  const { data: peers } = await supabase.from("assessment_sections")
-    .select("*").eq("subject", sec.subject).eq("year_band", sec.year_band)
-    .order("section_order").order("section_name");
-  const list = (peers ?? []) as AdminSection[];
-  const idx = list.findIndex(s => s.id === sectionId);
-  const swapIdx = direction === "up" ? idx - 1 : idx + 1;
-  if (idx < 0 || swapIdx < 0 || swapIdx >= list.length) return;
-  const a = list[idx], b = list[swapIdx];
-  await Promise.all([
-    supabase.from("assessment_sections").update({ section_order: b.section_order }).eq("id", a.id),
-    supabase.from("assessment_sections").update({ section_order: a.section_order }).eq("id", b.id),
-  ]);
-}
-
-/** Sections for a single (subject, year_band) — shared by admin detail + student. */
-export async function getAssessmentSections(subject: string, year_band: string): Promise<AdminSection[]> {
-  const { data } = await supabase.from("assessment_sections")
-    .select("*").eq("subject", subject).eq("year_band", year_band)
-    .order("section_order").order("section_name");
-  return (data ?? []) as AdminSection[];
-}
-
-/** Questions for a single section. */
-export async function getAssessmentItems(section_id: string): Promise<AdminQuestion[]> {
-  const { data } = await supabase.from("assessment_questions")
-    .select("*").eq("section_id", section_id).order("question_number");
-  return ((data ?? []) as any[]).map(r => ({ ...r, options: Array.isArray(r.options) ? r.options : [] })) as AdminQuestion[];
 }
 
 /** Fuzzy duplicate check (Levenshtein-ish via lowercase tokens). */

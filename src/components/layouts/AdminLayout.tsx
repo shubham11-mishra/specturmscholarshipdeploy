@@ -1,23 +1,20 @@
 import { ReactNode } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Wrench, LogOut, ClipboardCheck } from "lucide-react";
+import { Link, NavLink } from "react-router-dom";
+import { LayoutDashboard, FileQuestion, BookOpen, Users, Trophy, Wrench, ArrowLeft, ClipboardCheck } from "lucide-react";
 import AdminGuard from "@/components/admin/AdminGuard";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
 
 const adminNav = [
   { label: "Admin Dashboard", path: "/admin", icon: LayoutDashboard, end: true },
   { label: "Pending Approvals", path: "/admin/pending-approvals", icon: ClipboardCheck },
   { label: "Assessment Editor", path: "/admin/assessments", icon: Wrench },
+  { label: "Question Bank", path: "/admin/questions", icon: FileQuestion },
+  { label: "Passage Manager", path: "/admin/passages", icon: BookOpen },
   { label: "User Management", path: "/admin/users", icon: Users },
+  { label: "Gamification Settings", path: "/admin/gamification", icon: Trophy },
 ];
 
 const AdminLayout = ({ children, pageTitle }: { children: ReactNode; pageTitle: string }) => {
-  const navigate = useNavigate();
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/admin/login", { replace: true });
-  };
   return (
     <AdminGuard>
       <div className="flex h-screen overflow-hidden bg-secondary/40">
@@ -64,18 +61,17 @@ const AdminLayout = ({ children, pageTitle }: { children: ReactNode; pageTitle: 
             ))}
           </nav>
 
+          <div className="px-3 pb-4 pt-3 border-t border-white/10">
+            <Link to="/dashboard" className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-[12px] font-semibold text-white/70 hover:bg-white/5 hover:text-white no-underline">
+              <ArrowLeft className="w-4 h-4" />
+              Back to student app
+            </Link>
+          </div>
         </aside>
 
         <div className="flex-1 flex flex-col overflow-hidden">
-          <header className="h-14 border-b bg-background flex items-center justify-between px-6">
+          <header className="h-14 border-b bg-background flex items-center px-6">
             <h1 className="text-lg font-bold">{pageTitle}</h1>
-            <button
-              onClick={handleSignOut}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              Sign out
-            </button>
           </header>
           <main className="flex-1 overflow-y-auto">
             <div className="max-w-[1400px] mx-auto p-6 md:p-8">{children}</div>

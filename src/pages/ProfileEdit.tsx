@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { saveOwnProfile } from "@/lib/userProfile";
 import { CheckCircle2, MapPin, GraduationCap, Heart, User as UserIcon, Save, School as SchoolIcon } from "lucide-react";
 import {
   AlertDialog,
@@ -45,14 +44,12 @@ const ProfileEdit = () => {
         supabase.from("profiles").select("full_name, state, postcode, suburb, year_level, current_school_name").eq("id", user.id).maybeSingle(),
         supabase.from("user_interests").select("category").eq("user_id", user.id),
       ]);
-      const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
-      const metaStr = (key: string) => (typeof meta[key] === "string" ? (meta[key] as string) : "");
-      setFullName(profile?.full_name || metaStr("full_name") || metaStr("name"));
-      setStateCode(profile?.state ?? metaStr("state") ?? "");
-      setPostcode(profile?.postcode ?? metaStr("postcode") ?? "");
-      setSuburb(profile?.suburb ?? metaStr("suburb") ?? "");
-      setYearLevel(profile?.year_level ?? metaStr("year_level") ?? "");
-      setSchoolName(profile?.current_school_name ?? metaStr("current_school_name") ?? "");
+      setFullName(profile?.full_name ?? "");
+      setStateCode(profile?.state ?? "");
+      setPostcode(profile?.postcode ?? "");
+      setSuburb(profile?.suburb ?? "");
+      setYearLevel(profile?.year_level ?? "");
+      setSchoolName(profile?.current_school_name ?? "");
       setSelectedCategories(interests?.map((i) => i.category) ?? []);
       setInitializing(false);
     })();
@@ -76,14 +73,17 @@ const ProfileEdit = () => {
     if (!user) return;
     setSaving(true);
     try {
-      const { error: profileError } = await saveOwnProfile(user, {
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
           full_name: fullName.trim(),
           state: stateCode,
           postcode: postcode.trim(),
           suburb: suburb.trim() || null,
           year_level: yearLevel || null,
           current_school_name: schoolName.trim() || null,
-        });
+        })
+        .eq("id", user.id);
       if (profileError) throw profileError;
 
       const { error: delErr } = await supabase.from("user_interests").delete().eq("user_id", user.id);

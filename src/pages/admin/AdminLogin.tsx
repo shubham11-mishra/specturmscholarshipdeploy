@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -12,35 +12,29 @@ import { Loader2, ShieldCheck, Eye, EyeOff } from "lucide-react";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const { isAdmin, loading: roleLoading } = useUserRole();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const { user, loading: authLoading } = useAuth();
-  const { isAdmin, loading: roleLoading } = useUserRole();
 
-  // Wait until both auth and role checks are fully resolved before redirecting or signing out.
+  // If already signed in as admin, send through.
   useEffect(() => {
-    if (authLoading || roleLoading || !user) return;
-
-    if (isAdmin) {
+    if (!authLoading && !roleLoading && user && isAdmin) {
       navigate("/admin", { replace: true });
-      return;
     }
-
-    let cancelled = false;
-    (async () => {
-      await supabase.auth.signOut();
-      if (!cancelled) {
-        toast.error("You do not have admin access.");
-        setSubmitting(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
   }, [authLoading, roleLoading, user, isAdmin, navigate]);
+
+  // If signed in but NOT admin, bounce them out so they don't sit on this page logged in.
+  useEffect(() => {
+    if (!authLoading && !roleLoading && user && !isAdmin) {
+      (async () => {
+        await supabase.auth.signOut();
+        toast.error("You do not have admin access.");
+      })();
+    }
+  }, [authLoading, roleLoading, user, isAdmin]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -60,10 +54,7 @@ export default function AdminLogin() {
       .eq("user_id", data.user.id)
       .eq("role", "admin");
 
-    const HARDCODED_ADMIN_EMAILS = ["searcherscholarship@gmail.com"];
-    const isHardcodedAdmin = HARDCODED_ADMIN_EMAILS.includes((data.user.email ?? "").toLowerCase());
-
-    if (!isHardcodedAdmin && (roleErr || !roles || roles.length === 0)) {
+    if (roleErr || !roles || roles.length === 0) {
       await supabase.auth.signOut();
       toast.error("You do not have admin access.");
       setSubmitting(false);
@@ -73,6 +64,10 @@ export default function AdminLogin() {
     toast.success("Welcome back, admin.");
     navigate("/admin", { replace: true });
   };
+
+  if (!authLoading && !roleLoading && user && isAdmin) {
+    return <Navigate to="/admin" replace />;
+  }
 
   return (
     <div

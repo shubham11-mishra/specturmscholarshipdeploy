@@ -85,7 +85,6 @@ const StudentDashboard = () => {
 
   const firstName = fullName?.split(" ")[0] || "there";
   const locText = [loc.suburb, loc.state].filter(Boolean).join(", ");
-  const yearText = yearLevel?.startsWith("Year") ? yearLevel : yearLevel ? `Year ${yearLevel}` : "";
 
   if (loading) {
     return (
@@ -111,7 +110,7 @@ const StudentDashboard = () => {
           {greeting()}, {firstName} <span className="ml-1">👋</span>
         </h1>
         <p className="mt-2 text-sm text-white/80">
-          {yearText || "Student"}{locText ? ` · ${locText}` : ""}
+          {yearLevel ? `Year ${yearLevel}` : "Student"}{locText ? ` · ${locText}` : ""}
         </p>
 
         <div className="mt-7 grid grid-cols-3 gap-6 max-w-xl">
@@ -187,7 +186,7 @@ const StudentDashboard = () => {
         </div>
 
         <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <SnapItem icon={GraduationCap} label="Year level" value={yearText || "Not set"} />
+          <SnapItem icon={GraduationCap} label="Year level" value={yearLevel ? `Year ${yearLevel}` : "Not set"} />
           <SnapItem
             icon={MapPin}
             label="Location"

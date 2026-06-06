@@ -1,6 +1,7 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
+import InterestSetupBanner from "@/components/InterestSetupBanner";
 import SchoolCard from "@/components/SchoolCard";
 import SchoolDetailModal from "@/components/SchoolDetailModal";
 import CategoryQuickLinks from "@/components/CategoryQuickLinks";
@@ -15,9 +16,8 @@ import {
   fetchConfidenceCounts,
   fetchCategoryCounts,
 } from "@/data/csvScholarships";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 
 type SortOption = "closing" | "name" | "suburb" | "confidence" | "value";
 type ConfidenceFilter = "all" | "high" | "medium" | "low";
@@ -45,75 +45,25 @@ const expandCategoryBuckets = (labels: string[]): string[] => {
   return [...out];
 };
 
-// Map a stored scholarship category value (or saved signup category) into the
-// curated bucket label shown in the sidebar. Returns the label if a match is
-// found, otherwise the original value.
-const CATEGORY_VALUE_TO_BUCKET: Record<string, string> = (() => {
-  const map: Record<string, string> = {};
-  CATEGORY_BUCKETS.forEach((b) => {
-    map[b.label.toLowerCase()] = b.label;
-    b.values.forEach((v) => (map[v.toLowerCase()] = b.label));
-  });
-  // common signup aliases
-  map["arts"] = "Arts";
-  map["music"] = "Arts";
-  map["sport"] = "Sports";
-  map["sports"] = "Sports";
-  map["general"] = "Financial Need";
-  map["financial need"] = "Financial Need";
-  return map;
-})();
+// Expand a user interest into the actual category values stored in DB
+const INTEREST_TO_CATEGORIES: Record<string, string[]> = {
+  academic: ["Academic"],
+  music: ["Music", "Performing Arts"],
+  sport: ["Sport", "Sports"],
+  general: ["General", "All Rounder", "Financial Need", "Leadership", "Cultural"],
+};
 
-const mapSignupCategoriesToBuckets = (cats: string[]): string[] => {
+const expandInterests = (interests: string[]): string[] => {
   const out = new Set<string>();
-  cats.forEach((c) => {
-    const b = CATEGORY_VALUE_TO_BUCKET[c.trim().toLowerCase()];
-    if (b) out.add(b);
+  interests.forEach((i) => {
+    const key = i.trim().toLowerCase();
+    (INTEREST_TO_CATEGORIES[key] ?? [i]).forEach((c) => out.add(c));
   });
   return [...out];
 };
 
-const mapGenderToFilters = (gender: string | null): string[] => {
-  if (!gender) return [];
-  const g = gender.toLowerCase();
-  if (g === "male" || g.startsWith("boy")) return ["Boys", "Co-ed"];
-  if (g === "female" || g.startsWith("girl")) return ["Girls", "Co-ed"];
-  return [];
-};
-
-const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
-
-// Normalize any state string (e.g. "Victoria", "vic", "New South Wales") to the
-// 2-3 letter abbreviation used in the scholarships table.
-const STATE_NAME_TO_ABBR: Record<string, string> = {
-  "new south wales": "NSW", nsw: "NSW",
-  "victoria": "VIC", vic: "VIC",
-  "queensland": "QLD", qld: "QLD",
-  "south australia": "SA", sa: "SA",
-  "western australia": "WA", wa: "WA",
-  "tasmania": "TAS", tas: "TAS",
-  "australian capital territory": "ACT", act: "ACT",
-  "northern territory": "NT", nt: "NT",
-};
-const normalizeState = (s: string | null | undefined): string | null => {
-  if (!s) return null;
-  return STATE_NAME_TO_ABBR[s.trim().toLowerCase()] ?? s.trim().toUpperCase();
-};
-
-const parseYearNumber = (yearLevel: string | null, applyingYearLevel: number | null): number | null => {
-  if (typeof applyingYearLevel === "number" && applyingYearLevel >= 3 && applyingYearLevel <= 12) {
-    return applyingYearLevel;
-  }
-  if (!yearLevel) return null;
-  const m = yearLevel.match(/\d+/);
-  if (!m) return null;
-  const n = parseInt(m[0], 10);
-  return n >= 3 && n <= 12 ? n : null;
-};
-
-
 const Index = () => {
-  const { user, yearLevel, location, profile } = useAuth();
+  const { user, interests, yearLevel, location } = useAuth();
   const navigate = useNavigate();
   const [rows, setRows] = useState<SchoolScholarship[]>([]);
   const [total, setTotal] = useState(0);
@@ -128,8 +78,7 @@ const Index = () => {
   const [categoryFilters, setCategoryFilters] = useState<string[]>([]);
   const [genderFilters, setGenderFilters] = useState<string[]>([]);
   const [valueTypeFilters, setValueTypeFilters] = useState<string[]>([]);
-  const [filtersInitialized, setFiltersInitialized] = useState(false);
-  const filtersInitRef = useRef(false);
+  const [showPersonalized, setShowPersonalized] = useState(true);
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<SchoolScholarship | null>(null);
   const [showResults, setShowResults] = useState(false);
@@ -145,46 +94,18 @@ const Index = () => {
   const [rawCategoryCounts, setRawCategoryCounts] = useState<Record<string, number>>({});
   const [giftedCount, setGiftedCount] = useState(0);
 
-  // Some managed invite links land on the site root after accepting. If that
-  // happens for an admin account that has not completed setup, continue the flow.
-  useEffect(() => {
-    if (!user) return;
-    let cancelled = false;
-    (async () => {
-      const hasCompletedAdminSetup = Boolean(user.user_metadata?.admin_password_set_at);
-      if (user.user_metadata?.admin_invite_pending === true && !hasCompletedAdminSetup) {
-        navigate("/reset-password", { replace: true });
-        return;
-      }
-
-      const wasCreatedFromInvite = Boolean(user.invited_at);
-      if (!wasCreatedFromInvite) return;
-
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "admin")
-        .limit(1);
-      if (!cancelled && roles && roles.length > 0 && !hasCompletedAdminSetup) {
-        navigate("/reset-password", { replace: true });
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [user, navigate]);
-
   // One-time: load filter options + counts
   useEffect(() => {
     fetchFilterOptions().then(setFilterOptions);
     fetchConfidenceCounts().then(setCounts);
     fetchCategoryCounts().then(setRawCategoryCounts);
-    supabase
-      .from("scholarships")
-      .select("*", { count: "exact", head: true })
-      .eq("dataset_type", "gifted_program")
-      .then(({ count }) => setGiftedCount(count ?? 0));
+    import("@/integrations/supabase/client").then(({ supabase }) =>
+      supabase
+        .from("scholarships")
+        .select("*", { count: "exact", head: true })
+        .eq("dataset_type", "gifted_program")
+        .then(({ count }) => setGiftedCount(count ?? 0))
+    );
   }, []);
 
   // Debounce search input
@@ -208,63 +129,33 @@ const Index = () => {
     return () => window.removeEventListener("hashchange", reveal);
   }, []);
 
-  // Pre-fill filters from the user's signup profile (one-time after profile loads).
-  // The user can still override / clear them via the sidebar.
-  useEffect(() => {
-    if (!user || filtersInitRef.current) return;
-    const hasProfile =
-      location.state ||
-      profile.gender ||
-      profile.preferredSectors.length ||
-      profile.scholarshipCategories.length;
-    if (!hasProfile) return;
-    filtersInitRef.current = true;
-
-    const userState = normalizeState(location.state);
-    if (userState) setStateFilters([userState]);
-    if (profile.preferredSectors.length) {
-      setSectorFilters(profile.preferredSectors.map(capitalize));
-    }
-    const g = mapGenderToFilters(profile.gender);
-    if (g.length) setGenderFilters(g);
-    const cats = mapSignupCategoriesToBuckets(profile.scholarshipCategories);
-    if (cats.length) setCategoryFilters(cats);
-
-    setFiltersInitialized(true);
-  }, [user, location.state, profile]);
-
   // Reset to page 0 whenever any filter/search changes
   useEffect(() => {
     setPage(0);
   }, [
     searchQuery, sortBy, confidenceFilter,
     sectorFilters, stateFilters, categoryFilters, genderFilters, valueTypeFilters,
+    showPersonalized,
   ]);
 
-  const yearLevelMin = useMemo(
-    () => parseYearNumber(yearLevel, profile.applyingYearLevel),
-    [yearLevel, profile.applyingYearLevel],
-  );
+  const interestCategories = useMemo(() => {
+    if (!user || interests.length === 0 || !showPersonalized || searchQuery) return undefined;
+    return expandInterests(interests);
+  }, [user, interests, showPersonalized, searchQuery]);
 
   // Fetch data when filters/search/sort/page change
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     const academicSelected = categoryFilters.includes("Academic");
-    // Strict geographic scoping: if the user hasn't picked any state filters,
-    // fall back to their profile state so results stay in their region instead
-    // of leaking other states (e.g. VIC user shouldn't see WA schools).
-    const userState = normalizeState(location.state);
-    const effectiveStates =
-      stateFilters.length > 0
-        ? stateFilters
-        : userState
-          ? [userState]
-          : [];
+    const effectiveStateFilters =
+      stateFilters.length === 0 && user && location.state && showPersonalized && !searchQuery
+        ? [location.state]
+        : stateFilters;
     fetchScholarshipsPage({
       search: searchQuery,
       confidence: confidenceFilter,
-      states: effectiveStates,
+      states: effectiveStateFilters,
       sectors: sectorFilters,
       categories: expandCategoryBuckets(categoryFilters),
       genders: genderFilters,
@@ -274,8 +165,8 @@ const Index = () => {
         : categoryFilters.length === 0 || academicSelected
           ? ["scholarship", "gifted_program"]
           : ["scholarship"],
-      yearLevelMin: searchQuery ? null : yearLevelMin,
-
+      interestCategories,
+      yearLevel: showPersonalized && !searchQuery ? yearLevel : null,
       sortBy,
       page,
       pageSize: PAGE_SIZE,
@@ -290,10 +181,8 @@ const Index = () => {
   }, [
     searchQuery, sortBy, confidenceFilter, page,
     sectorFilters, stateFilters, categoryFilters, genderFilters, valueTypeFilters,
-    yearLevelMin, location.state,
+    interestCategories, yearLevel, showPersonalized, user, location.state,
   ]);
-
-
 
   const handleSearch = () => {
     setSearchQuery(searchInput.trim());
@@ -349,15 +238,26 @@ const Index = () => {
             navigate("/sign-in");
             return;
           }
-          setShowResults(true);
-          requestAnimationFrame(() => {
-            document.getElementById("results-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
-          });
+          if (interests.length === 0) {
+            requestAnimationFrame(() => {
+              const el = document.getElementById("interest-setup");
+              el?.scrollIntoView({ behavior: "smooth", block: "center" });
+              el?.classList.add("ring-2", "ring-primary/60", "rounded-2xl");
+              setTimeout(() => el?.classList.remove("ring-2", "ring-primary/60", "rounded-2xl"), 2200);
+            });
+            return;
+          }
+          document.getElementById("results-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
         }}
       />
 
-      {showResults && user && <NearbySchoolsSection />}
+      {showResults && user && interests.length === 0 && (
+        <div id="interest-setup" className="transition-all">
+          <InterestSetupBanner />
+        </div>
+      )}
 
+      {showResults && user && <NearbySchoolsSection />}
 
       <CategoryQuickLinks
         active={categoryFilters}
@@ -416,13 +316,40 @@ const Index = () => {
                     {total === 1 ? "Opportunity" : "Opportunities"}
                   </span>
                 </div>
-                {filtersInitialized && (
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                    Pre-filtered from your profile
-                  </span>
+                {user && interests.length > 0 && (
+                  <div
+                    role="tablist"
+                    aria-label="Opportunity scope"
+                    className="inline-flex items-center rounded-full border border-border bg-card/60 p-0.5 shadow-sm"
+                  >
+                    <button
+                      role="tab"
+                      aria-selected={showPersonalized}
+                      onClick={() => setShowPersonalized(true)}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] cursor-pointer border-none transition-all ${
+                        showPersonalized
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "bg-transparent text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      My Interests
+                    </button>
+                    <button
+                      role="tab"
+                      aria-selected={!showPersonalized}
+                      onClick={() => setShowPersonalized(false)}
+                      className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] cursor-pointer border-none transition-all ${
+                        !showPersonalized
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "bg-transparent text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      All Opportunities
+                    </button>
+                  </div>
                 )}
               </div>
-
               <div className="flex items-center gap-2">
                 <label htmlFor="sort-by" className="text-[11px] font-semibold tracking-[0.12em] uppercase text-muted-foreground">
                   Sort

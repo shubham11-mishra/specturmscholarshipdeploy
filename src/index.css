@@ -104,9 +104,6 @@
   * {
     @apply border-border;
   }
-  html {
-    font-family: var(--font-body);
-  }
   body {
     @apply text-foreground;
     background: var(--gradient-canvas);
@@ -118,13 +115,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  /* Force Century Gothic across every element, including form controls
-     (button/input/select/textarea) which don't inherit font-family by default. */
-  *, *::before, *::after,
-  button, input, select, textarea, optgroup {
-    font-family: var(--font-body);
-  }
-  h1, h2, h3, h4, h5, h6, .font-display {
+  h1, h2, h3, .font-display {
     font-family: var(--font-display);
     letter-spacing: -0.01em;
   }
