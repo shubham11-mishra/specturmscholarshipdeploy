@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [fullName, setFullName] = useState<string | null>(null);
   const [profile, setProfile] = useState<SignupProfile>(EMPTY_PROFILE);
 
-  const fetchLocation = async (userId: string) => {
+  const fetchLocation = async (userId: string, sessionUser?: User) => {
     const { data, error } = await supabase
       .from("profiles")
       .select("state, postcode, suburb, year_level, full_name, gender, preferred_sectors, scholarship_categories, applying_year_level")
@@ -72,15 +72,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error("Error loading user profile location:", error);
       return;
     }
+    const meta = sessionUser?.user_metadata ?? {};
     setLocation({
-      state: data?.state ?? null,
-      postcode: data?.postcode ?? null,
-      suburb: data?.suburb ?? null,
+      state: data?.state ?? (typeof meta.state === "string" ? meta.state : null),
+      postcode: data?.postcode ?? (typeof meta.postcode === "string" ? meta.postcode : null),
+      suburb: data?.suburb ?? (typeof meta.suburb === "string" ? meta.suburb : null),
     });
-    setYearLevel(data?.year_level ?? null);
-    setFullName(data?.full_name ?? null);
+    setYearLevel(data?.year_level ?? (typeof meta.year_level === "string" ? meta.year_level : null));
+    setFullName(
+      data?.full_name ??
+        (typeof meta.full_name === "string" ? meta.full_name : null) ??
+        (typeof meta.name === "string" ? meta.name : null)
+    );
     setProfile({
-      gender: data?.gender ?? null,
+      gender: data?.gender ?? (typeof meta.gender === "string" ? meta.gender : null),
       preferredSectors: Array.isArray(data?.preferred_sectors) ? (data!.preferred_sectors as string[]) : [],
       scholarshipCategories: Array.isArray(data?.scholarship_categories) ? (data!.scholarship_categories as string[]) : [],
       applyingYearLevel: typeof data?.applying_year_level === "number" ? data!.applying_year_level : null,
@@ -132,7 +137,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const ensureUserSetup = (sessionUser: User) => {
     setTimeout(() => syncInterestsFromMetadata(sessionUser), 0);
-    setTimeout(() => fetchLocation(sessionUser.id), 0);
+    setTimeout(() => fetchLocation(sessionUser.id, sessionUser), 0);
     setTimeout(() => ensureWheelScoresForUser(sessionUser.id, sessionUser.user_metadata), 0);
   };
 
