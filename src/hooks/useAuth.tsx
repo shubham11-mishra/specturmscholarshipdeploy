@@ -10,6 +10,13 @@ interface UserLocation {
   suburb: string | null;
 }
 
+interface SignupProfile {
+  gender: string | null;
+  preferredSectors: string[];
+  scholarshipCategories: string[];
+  applyingYearLevel: number | null;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -18,9 +25,17 @@ interface AuthContextType {
   location: UserLocation;
   yearLevel: string | null;
   fullName: string | null;
+  profile: SignupProfile;
   signOut: () => Promise<void>;
   refreshInterests: () => Promise<void>;
 }
+
+const EMPTY_PROFILE: SignupProfile = {
+  gender: null,
+  preferredSectors: [],
+  scholarshipCategories: [],
+  applyingYearLevel: null,
+};
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -30,6 +45,7 @@ const AuthContext = createContext<AuthContextType>({
   location: { state: null, postcode: null, suburb: null },
   yearLevel: null,
   fullName: null,
+  profile: EMPTY_PROFILE,
   signOut: async () => {},
   refreshInterests: async () => {},
 });
@@ -44,11 +60,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [location, setLocation] = useState<UserLocation>({ state: null, postcode: null, suburb: null });
   const [yearLevel, setYearLevel] = useState<string | null>(null);
   const [fullName, setFullName] = useState<string | null>(null);
+  const [profile, setProfile] = useState<SignupProfile>(EMPTY_PROFILE);
 
   const fetchLocation = async (userId: string) => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("state, postcode, suburb, year_level, full_name")
+      .select("state, postcode, suburb, year_level, full_name, gender, preferred_sectors, scholarship_categories, applying_year_level")
       .eq("id", userId)
       .maybeSingle();
     if (error) {
@@ -62,6 +79,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
     setYearLevel(data?.year_level ?? null);
     setFullName(data?.full_name ?? null);
+    setProfile({
+      gender: data?.gender ?? null,
+      preferredSectors: Array.isArray(data?.preferred_sectors) ? (data!.preferred_sectors as string[]) : [],
+      scholarshipCategories: Array.isArray(data?.scholarship_categories) ? (data!.scholarship_categories as string[]) : [],
+      applyingYearLevel: typeof data?.applying_year_level === "number" ? data!.applying_year_level : null,
+    });
   };
 
   const fetchInterests = async (userId: string) => {
@@ -125,6 +148,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setLocation({ state: null, postcode: null, suburb: null });
           setYearLevel(null);
           setFullName(null);
+          setProfile(EMPTY_PROFILE);
         }
         setLoading(false);
       }
@@ -148,11 +172,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLocation({ state: null, postcode: null, suburb: null });
     setYearLevel(null);
     setFullName(null);
+    setProfile(EMPTY_PROFILE);
     toast.success("Signed out successfully");
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, interests, location, yearLevel, fullName, signOut, refreshInterests }}>
+    <AuthContext.Provider value={{ user, session, loading, interests, location, yearLevel, fullName, profile, signOut, refreshInterests }}>
       {children}
     </AuthContext.Provider>
   );

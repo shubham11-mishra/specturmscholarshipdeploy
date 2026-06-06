@@ -1,7 +1,6 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
-import InterestSetupBanner from "@/components/InterestSetupBanner";
 import SchoolCard from "@/components/SchoolCard";
 import SchoolDetailModal from "@/components/SchoolDetailModal";
 import CategoryQuickLinks from "@/components/CategoryQuickLinks";
@@ -16,7 +15,7 @@ import {
   fetchConfidenceCounts,
   fetchCategoryCounts,
 } from "@/data/csvScholarships";
-import { Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -46,25 +45,58 @@ const expandCategoryBuckets = (labels: string[]): string[] => {
   return [...out];
 };
 
-// Expand a user interest into the actual category values stored in DB
-const INTEREST_TO_CATEGORIES: Record<string, string[]> = {
-  academic: ["Academic"],
-  music: ["Music", "Performing Arts"],
-  sport: ["Sport", "Sports"],
-  general: ["General", "All Rounder", "Financial Need", "Leadership", "Cultural"],
-};
+// Map a stored scholarship category value (or saved signup category) into the
+// curated bucket label shown in the sidebar. Returns the label if a match is
+// found, otherwise the original value.
+const CATEGORY_VALUE_TO_BUCKET: Record<string, string> = (() => {
+  const map: Record<string, string> = {};
+  CATEGORY_BUCKETS.forEach((b) => {
+    map[b.label.toLowerCase()] = b.label;
+    b.values.forEach((v) => (map[v.toLowerCase()] = b.label));
+  });
+  // common signup aliases
+  map["arts"] = "Arts";
+  map["music"] = "Arts";
+  map["sport"] = "Sports";
+  map["sports"] = "Sports";
+  map["general"] = "Financial Need";
+  map["financial need"] = "Financial Need";
+  return map;
+})();
 
-const expandInterests = (interests: string[]): string[] => {
+const mapSignupCategoriesToBuckets = (cats: string[]): string[] => {
   const out = new Set<string>();
-  interests.forEach((i) => {
-    const key = i.trim().toLowerCase();
-    (INTEREST_TO_CATEGORIES[key] ?? [i]).forEach((c) => out.add(c));
+  cats.forEach((c) => {
+    const b = CATEGORY_VALUE_TO_BUCKET[c.trim().toLowerCase()];
+    if (b) out.add(b);
   });
   return [...out];
 };
 
+const mapGenderToFilters = (gender: string | null): string[] => {
+  if (!gender) return [];
+  const g = gender.toLowerCase();
+  if (g === "male" || g.startsWith("boy")) return ["Boys", "Co-ed"];
+  if (g === "female" || g.startsWith("girl")) return ["Girls", "Co-ed"];
+  return [];
+};
+
+const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
+
+const parseYearNumber = (yearLevel: string | null, applyingYearLevel: number | null): number | null => {
+  if (typeof applyingYearLevel === "number" && applyingYearLevel >= 3 && applyingYearLevel <= 12) {
+    return applyingYearLevel;
+  }
+  if (!yearLevel) return null;
+  const m = yearLevel.match(/\d+/);
+  if (!m) return null;
+  const n = parseInt(m[0], 10);
+  return n >= 3 && n <= 12 ? n : null;
+};
+
+
 const Index = () => {
-  const { user, interests, yearLevel, location } = useAuth();
+  const { user, yearLevel, location, profile } = useAuth();
   const navigate = useNavigate();
   const [rows, setRows] = useState<SchoolScholarship[]>([]);
   const [total, setTotal] = useState(0);
@@ -79,7 +111,8 @@ const Index = () => {
   const [categoryFilters, setCategoryFilters] = useState<string[]>([]);
   const [genderFilters, setGenderFilters] = useState<string[]>([]);
   const [valueTypeFilters, setValueTypeFilters] = useState<string[]>([]);
-  const [showPersonalized, setShowPersonalized] = useState(true);
+  const [filtersInitialized, setFiltersInitialized] = useState(false);
+  const filtersInitRef = useRef(false);
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<SchoolScholarship | null>(null);
   const [showResults, setShowResults] = useState(false);
@@ -158,33 +191,52 @@ const Index = () => {
     return () => window.removeEventListener("hashchange", reveal);
   }, []);
 
+  // Pre-fill filters from the user's signup profile (one-time after profile loads).
+  // The user can still override / clear them via the sidebar.
+  useEffect(() => {
+    if (!user || filtersInitRef.current) return;
+    const hasProfile =
+      location.state ||
+      profile.gender ||
+      profile.preferredSectors.length ||
+      profile.scholarshipCategories.length;
+    if (!hasProfile) return;
+    filtersInitRef.current = true;
+
+    if (location.state) setStateFilters([location.state]);
+    if (profile.preferredSectors.length) {
+      setSectorFilters(profile.preferredSectors.map(capitalize));
+    }
+    const g = mapGenderToFilters(profile.gender);
+    if (g.length) setGenderFilters(g);
+    const cats = mapSignupCategoriesToBuckets(profile.scholarshipCategories);
+    if (cats.length) setCategoryFilters(cats);
+
+    setFiltersInitialized(true);
+  }, [user, location.state, profile]);
+
   // Reset to page 0 whenever any filter/search changes
   useEffect(() => {
     setPage(0);
   }, [
     searchQuery, sortBy, confidenceFilter,
     sectorFilters, stateFilters, categoryFilters, genderFilters, valueTypeFilters,
-    showPersonalized,
   ]);
 
-  const interestCategories = useMemo(() => {
-    if (!user || interests.length === 0 || !showPersonalized || searchQuery) return undefined;
-    return expandInterests(interests);
-  }, [user, interests, showPersonalized, searchQuery]);
+  const yearLevelMin = useMemo(
+    () => parseYearNumber(yearLevel, profile.applyingYearLevel),
+    [yearLevel, profile.applyingYearLevel],
+  );
 
   // Fetch data when filters/search/sort/page change
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     const academicSelected = categoryFilters.includes("Academic");
-    const effectiveStateFilters =
-      stateFilters.length === 0 && user && location.state && showPersonalized && !searchQuery
-        ? [location.state]
-        : stateFilters;
     fetchScholarshipsPage({
       search: searchQuery,
       confidence: confidenceFilter,
-      states: effectiveStateFilters,
+      states: stateFilters,
       sectors: sectorFilters,
       categories: expandCategoryBuckets(categoryFilters),
       genders: genderFilters,
@@ -194,8 +246,7 @@ const Index = () => {
         : categoryFilters.length === 0 || academicSelected
           ? ["scholarship", "gifted_program"]
           : ["scholarship"],
-      interestCategories,
-      yearLevel: showPersonalized && !searchQuery ? yearLevel : null,
+      yearLevelMin: searchQuery ? null : yearLevelMin,
       sortBy,
       page,
       pageSize: PAGE_SIZE,
@@ -210,8 +261,9 @@ const Index = () => {
   }, [
     searchQuery, sortBy, confidenceFilter, page,
     sectorFilters, stateFilters, categoryFilters, genderFilters, valueTypeFilters,
-    interestCategories, yearLevel, showPersonalized, user, location.state,
+    yearLevelMin,
   ]);
+
 
   const handleSearch = () => {
     setSearchQuery(searchInput.trim());
@@ -267,26 +319,15 @@ const Index = () => {
             navigate("/sign-in");
             return;
           }
-          if (interests.length === 0) {
-            requestAnimationFrame(() => {
-              const el = document.getElementById("interest-setup");
-              el?.scrollIntoView({ behavior: "smooth", block: "center" });
-              el?.classList.add("ring-2", "ring-primary/60", "rounded-2xl");
-              setTimeout(() => el?.classList.remove("ring-2", "ring-primary/60", "rounded-2xl"), 2200);
-            });
-            return;
-          }
-          document.getElementById("results-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          setShowResults(true);
+          requestAnimationFrame(() => {
+            document.getElementById("results-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          });
         }}
       />
 
-      {showResults && user && interests.length === 0 && (
-        <div id="interest-setup" className="transition-all">
-          <InterestSetupBanner />
-        </div>
-      )}
-
       {showResults && user && <NearbySchoolsSection />}
+
 
       <CategoryQuickLinks
         active={categoryFilters}
@@ -345,40 +386,13 @@ const Index = () => {
                     {total === 1 ? "Opportunity" : "Opportunities"}
                   </span>
                 </div>
-                {user && interests.length > 0 && (
-                  <div
-                    role="tablist"
-                    aria-label="Opportunity scope"
-                    className="inline-flex items-center rounded-full border border-border bg-card/60 p-0.5 shadow-sm"
-                  >
-                    <button
-                      role="tab"
-                      aria-selected={showPersonalized}
-                      onClick={() => setShowPersonalized(true)}
-                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] cursor-pointer border-none transition-all ${
-                        showPersonalized
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "bg-transparent text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      My Interests
-                    </button>
-                    <button
-                      role="tab"
-                      aria-selected={!showPersonalized}
-                      onClick={() => setShowPersonalized(false)}
-                      className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] cursor-pointer border-none transition-all ${
-                        !showPersonalized
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "bg-transparent text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      All Opportunities
-                    </button>
-                  </div>
+                {filtersInitialized && (
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    Pre-filtered from your profile
+                  </span>
                 )}
               </div>
+
               <div className="flex items-center gap-2">
                 <label htmlFor="sort-by" className="text-[11px] font-semibold tracking-[0.12em] uppercase text-muted-foreground">
                   Sort
