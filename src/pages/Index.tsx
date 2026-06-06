@@ -83,6 +83,23 @@ const mapGenderToFilters = (gender: string | null): string[] => {
 
 const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
 
+// Normalize any state string (e.g. "Victoria", "vic", "New South Wales") to the
+// 2-3 letter abbreviation used in the scholarships table.
+const STATE_NAME_TO_ABBR: Record<string, string> = {
+  "new south wales": "NSW", nsw: "NSW",
+  "victoria": "VIC", vic: "VIC",
+  "queensland": "QLD", qld: "QLD",
+  "south australia": "SA", sa: "SA",
+  "western australia": "WA", wa: "WA",
+  "tasmania": "TAS", tas: "TAS",
+  "australian capital territory": "ACT", act: "ACT",
+  "northern territory": "NT", nt: "NT",
+};
+const normalizeState = (s: string | null | undefined): string | null => {
+  if (!s) return null;
+  return STATE_NAME_TO_ABBR[s.trim().toLowerCase()] ?? s.trim().toUpperCase();
+};
+
 const parseYearNumber = (yearLevel: string | null, applyingYearLevel: number | null): number | null => {
   if (typeof applyingYearLevel === "number" && applyingYearLevel >= 3 && applyingYearLevel <= 12) {
     return applyingYearLevel;
@@ -203,7 +220,8 @@ const Index = () => {
     if (!hasProfile) return;
     filtersInitRef.current = true;
 
-    if (location.state) setStateFilters([location.state]);
+    const userState = normalizeState(location.state);
+    if (userState) setStateFilters([userState]);
     if (profile.preferredSectors.length) {
       setSectorFilters(profile.preferredSectors.map(capitalize));
     }
@@ -236,11 +254,12 @@ const Index = () => {
     // Strict geographic scoping: if the user hasn't picked any state filters,
     // fall back to their profile state so results stay in their region instead
     // of leaking other states (e.g. VIC user shouldn't see WA schools).
+    const userState = normalizeState(location.state);
     const effectiveStates =
       stateFilters.length > 0
         ? stateFilters
-        : location.state
-          ? [location.state]
+        : userState
+          ? [userState]
           : [];
     fetchScholarshipsPage({
       search: searchQuery,
