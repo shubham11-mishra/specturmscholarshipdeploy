@@ -78,7 +78,7 @@ const Index = () => {
   const [categoryFilters, setCategoryFilters] = useState<string[]>([]);
   const [genderFilters, setGenderFilters] = useState<string[]>([]);
   const [valueTypeFilters, setValueTypeFilters] = useState<string[]>([]);
-  const [showPersonalized, setShowPersonalized] = useState(true);
+  
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<SchoolScholarship | null>(null);
   const [showResults, setShowResults] = useState(false);
