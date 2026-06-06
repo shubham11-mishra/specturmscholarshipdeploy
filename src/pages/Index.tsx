@@ -233,10 +233,19 @@ const Index = () => {
     let cancelled = false;
     setLoading(true);
     const academicSelected = categoryFilters.includes("Academic");
+    // Strict geographic scoping: if the user hasn't picked any state filters,
+    // fall back to their profile state so results stay in their region instead
+    // of leaking other states (e.g. VIC user shouldn't see WA schools).
+    const effectiveStates =
+      stateFilters.length > 0
+        ? stateFilters
+        : location.state
+          ? [location.state]
+          : [];
     fetchScholarshipsPage({
       search: searchQuery,
       confidence: confidenceFilter,
-      states: stateFilters,
+      states: effectiveStates,
       sectors: sectorFilters,
       categories: expandCategoryBuckets(categoryFilters),
       genders: genderFilters,
@@ -247,6 +256,7 @@ const Index = () => {
           ? ["scholarship", "gifted_program"]
           : ["scholarship"],
       yearLevelMin: searchQuery ? null : yearLevelMin,
+
       sortBy,
       page,
       pageSize: PAGE_SIZE,
