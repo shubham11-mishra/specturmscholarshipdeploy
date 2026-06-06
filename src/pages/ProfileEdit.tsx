@@ -44,12 +44,13 @@ const ProfileEdit = () => {
         supabase.from("profiles").select("full_name, state, postcode, suburb, year_level, current_school_name").eq("id", user.id).maybeSingle(),
         supabase.from("user_interests").select("category").eq("user_id", user.id),
       ]);
-      setFullName(profile?.full_name ?? "");
-      setStateCode(profile?.state ?? "");
-      setPostcode(profile?.postcode ?? "");
-      setSuburb(profile?.suburb ?? "");
-      setYearLevel(profile?.year_level ?? "");
-      setSchoolName(profile?.current_school_name ?? "");
+      const metaName = (user.user_metadata?.full_name as string | undefined) ?? "";
+      setFullName(profile?.full_name ?? metaName ?? "");
+      setStateCode(profile?.state ?? (user.user_metadata?.state as string | undefined) ?? "");
+      setPostcode(profile?.postcode ?? (user.user_metadata?.postcode as string | undefined) ?? "");
+      setSuburb(profile?.suburb ?? (user.user_metadata?.suburb as string | undefined) ?? "");
+      setYearLevel(profile?.year_level ?? (user.user_metadata?.year_level as string | undefined) ?? "");
+      setSchoolName(profile?.current_school_name ?? (user.user_metadata?.current_school_name as string | undefined) ?? "");
       setSelectedCategories(interests?.map((i) => i.category) ?? []);
       setInitializing(false);
     })();

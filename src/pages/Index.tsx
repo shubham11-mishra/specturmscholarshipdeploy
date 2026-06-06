@@ -16,7 +16,7 @@ import {
   fetchConfidenceCounts,
   fetchCategoryCounts,
 } from "@/data/csvScholarships";
-import { Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 type SortOption = "closing" | "name" | "suburb" | "confidence" | "value";
@@ -78,7 +78,7 @@ const Index = () => {
   const [categoryFilters, setCategoryFilters] = useState<string[]>([]);
   const [genderFilters, setGenderFilters] = useState<string[]>([]);
   const [valueTypeFilters, setValueTypeFilters] = useState<string[]>([]);
-  const [showPersonalized, setShowPersonalized] = useState(true);
+  
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<SchoolScholarship | null>(null);
   const [showResults, setShowResults] = useState(false);
@@ -135,13 +135,12 @@ const Index = () => {
   }, [
     searchQuery, sortBy, confidenceFilter,
     sectorFilters, stateFilters, categoryFilters, genderFilters, valueTypeFilters,
-    showPersonalized,
   ]);
 
   const interestCategories = useMemo(() => {
-    if (!user || interests.length === 0 || !showPersonalized || searchQuery) return undefined;
+    if (!user || interests.length === 0 || categoryFilters.length > 0 || searchQuery) return undefined;
     return expandInterests(interests);
-  }, [user, interests, showPersonalized, searchQuery]);
+  }, [user, interests, categoryFilters, searchQuery]);
 
   // Fetch data when filters/search/sort/page change
   useEffect(() => {
@@ -166,7 +165,7 @@ const Index = () => {
           ? ["scholarship", "gifted_program"]
           : ["scholarship"],
       interestCategories,
-      yearLevel: showPersonalized && !searchQuery ? yearLevel : null,
+      yearLevel: user && !searchQuery ? yearLevel : null,
       sortBy,
       page,
       pageSize: PAGE_SIZE,
@@ -181,7 +180,7 @@ const Index = () => {
   }, [
     searchQuery, sortBy, confidenceFilter, page,
     sectorFilters, stateFilters, categoryFilters, genderFilters, valueTypeFilters,
-    interestCategories, yearLevel, showPersonalized, user, location.state,
+    interestCategories, yearLevel, user, location.state,
   ]);
 
   const handleSearch = () => {
@@ -316,39 +315,6 @@ const Index = () => {
                     {total === 1 ? "Opportunity" : "Opportunities"}
                   </span>
                 </div>
-                {user && interests.length > 0 && (
-                  <div
-                    role="tablist"
-                    aria-label="Opportunity scope"
-                    className="inline-flex items-center rounded-full border border-border bg-card/60 p-0.5 shadow-sm"
-                  >
-                    <button
-                      role="tab"
-                      aria-selected={showPersonalized}
-                      onClick={() => setShowPersonalized(true)}
-                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] cursor-pointer border-none transition-all ${
-                        showPersonalized
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "bg-transparent text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      My Interests
-                    </button>
-                    <button
-                      role="tab"
-                      aria-selected={!showPersonalized}
-                      onClick={() => setShowPersonalized(false)}
-                      className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] cursor-pointer border-none transition-all ${
-                        !showPersonalized
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "bg-transparent text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      All Opportunities
-                    </button>
-                  </div>
-                )}
               </div>
               <div className="flex items-center gap-2">
                 <label htmlFor="sort-by" className="text-[11px] font-semibold tracking-[0.12em] uppercase text-muted-foreground">
