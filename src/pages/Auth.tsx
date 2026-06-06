@@ -356,6 +356,7 @@ const Auth = () => {
     setError(""); setSubmitting(true);
     try {
       let userId: string | undefined = user?.id;
+      let signedUpUser = user ?? null;
 
       // Only run signUp for brand-new email/password signups.
       if (!userId) {
@@ -395,10 +396,11 @@ const Auth = () => {
         });
         if (error && !error.message.toLowerCase().includes("rate limit")) throw error;
         userId = data?.session?.user?.id ?? data?.user?.id;
+        signedUpUser = data?.session?.user ?? data?.user ?? null;
       }
 
-      if (data?.session?.user) {
-        const { error: profileError } = await saveOwnProfile(data.session.user, {
+      if (signedUpUser) {
+        const { error: profileError } = await saveOwnProfile(signedUpUser, {
           full_name: `${firstName} ${lastName}`.trim() || null,
           last_name: lastName || null,
           gender: gender || null,
