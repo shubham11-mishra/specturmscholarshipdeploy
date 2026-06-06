@@ -254,11 +254,12 @@ const Index = () => {
     // Strict geographic scoping: if the user hasn't picked any state filters,
     // fall back to their profile state so results stay in their region instead
     // of leaking other states (e.g. VIC user shouldn't see WA schools).
+    const userState = normalizeState(location.state);
     const effectiveStates =
       stateFilters.length > 0
         ? stateFilters
-        : location.state
-          ? [location.state]
+        : userState
+          ? [userState]
           : [];
     fetchScholarshipsPage({
       search: searchQuery,
