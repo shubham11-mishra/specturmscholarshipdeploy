@@ -271,8 +271,9 @@ const Index = () => {
   }, [
     searchQuery, sortBy, confidenceFilter, page,
     sectorFilters, stateFilters, categoryFilters, genderFilters, valueTypeFilters,
-    yearLevelMin,
+    yearLevelMin, location.state,
   ]);
+
 
 
   const handleSearch = () => {
