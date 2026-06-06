@@ -149,7 +149,7 @@ const Index = () => {
     setLoading(true);
     const academicSelected = categoryFilters.includes("Academic");
     const effectiveStateFilters =
-      stateFilters.length === 0 && user && location.state && showPersonalized && !searchQuery
+      stateFilters.length === 0 && user && location.state
         ? [location.state]
         : stateFilters;
     fetchScholarshipsPage({
