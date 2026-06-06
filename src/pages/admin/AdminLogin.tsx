@@ -60,7 +60,10 @@ export default function AdminLogin() {
       .eq("user_id", data.user.id)
       .eq("role", "admin");
 
-    if (roleErr || !roles || roles.length === 0) {
+    const HARDCODED_ADMIN_EMAILS = ["searcherscholarship@gmail.com"];
+    const isHardcodedAdmin = HARDCODED_ADMIN_EMAILS.includes((data.user.email ?? "").toLowerCase());
+
+    if (!isHardcodedAdmin && (roleErr || !roles || roles.length === 0)) {
       await supabase.auth.signOut();
       toast.error("You do not have admin access.");
       setSubmitting(false);
