@@ -28,7 +28,7 @@ const getInitials = (name?: string | null) =>
 type Props = { className?: string; onNavigate?: () => void };
 
 const Sidebar = ({ className, onNavigate }: Props) => {
-  const { fullName, location: loc, yearLevel } = useAuth();
+  const { fullName, location: loc, yearLevel, avatarUrl } = useAuth();
   const { count: shortlistCount } = useShortlist();
   const { isAdmin, isParent } = useUserRole();
 
