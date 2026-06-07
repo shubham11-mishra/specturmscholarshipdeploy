@@ -175,26 +175,12 @@ const Auth = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
-  // Profile completeness — 0..100
-  const completeness = useMemo(() => {
-    let pts = 0; let total = 0;
-    const inc = (cond: boolean, w = 1) => { total += w; if (cond) pts += w; };
-    // step 1 required
-    inc(!!firstName); inc(!!lastName); inc(!!gender); inc(!!yearLevel);
-    inc(!!schoolType); inc(/^\d{4}$/.test(postcode)); inc(!!stateCode); inc(!!suburb);
-    // step 1 optional
-    inc(!!currentSchoolName, 0.5);
-    // step 2 — wheel always present (default 5); reward if any non-5
-    inc(Object.values(wheel).some((v) => v !== 5));
-    // step 3
-    inc(extras.length > 0); inc(isIndigenous || isRural || faithToggle, 0.5);
-    inc(financial !== "prefer_not_to_say", 0.5);
-    // step 4 optional
-    inc(scholarshipCats.length > 0, 0.5);
-    return Math.round((pts / total) * 100);
-  }, [firstName, lastName, gender, yearLevel, schoolType, postcode, stateCode, suburb,
-      currentSchoolName, wheel, extras, isIndigenous, isRural, faithToggle,
-      financial, scholarshipCats]);
+  // Average match strength across top matches — 0..100
+  const avgMatchScore = useMemo(() => {
+    if (!topMatches.length) return 0;
+    const sum = topMatches.reduce((acc, m) => acc + (m.matchScore || 0), 0);
+    return Math.round(sum / topMatches.length);
+  }, [topMatches]);
 
   // When a user lands here authenticated (e.g. via Google), check if they still
   // need to complete onboarding. If yes, drop them into the wizard starting at
@@ -783,13 +769,13 @@ const Auth = () => {
                 <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
                   <circle cx="50" cy="50" r="44" fill="none" stroke="hsl(var(--secondary))" strokeWidth="6" />
                   <circle cx="50" cy="50" r="44" fill="none" stroke="hsl(var(--primary))" strokeWidth="6"
-                    strokeDasharray={`${(2 * Math.PI * 44 * completeness) / 100} ${2 * Math.PI * 44}`}
+                    strokeDasharray={`${(2 * Math.PI * 44 * avgMatchScore) / 100} ${2 * Math.PI * 44}`}
                     strokeLinecap="round"
                     style={{ transition: "stroke-dasharray 600ms ease" }} />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <div className="font-display text-4xl font-extrabold text-foreground">{completeness}%</div>
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Profile complete</div>
+                  <div className="font-display text-4xl font-extrabold text-foreground">{avgMatchScore}%</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Avg match strength</div>
                 </div>
               </div>
               <p className="text-muted-foreground mb-4 text-sm">Based on your profile, here's what we found.</p>
