@@ -331,7 +331,13 @@ export async function fetchFilterOptions(): Promise<{
 }
 
 export async function fetchConfidenceCounts(): Promise<{ all: number; high: number; medium: number; low: number }> {
-  const base = () => supabase.from("scholarships").select("*", { count: "exact", head: true }).neq("scholarship_confidence", "not_found");
+  const today = new Date().toISOString().slice(0, 10);
+  const base = () =>
+    supabase
+      .from("scholarships")
+      .select("*", { count: "exact", head: true })
+      .neq("scholarship_confidence", "not_found")
+      .or(`application_close_date.is.null,application_close_date.gte.${today}`);
   const [all, high, medium, low] = await Promise.all([
     base(),
     base().eq("scholarship_confidence", "high"),
@@ -346,8 +352,9 @@ export async function fetchConfidenceCounts(): Promise<{ all: number; high: numb
   };
 }
 
-// Returns total count per raw `category` value, excluding not_found
+// Returns total count per raw `category` value, excluding not_found and closed scholarships
 export async function fetchCategoryCounts(): Promise<Record<string, number>> {
+  const today = new Date().toISOString().slice(0, 10);
   const counts: Record<string, number> = {};
   let from = 0;
   const pageSize = 1000;
@@ -356,6 +363,7 @@ export async function fetchCategoryCounts(): Promise<Record<string, number>> {
       .from("scholarships")
       .select("category")
       .neq("scholarship_confidence", "not_found")
+      .or(`application_close_date.is.null,application_close_date.gte.${today}`)
       .range(from, from + pageSize - 1);
     if (error || !data) break;
     data.forEach((r: any) => {
@@ -367,6 +375,7 @@ export async function fetchCategoryCounts(): Promise<Record<string, number>> {
   }
   return counts;
 }
+
 
 // Kept for Shortlist page — loads only the user's shortlisted ids.
 // Supports two id formats stored historically:
