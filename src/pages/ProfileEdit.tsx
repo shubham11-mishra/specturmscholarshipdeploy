@@ -54,10 +54,51 @@ const ProfileEdit = () => {
       setSuburb(profile?.suburb ?? (user.user_metadata?.suburb as string | undefined) ?? "");
       setYearLevel(profile?.year_level ?? (user.user_metadata?.year_level as string | undefined) ?? "");
       setSchoolName(profile?.current_school_name ?? (user.user_metadata?.current_school_name as string | undefined) ?? "");
+      setAvatarUrl(profile?.avatar_url ?? null);
       setSelectedCategories(interests?.map((i) => i.category) ?? []);
       setInitializing(false);
     })();
   }, [user]);
+
+  const handleAvatarFile = async (file: File) => {
+    if (!user) return;
+    if (!file.type.startsWith("image/")) return toast.error("Please choose an image file.");
+    if (file.size > 5 * 1024 * 1024) return toast.error("Image must be under 5MB.");
+    setUploadingAvatar(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, cacheControl: "3600" });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      const publicUrl = pub.publicUrl;
+      const { error: updErr } = await (supabase.from("profiles") as any).update({ avatar_url: publicUrl }).eq("id", user.id);
+      if (updErr) throw updErr;
+      setAvatarUrl(publicUrl);
+      await refreshProfile();
+      toast.success("Profile picture updated.");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to upload picture.");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (!user) return;
+    setUploadingAvatar(true);
+    try {
+      const { error } = await (supabase.from("profiles") as any).update({ avatar_url: null }).eq("id", user.id);
+      if (error) throw error;
+      setAvatarUrl(null);
+      await refreshProfile();
+      toast.success("Profile picture removed.");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to remove picture.");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   const toggleCategory = (cat: string) => {
     setSelectedCategories((prev) => (prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]));
