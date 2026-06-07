@@ -250,11 +250,6 @@ const Index = () => {
         }}
       />
 
-      {showResults && user && interests.length === 0 && (
-        <div id="interest-setup" className="transition-all">
-          <InterestSetupBanner />
-        </div>
-      )}
 
       {showResults && user && <NearbySchoolsSection />}
 
