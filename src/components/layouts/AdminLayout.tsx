@@ -1,8 +1,9 @@
 import { ReactNode } from "react";
-import { Link, NavLink } from "react-router-dom";
-import { LayoutDashboard, FileQuestion, BookOpen, Users, Trophy, Wrench, ArrowLeft, ClipboardCheck } from "lucide-react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { LayoutDashboard, FileQuestion, BookOpen, Users, Trophy, Wrench, ArrowLeft, ClipboardCheck, LogOut } from "lucide-react";
 import AdminGuard from "@/components/admin/AdminGuard";
 import { cn } from "@/lib/utils";
+import { adminSignOut } from "@/lib/adminAuth";
 
 const adminNav = [
   { label: "Admin Dashboard", path: "/admin", icon: LayoutDashboard, end: true },
@@ -15,6 +16,11 @@ const adminNav = [
 ];
 
 const AdminLayout = ({ children, pageTitle }: { children: ReactNode; pageTitle: string }) => {
+  const navigate = useNavigate();
+  const handleSignOut = () => {
+    adminSignOut();
+    navigate("/sign-in", { replace: true });
+  };
   return (
     <AdminGuard>
       <div className="flex h-screen overflow-hidden bg-secondary/40">
@@ -61,11 +67,18 @@ const AdminLayout = ({ children, pageTitle }: { children: ReactNode; pageTitle: 
             ))}
           </nav>
 
-          <div className="px-3 pb-4 pt-3 border-t border-white/10">
+          <div className="px-3 pb-4 pt-3 border-t border-white/10 space-y-1">
             <Link to="/dashboard" className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-[12px] font-semibold text-white/70 hover:bg-white/5 hover:text-white no-underline">
               <ArrowLeft className="w-4 h-4" />
               Back to student app
             </Link>
+            <button
+              onClick={handleSignOut}
+              className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-[12px] font-semibold text-white/70 hover:bg-white/5 hover:text-white text-left"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign out
+            </button>
           </div>
         </aside>
 
