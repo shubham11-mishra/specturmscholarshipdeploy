@@ -1,0 +1,1 @@
+ALTER VIEW public.assessment_questions_public SET (security_invoker = true);
