@@ -175,26 +175,12 @@ const Auth = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
-  // Profile completeness — 0..100
-  const completeness = useMemo(() => {
-    let pts = 0; let total = 0;
-    const inc = (cond: boolean, w = 1) => { total += w; if (cond) pts += w; };
-    // step 1 required
-    inc(!!firstName); inc(!!lastName); inc(!!gender); inc(!!yearLevel);
-    inc(!!schoolType); inc(/^\d{4}$/.test(postcode)); inc(!!stateCode); inc(!!suburb);
-    // step 1 optional
-    inc(!!currentSchoolName, 0.5);
-    // step 2 — wheel always present (default 5); reward if any non-5
-    inc(Object.values(wheel).some((v) => v !== 5));
-    // step 3
-    inc(extras.length > 0); inc(isIndigenous || isRural || faithToggle, 0.5);
-    inc(financial !== "prefer_not_to_say", 0.5);
-    // step 4 optional
-    inc(scholarshipCats.length > 0, 0.5);
-    return Math.round((pts / total) * 100);
-  }, [firstName, lastName, gender, yearLevel, schoolType, postcode, stateCode, suburb,
-      currentSchoolName, wheel, extras, isIndigenous, isRural, faithToggle,
-      financial, scholarshipCats]);
+  // Average match strength across top matches — 0..100
+  const avgMatchScore = useMemo(() => {
+    if (!topMatches.length) return 0;
+    const sum = topMatches.reduce((acc, m) => acc + (m.matchScore || 0), 0);
+    return Math.round(sum / topMatches.length);
+  }, [topMatches]);
 
   // When a user lands here authenticated (e.g. via Google), check if they still
   // need to complete onboarding. If yes, drop them into the wizard starting at
