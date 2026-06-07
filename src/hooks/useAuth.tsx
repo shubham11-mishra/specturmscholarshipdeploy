@@ -48,11 +48,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [location, setLocation] = useState<UserLocation>({ state: null, postcode: null, suburb: null });
   const [yearLevel, setYearLevel] = useState<string | null>(null);
   const [fullName, setFullName] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const fetchLocation = async (userId: string) => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("state, postcode, suburb, year_level, full_name")
+      .select("state, postcode, suburb, year_level, full_name, avatar_url")
       .eq("id", userId)
       .maybeSingle();
     if (error) {
@@ -66,6 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
     setYearLevel(data?.year_level ?? null);
     setFullName(data?.full_name ?? null);
+    setAvatarUrl((data as any)?.avatar_url ?? null);
   };
 
   const fetchInterests = async (userId: string) => {
