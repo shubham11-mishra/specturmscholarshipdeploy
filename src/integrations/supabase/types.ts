@@ -1181,7 +1181,66 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      assessment_questions_public: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          level: number | null
+          options: Json | null
+          passage_id: string | null
+          passage_text: string | null
+          question_image_url: string | null
+          question_number: number | null
+          question_text: string | null
+          section_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          level?: number | null
+          options?: Json | null
+          passage_id?: string | null
+          passage_text?: string | null
+          question_image_url?: string | null
+          question_number?: number | null
+          question_text?: string | null
+          section_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          level?: number | null
+          options?: Json | null
+          passage_id?: string | null
+          passage_text?: string | null
+          question_image_url?: string | null
+          question_number?: number | null
+          question_text?: string | null
+          section_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_questions_passage_id_fkey"
+            columns: ["passage_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_passages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_questions_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       get_linked_children_summary: {
