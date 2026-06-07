@@ -769,13 +769,13 @@ const Auth = () => {
                 <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
                   <circle cx="50" cy="50" r="44" fill="none" stroke="hsl(var(--secondary))" strokeWidth="6" />
                   <circle cx="50" cy="50" r="44" fill="none" stroke="hsl(var(--primary))" strokeWidth="6"
-                    strokeDasharray={`${(2 * Math.PI * 44 * completeness) / 100} ${2 * Math.PI * 44}`}
+                    strokeDasharray={`${(2 * Math.PI * 44 * avgMatchScore) / 100} ${2 * Math.PI * 44}`}
                     strokeLinecap="round"
                     style={{ transition: "stroke-dasharray 600ms ease" }} />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <div className="font-display text-4xl font-extrabold text-foreground">{completeness}%</div>
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Profile complete</div>
+                  <div className="font-display text-4xl font-extrabold text-foreground">{avgMatchScore}%</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Avg match strength</div>
                 </div>
               </div>
               <p className="text-muted-foreground mb-4 text-sm">Based on your profile, here's what we found.</p>
