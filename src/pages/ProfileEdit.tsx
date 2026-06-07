@@ -20,7 +20,7 @@ const AU_STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"];
 const YEAR_LEVELS = ["Year 5", "Year 6", "Year 7", "Year 8", "Year 9", "Year 10", "Year 11", "Year 12"];
 
 const ProfileEdit = () => {
-  const { user, loading, refreshInterests } = useAuth();
+  const { user, loading, refreshInterests, refreshProfile, avatarUrl: ctxAvatarUrl } = useAuth();
   const navigate = useNavigate();
 
   const [fullName, setFullName] = useState("");
@@ -30,6 +30,9 @@ const ProfileEdit = () => {
   const [yearLevel, setYearLevel] = useState("");
   const [schoolName, setSchoolName] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
   const [initializing, setInitializing] = useState(true);
 
