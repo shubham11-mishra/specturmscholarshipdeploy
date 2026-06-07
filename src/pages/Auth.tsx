@@ -282,6 +282,13 @@ const Auth = () => {
     e.preventDefault();
     setError(""); setSubmitting(true);
     try {
+      const { ADMIN_EMAIL, ADMIN_PASSWORD, setAdminLoggedIn } = await import("@/lib/adminAuth");
+      if (email.trim() === ADMIN_EMAIL && password.trim() === ADMIN_PASSWORD) {
+        setAdminLoggedIn(true);
+        toast.success("Welcome back, admin.");
+        navigate("/admin", { replace: true });
+        return;
+      }
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       toast.success("Welcome back!");
