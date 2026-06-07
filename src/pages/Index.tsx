@@ -99,13 +99,16 @@ const Index = () => {
     fetchFilterOptions().then(setFilterOptions);
     fetchConfidenceCounts().then(setCounts);
     fetchCategoryCounts().then(setRawCategoryCounts);
-    import("@/integrations/supabase/client").then(({ supabase }) =>
+    import("@/integrations/supabase/client").then(({ supabase }) => {
+      const today = new Date().toISOString().slice(0, 10);
       supabase
         .from("scholarships")
         .select("*", { count: "exact", head: true })
         .eq("dataset_type", "gifted_program")
-        .then(({ count }) => setGiftedCount(count ?? 0))
-    );
+        .or(`application_close_date.is.null,application_close_date.gte.${today}`)
+        .then(({ count }) => setGiftedCount(count ?? 0));
+    });
+
   }, []);
 
   // Debounce search input
