@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
-import InterestSetupBanner from "@/components/InterestSetupBanner";
+
 import SchoolCard from "@/components/SchoolCard";
 import SchoolDetailModal from "@/components/SchoolDetailModal";
 import CategoryQuickLinks from "@/components/CategoryQuickLinks";
@@ -237,24 +237,12 @@ const Index = () => {
             navigate("/sign-in");
             return;
           }
-          if (interests.length === 0) {
-            requestAnimationFrame(() => {
-              const el = document.getElementById("interest-setup");
-              el?.scrollIntoView({ behavior: "smooth", block: "center" });
-              el?.classList.add("ring-2", "ring-primary/60", "rounded-2xl");
-              setTimeout(() => el?.classList.remove("ring-2", "ring-primary/60", "rounded-2xl"), 2200);
-            });
-            return;
-          }
+          document.getElementById("results-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          return;
           document.getElementById("results-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
         }}
       />
 
-      {showResults && user && interests.length === 0 && (
-        <div id="interest-setup" className="transition-all">
-          <InterestSetupBanner />
-        </div>
-      )}
 
       {showResults && user && <NearbySchoolsSection />}
 
