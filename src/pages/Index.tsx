@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
-import InterestSetupBanner from "@/components/InterestSetupBanner";
+
 import SchoolCard from "@/components/SchoolCard";
 import SchoolDetailModal from "@/components/SchoolDetailModal";
 import CategoryQuickLinks from "@/components/CategoryQuickLinks";
