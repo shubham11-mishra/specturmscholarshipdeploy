@@ -1,73 +1,40 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { useUserRole } from "@/hooks/useUserRole";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2, ShieldCheck, Eye, EyeOff } from "lucide-react";
+import { ADMIN_EMAIL, ADMIN_PASSWORD, isAdminLoggedIn, setAdminLoggedIn } from "@/lib/adminAuth";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
-  const { isAdmin, loading: roleLoading } = useUserRole();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // If already signed in as admin, send through.
   useEffect(() => {
-    if (!authLoading && !roleLoading && user && isAdmin) {
-      navigate("/admin", { replace: true });
-    }
-  }, [authLoading, roleLoading, user, isAdmin, navigate]);
+    if (isAdminLoggedIn()) navigate("/admin", { replace: true });
+  }, [navigate]);
 
-  // If signed in but NOT admin, bounce them out so they don't sit on this page logged in.
-  useEffect(() => {
-    if (!authLoading && !roleLoading && user && !isAdmin) {
-      (async () => {
-        await supabase.auth.signOut();
-        toast.error("You do not have admin access.");
-      })();
-    }
-  }, [authLoading, roleLoading, user, isAdmin]);
-
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
     setSubmitting(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-    if (error || !data.user) {
-      toast.error(error?.message || "Sign-in failed");
-      setSubmitting(false);
+    const e1 = email.trim();
+    const p1 = password.trim();
+    if (e1 === ADMIN_EMAIL && p1 === ADMIN_PASSWORD) {
+      setAdminLoggedIn(true);
+      toast.success("Welcome back, admin.");
+      navigate("/admin", { replace: true });
       return;
     }
-
-    // Verify admin role server-side via user_roles
-    const { data: roles, error: roleErr } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", data.user.id)
-      .eq("role", "admin");
-
-    if (roleErr || !roles || roles.length === 0) {
-      await supabase.auth.signOut();
-      toast.error("You do not have admin access.");
-      setSubmitting(false);
-      return;
-    }
-
-    toast.success("Welcome back, admin.");
-    navigate("/admin", { replace: true });
+    toast.error("Invalid login credentials");
+    setSubmitting(false);
   };
 
-  if (!authLoading && !roleLoading && user && isAdmin) {
-    return <Navigate to="/admin" replace />;
-  }
+  if (isAdminLoggedIn()) return <Navigate to="/admin" replace />;
 
   return (
     <div
