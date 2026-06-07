@@ -175,6 +175,51 @@ const ProfileEdit = () => {
           </div>
 
           <form onSubmit={handleSaveClick} className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6 shadow-sm">
+            <div className="flex items-center gap-5">
+              <div className="relative">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Profile" className="w-20 h-20 rounded-full object-cover border border-border" />
+                ) : (
+                  <div className="w-20 h-20 rounded-full flex items-center justify-center text-xl font-bold text-foreground" style={{ background: "hsl(var(--gold))" }}>
+                    {(fullName || "S").split(" ").map((p) => p[0]).filter(Boolean).slice(0, 2).join("").toUpperCase()}
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleAvatarFile(f);
+                    e.target.value = "";
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-secondary text-foreground text-xs font-semibold hover:bg-muted transition disabled:opacity-50 cursor-pointer"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                  {uploadingAvatar ? "Uploading..." : avatarUrl ? "Change picture" : "Upload picture"}
+                </button>
+                {avatarUrl && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveAvatar}
+                    disabled={uploadingAvatar}
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-destructive hover:bg-destructive/10 transition disabled:opacity-50 cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Remove
+                  </button>
+                )}
+                <p className="text-[11px] text-muted-foreground">JPG or PNG, max 5MB.</p>
+              </div>
+            </div>
+
             <div>
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
                 <UserIcon className="w-3.5 h-3.5" /> Full Name
