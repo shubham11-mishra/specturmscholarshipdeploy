@@ -111,6 +111,14 @@ const Index = () => {
 
   }, []);
 
+  // Default state filter to the logged-in user's state, so other states' schools
+  // are hidden until they explicitly choose them. Only sets once per user/state.
+  useEffect(() => {
+    if (user && location.state) {
+      setStateFilters((prev) => (prev.length === 0 ? [location.state!] : prev));
+    }
+  }, [user, location.state]);
+
   // Debounce search input
   useEffect(() => {
     const t = setTimeout(() => setSearchQuery(searchInput.trim()), 300);
