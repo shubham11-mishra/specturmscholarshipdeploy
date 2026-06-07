@@ -44,7 +44,7 @@ const ProfileEdit = () => {
     if (!user) return;
     (async () => {
       const [{ data: profile }, { data: interests }] = await Promise.all([
-        supabase.from("profiles").select("full_name, state, postcode, suburb, year_level, current_school_name").eq("id", user.id).maybeSingle(),
+        (supabase.from("profiles") as any).select("full_name, state, postcode, suburb, year_level, current_school_name, avatar_url").eq("id", user.id).maybeSingle(),
         supabase.from("user_interests").select("category").eq("user_id", user.id),
       ]);
       const metaName = (user.user_metadata?.full_name as string | undefined) ?? "";
