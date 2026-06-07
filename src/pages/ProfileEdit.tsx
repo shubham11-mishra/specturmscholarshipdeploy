@@ -321,14 +321,20 @@ const ProfileEdit = () => {
                       key={cat}
                       type="button"
                       onClick={() => toggleCategory(cat)}
-                      className={`relative rounded-xl border px-4 py-3 text-sm font-medium cursor-pointer transition-all flex items-center gap-2 ${
+                      aria-pressed={selected}
+                      className={`relative rounded-xl border-2 px-4 py-3 text-sm font-semibold cursor-pointer transition-all flex items-center justify-between gap-2 ${
                         selected
-                          ? "border-primary/50 bg-primary/10 text-primary glow-primary"
-                          : "border-border bg-secondary text-muted-foreground hover:border-primary/30 hover:text-foreground"
+                          ? "border-primary bg-primary text-primary-foreground shadow-md"
+                          : "border-border bg-secondary text-muted-foreground hover:border-primary/40 hover:text-foreground"
                       }`}
                     >
-                      {selected && <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />}
-                      {cat}
+                      <span className="flex items-center gap-2">
+                        <span className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 ${selected ? "bg-primary-foreground border-primary-foreground" : "border-muted-foreground/40 bg-transparent"}`}>
+                          {selected && <CheckCircle2 className="w-4 h-4 text-primary" strokeWidth={3} />}
+                        </span>
+                        {cat}
+                      </span>
+                      {selected && <span className="text-[10px] uppercase tracking-wider opacity-90">Selected</span>}
                     </button>
                   );
                 })}
