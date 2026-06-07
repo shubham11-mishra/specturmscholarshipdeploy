@@ -65,9 +65,13 @@ const Sidebar = ({ className, onNavigate }: Props) => {
 
       <div className="mx-4 my-4 bg-white/5 rounded-xl p-3.5">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-[13px] text-foreground" style={{ background: "hsl(var(--gold))" }}>
-            {getInitials(fullName)}
-          </div>
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="" className="w-9 h-9 rounded-full object-cover" />
+          ) : (
+            <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-[13px] text-foreground" style={{ background: "hsl(var(--gold))" }}>
+              {getInitials(fullName)}
+            </div>
+          )}
           <div className="min-w-0 flex-1">
             <div className="text-white font-semibold text-[13px] truncate">{fullName || "Student"}</div>
             <div className="text-white/55 text-[11px]">
