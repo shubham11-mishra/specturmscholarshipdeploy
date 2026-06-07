@@ -18,8 +18,10 @@ interface AuthContextType {
   location: UserLocation;
   yearLevel: string | null;
   fullName: string | null;
+  avatarUrl: string | null;
   signOut: () => Promise<void>;
   refreshInterests: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -30,8 +32,10 @@ const AuthContext = createContext<AuthContextType>({
   location: { state: null, postcode: null, suburb: null },
   yearLevel: null,
   fullName: null,
+  avatarUrl: null,
   signOut: async () => {},
   refreshInterests: async () => {},
+  refreshProfile: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
