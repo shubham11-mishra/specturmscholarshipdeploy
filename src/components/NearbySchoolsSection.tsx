@@ -151,7 +151,7 @@ const NearbySchoolsSection = () => {
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 text-[11px] text-primary font-semibold">
-              <Sparkles className="w-3.5 h-3.5" /> Personalized
+              <Sparkles className="w-3.5 h-3.5" /> Personalised
             </div>
             <ChevronDown
               className={`w-4 h-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
