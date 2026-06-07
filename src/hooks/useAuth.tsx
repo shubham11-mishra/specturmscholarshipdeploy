@@ -51,8 +51,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const fetchLocation = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("profiles")
+    const { data, error } = await (supabase
+      .from("profiles") as any)
       .select("state, postcode, suburb, year_level, full_name, avatar_url")
       .eq("id", userId)
       .maybeSingle();
