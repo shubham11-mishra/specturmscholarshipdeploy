@@ -154,11 +154,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLocation({ state: null, postcode: null, suburb: null });
     setYearLevel(null);
     setFullName(null);
+    setAvatarUrl(null);
     toast.success("Signed out successfully");
   };
 
+  const refreshProfile = async () => {
+    if (user) await fetchLocation(user.id);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, interests, location, yearLevel, fullName, signOut, refreshInterests }}>
+    <AuthContext.Provider value={{ user, session, loading, interests, location, yearLevel, fullName, avatarUrl, signOut, refreshInterests, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
