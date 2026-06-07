@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { CheckCircle2, MapPin, GraduationCap, Heart, User as UserIcon, Save, School as SchoolIcon } from "lucide-react";
+import { CheckCircle2, MapPin, GraduationCap, Heart, User as UserIcon, Save, School as SchoolIcon, Camera, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,7 +20,7 @@ const AU_STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"];
 const YEAR_LEVELS = ["Year 5", "Year 6", "Year 7", "Year 8", "Year 9", "Year 10", "Year 11", "Year 12"];
 
 const ProfileEdit = () => {
-  const { user, loading, refreshInterests } = useAuth();
+  const { user, loading, refreshInterests, refreshProfile, avatarUrl: ctxAvatarUrl } = useAuth();
   const navigate = useNavigate();
 
   const [fullName, setFullName] = useState("");
@@ -30,6 +30,9 @@ const ProfileEdit = () => {
   const [yearLevel, setYearLevel] = useState("");
   const [schoolName, setSchoolName] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
   const [initializing, setInitializing] = useState(true);
 
@@ -41,7 +44,7 @@ const ProfileEdit = () => {
     if (!user) return;
     (async () => {
       const [{ data: profile }, { data: interests }] = await Promise.all([
-        supabase.from("profiles").select("full_name, state, postcode, suburb, year_level, current_school_name").eq("id", user.id).maybeSingle(),
+        (supabase.from("profiles") as any).select("full_name, state, postcode, suburb, year_level, current_school_name, avatar_url").eq("id", user.id).maybeSingle(),
         supabase.from("user_interests").select("category").eq("user_id", user.id),
       ]);
       const metaName = (user.user_metadata?.full_name as string | undefined) ?? "";
@@ -51,10 +54,51 @@ const ProfileEdit = () => {
       setSuburb(profile?.suburb ?? (user.user_metadata?.suburb as string | undefined) ?? "");
       setYearLevel(profile?.year_level ?? (user.user_metadata?.year_level as string | undefined) ?? "");
       setSchoolName(profile?.current_school_name ?? (user.user_metadata?.current_school_name as string | undefined) ?? "");
+      setAvatarUrl(profile?.avatar_url ?? null);
       setSelectedCategories(interests?.map((i) => i.category) ?? []);
       setInitializing(false);
     })();
   }, [user]);
+
+  const handleAvatarFile = async (file: File) => {
+    if (!user) return;
+    if (!file.type.startsWith("image/")) return toast.error("Please choose an image file.");
+    if (file.size > 5 * 1024 * 1024) return toast.error("Image must be under 5MB.");
+    setUploadingAvatar(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, cacheControl: "3600" });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      const publicUrl = pub.publicUrl;
+      const { error: updErr } = await (supabase.from("profiles") as any).update({ avatar_url: publicUrl }).eq("id", user.id);
+      if (updErr) throw updErr;
+      setAvatarUrl(publicUrl);
+      await refreshProfile();
+      toast.success("Profile picture updated.");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to upload picture.");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (!user) return;
+    setUploadingAvatar(true);
+    try {
+      const { error } = await (supabase.from("profiles") as any).update({ avatar_url: null }).eq("id", user.id);
+      if (error) throw error;
+      setAvatarUrl(null);
+      await refreshProfile();
+      toast.success("Profile picture removed.");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to remove picture.");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   const toggleCategory = (cat: string) => {
     setSelectedCategories((prev) => (prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]));
@@ -131,6 +175,51 @@ const ProfileEdit = () => {
           </div>
 
           <form onSubmit={handleSaveClick} className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6 shadow-sm">
+            <div className="flex items-center gap-5">
+              <div className="relative">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Profile" className="w-20 h-20 rounded-full object-cover border border-border" />
+                ) : (
+                  <div className="w-20 h-20 rounded-full flex items-center justify-center text-xl font-bold text-foreground" style={{ background: "hsl(var(--gold))" }}>
+                    {(fullName || "S").split(" ").map((p) => p[0]).filter(Boolean).slice(0, 2).join("").toUpperCase()}
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleAvatarFile(f);
+                    e.target.value = "";
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-secondary text-foreground text-xs font-semibold hover:bg-muted transition disabled:opacity-50 cursor-pointer"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                  {uploadingAvatar ? "Uploading..." : avatarUrl ? "Change picture" : "Upload picture"}
+                </button>
+                {avatarUrl && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveAvatar}
+                    disabled={uploadingAvatar}
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-destructive hover:bg-destructive/10 transition disabled:opacity-50 cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Remove
+                  </button>
+                )}
+                <p className="text-[11px] text-muted-foreground">JPG or PNG, max 5MB.</p>
+              </div>
+            </div>
+
             <div>
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
                 <UserIcon className="w-3.5 h-3.5" /> Full Name

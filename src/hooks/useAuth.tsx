@@ -18,8 +18,10 @@ interface AuthContextType {
   location: UserLocation;
   yearLevel: string | null;
   fullName: string | null;
+  avatarUrl: string | null;
   signOut: () => Promise<void>;
   refreshInterests: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -30,8 +32,10 @@ const AuthContext = createContext<AuthContextType>({
   location: { state: null, postcode: null, suburb: null },
   yearLevel: null,
   fullName: null,
+  avatarUrl: null,
   signOut: async () => {},
   refreshInterests: async () => {},
+  refreshProfile: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -44,11 +48,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [location, setLocation] = useState<UserLocation>({ state: null, postcode: null, suburb: null });
   const [yearLevel, setYearLevel] = useState<string | null>(null);
   const [fullName, setFullName] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const fetchLocation = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("state, postcode, suburb, year_level, full_name")
+    const { data, error } = await (supabase
+      .from("profiles") as any)
+      .select("state, postcode, suburb, year_level, full_name, avatar_url")
       .eq("id", userId)
       .maybeSingle();
     if (error) {
@@ -62,6 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
     setYearLevel(data?.year_level ?? null);
     setFullName(data?.full_name ?? null);
+    setAvatarUrl((data as any)?.avatar_url ?? null);
   };
 
   const fetchInterests = async (userId: string) => {
@@ -148,11 +154,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLocation({ state: null, postcode: null, suburb: null });
     setYearLevel(null);
     setFullName(null);
+    setAvatarUrl(null);
     toast.success("Signed out successfully");
   };
 
+  const refreshProfile = async () => {
+    if (user) await fetchLocation(user.id);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, interests, location, yearLevel, fullName, signOut, refreshInterests }}>
+    <AuthContext.Provider value={{ user, session, loading, interests, location, yearLevel, fullName, avatarUrl, signOut, refreshInterests, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
