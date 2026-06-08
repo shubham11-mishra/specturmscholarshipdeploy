@@ -36,10 +36,7 @@ type ProfileRow = { created_at: string | null; state: string | null; year_level:
 const tiles = [
   { label: "Pending Approvals", path: "/admin/pending-approvals", icon: ClipboardCheck, desc: "Review and approve fresh scholarship data." },
   { label: "Assessment Editor", path: "/admin/assessments", icon: Wrench, desc: "Create, edit, import and preview questions." },
-  { label: "Question Bank", path: "/admin/questions", icon: FileQuestion, desc: "Searchable index of every question." },
-  { label: "Passage Manager", path: "/admin/passages", icon: BookOpen, desc: "Reusable reading passages." },
   { label: "User Management", path: "/admin/users", icon: Users, desc: "Roles & platform access." },
-  { label: "Gamification Settings", path: "/admin/gamification", icon: Trophy, desc: "Points, badges & rewards." },
 ];
 
 const COLORS = ["hsl(var(--primary))", "hsl(var(--gold))", "hsl(var(--spec-green))", "hsl(var(--spec-red))", "hsl(var(--spec-blue-light))", "hsl(var(--accent))"];
