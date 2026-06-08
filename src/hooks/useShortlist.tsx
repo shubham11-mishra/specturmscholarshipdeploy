@@ -57,7 +57,7 @@ export const ShortlistProvider = ({ children }: { children: ReactNode }) => {
     };
 
     fetchShortlist();
-  }, [user]);
+  }, [user, toast]);
 
   const toggle = useCallback(
     async (id: string) => {
