@@ -20,6 +20,22 @@ const BAND_COPY: Record<BandKey, { label: string; emoji: string; desc: string }>
 };
 const BAND_ORDER: BandKey[] = ["earth", "water", "fire", "air", "aether"];
 
+// A dimension is considered "a gap" for the pathway when self score is strictly below this.
+const PATHWAY_THRESHOLD = 8;
+
+// Metric increment applied to the dimension's wheel score when an action is completed.
+const EFFORT_INCREMENT: Record<"low" | "medium" | "high", number> = { low: 1, medium: 2, high: 3 };
+
+// Map wheel dimension key -> wheel_scores DB column(s). arts_creative writes both legacy + new col.
+const DIM_TO_COLUMNS: Record<keyof WheelScores, string[]> = {
+  academic: ["academic_self"],
+  stem: ["stem_self"],
+  arts_creative: ["arts_creative_self", "arts_self"],
+  sports_fitness: ["sports_self"],
+  leadership: ["leadership_self"],
+  test_readiness: ["test_readiness_self"],
+};
+
 const Readiness = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
