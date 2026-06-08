@@ -37,16 +37,27 @@ export const ShortlistProvider = ({ children }: { children: ReactNode }) => {
 
     const fetchShortlist = async () => {
       setLoading(true);
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("shortlisted_schools")
         .select("school_id")
         .eq("user_id", user.id);
+      if (error) {
+        console.error("shortlist load error", error);
+        toast({
+          title: "Could not load shortlist",
+          description: "Please refresh and try again.",
+          variant: "destructive",
+        });
+        setShortlisted(new Set());
+        setLoading(false);
+        return;
+      }
       setShortlisted(new Set(data?.map((d) => d.school_id) || []));
       setLoading(false);
     };
 
     fetchShortlist();
-  }, [user]);
+  }, [user, toast]);
 
   const toggle = useCallback(
     async (id: string) => {
@@ -60,6 +71,7 @@ export const ShortlistProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const isCurrentlyShortlisted = shortlisted.has(id);
+      const previous = shortlisted;
 
       // Optimistic update
       setShortlisted((prev) => {
@@ -69,19 +81,27 @@ export const ShortlistProvider = ({ children }: { children: ReactNode }) => {
         return next;
       });
 
-      if (isCurrentlyShortlisted) {
-        await supabase
+      const { error } = isCurrentlyShortlisted
+        ? await supabase
           .from("shortlisted_schools")
           .delete()
           .eq("user_id", user.id)
-          .eq("school_id", id);
-      } else {
-        await supabase
+          .eq("school_id", id)
+        : await supabase
           .from("shortlisted_schools")
-          .insert({ user_id: user.id, school_id: id });
+          .upsert({ user_id: user.id, school_id: id }, { onConflict: "user_id,school_id" });
+
+      if (error) {
+        console.error("shortlist save error", error);
+        setShortlisted(previous);
+        toast({
+          title: "Could not update shortlist",
+          description: error.message || "Please try again.",
+          variant: "destructive",
+        });
       }
     },
-    [user, shortlisted]
+    [user, shortlisted, toast]
   );
 
   const isShortlisted = useCallback((id: string) => shortlisted.has(id), [shortlisted]);

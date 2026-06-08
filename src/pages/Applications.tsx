@@ -70,6 +70,8 @@ const ESSAY_STATUSES = [
   { key: "submitted", label: "Finalised" },
 ];
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const parseDeadline = (s: string | null | undefined): Date | null => {
   if (!s) return null;
   const d = new Date(s);
@@ -95,16 +97,27 @@ const Applications = () => {
 
   // ---------- Sync apps with current shortlist ----------
   const syncWithShortlist = useCallback(async (uid: string) => {
-    // 1) Load existing apps
-    const { data: existing } = await supabase
-      .from("applications")
-      .select("id, scholarship_id, status, outcome")
-      .eq("user_id", uid);
+    // 1) Load the latest saved shortlist + existing apps
+    const [{ data: shortlistRows, error: shortlistError }, { data: existing, error: existingError }] = await Promise.all([
+      supabase.from("shortlisted_schools").select("school_id").eq("user_id", uid),
+      supabase.from("applications").select("id, scholarship_id, status, outcome").eq("user_id", uid),
+    ]);
+    if (shortlistError) {
+      console.error("shortlist load for applications error", shortlistError);
+      toast.error("Could not load shortlist for applications");
+      return;
+    }
+    if (existingError) {
+      console.error("application load error", existingError);
+      toast.error("Could not load applications");
+      return;
+    }
     const existingMap = new Map(
       (existing ?? []).map((a) => [a.scholarship_id, a as { id: string; scholarship_id: string; status: string; outcome: string | null }]),
     );
 
-    const shortlistIds = Array.from(shortlisted);
+    const savedShortlist = new Set((shortlistRows ?? []).map((row) => row.school_id));
+    const shortlistIds = Array.from(savedShortlist.size ? savedShortlist : shortlisted);
 
     // 2) Create an application for every shortlisted id that doesn't already have one.
     //    No FK on scholarship_id, so orphan/legacy ids are OK — the card will fall back
@@ -116,34 +129,47 @@ const Applications = () => {
       const { error } = await supabase
         .from("applications")
         .upsert(inserts, { onConflict: "user_id,scholarship_id", ignoreDuplicates: true });
-      if (error) console.error("application upsert error", error);
+      if (error) {
+        console.error("application upsert error", error);
+        toast.error("Could not sync applications from shortlist");
+      }
     }
 
     // 3) Remove apps for scholarships that are no longer shortlisted
     //    (preserve any with progress beyond draft or with a recorded outcome)
     const orphans = (existing ?? []).filter(
       (a) =>
-        !shortlisted.has(a.scholarship_id) &&
+        !savedShortlist.has(a.scholarship_id) &&
         !a.outcome &&
         (a.status === "not_started" || a.status === "in_progress"),
     );
     if (orphans.length) {
-      await supabase
+      const { error } = await supabase
         .from("applications")
         .delete()
         .in("id", orphans.map((o) => o.id));
+      if (error) {
+        console.error("application delete error", error);
+        toast.error("Could not remove unshortlisted applications");
+      }
     }
   }, [shortlisted]);
 
   // ---------- Load apps + scholarships ----------
   const refresh = useCallback(async (uid: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("applications")
       .select("id, scholarship_id, status, outcome, outcome_at, updated_at")
       .eq("user_id", uid)
       .order("updated_at", { ascending: false });
+    if (error) {
+      console.error("applications refresh error", error);
+      toast.error("Could not refresh applications");
+      setApps([]);
+      return;
+    }
     const rows = (data ?? []) as AppRow[];
-    const ids = [...new Set(rows.map((r) => r.scholarship_id))];
+    const ids = [...new Set(rows.map((r) => r.scholarship_id))].filter((id) => UUID_RE.test(id));
     if (ids.length) {
       const { data: schs } = await supabase
         .from("scholarships")
