@@ -1,5 +1,5 @@
 import type { PathwayKey } from "@/lib/pathway";
-import { pathwayRelevance, dimensionToPathway } from "@/lib/pathway";
+import { dimensionToPathway, dimensionRelevanceForPathway, relevantDimensionsForPathway } from "@/lib/pathway";
 import type { WheelScores } from "@/lib/navigator";
 
 export type GapRec = {
