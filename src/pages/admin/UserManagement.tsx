@@ -78,6 +78,15 @@ export default function UserManagement() {
     load();
   };
 
+  const resetPassword = async (email: string | null) => {
+    if (!email) { toast.error("This admin has no email on file."); return; }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Password reset email sent to ${email}`);
+  };
+
   const addAdminByEmail = async () => {
     const email = newAdminEmail.trim().toLowerCase();
     if (!email) return;
