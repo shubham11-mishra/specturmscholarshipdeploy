@@ -28,10 +28,13 @@ const displayName = (p: Profile) => {
   return "Unnamed";
 };
 
+type PendingInvite = { id: string; email: string; invited_at: string };
+
 export default function UserManagement() {
   const { user } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [adminIds, setAdminIds] = useState<Set<string>>(new Set());
+  const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [newAdminEmail, setNewAdminEmail] = useState("");
@@ -39,12 +42,14 @@ export default function UserManagement() {
 
   const load = async () => {
     setLoading(true);
-    const [pRes, rRes] = await Promise.all([
+    const [pRes, rRes, iRes] = await Promise.all([
       supabase.from("profiles").select("id,full_name,last_name,email,year_level").limit(1000),
       supabase.from("user_roles").select("user_id").eq("role", "admin"),
+      supabase.from("admin_invitations").select("id,email,invited_at").eq("status", "pending"),
     ]);
     setProfiles((pRes.data ?? []) as Profile[]);
     setAdminIds(new Set((rRes.data ?? []).map((r: any) => r.user_id)));
+    setPendingInvites((iRes.data ?? []) as PendingInvite[]);
     setLoading(false);
   };
   useEffect(() => { load(); }, []);
@@ -65,25 +70,45 @@ export default function UserManagement() {
     toast.success("Admin role revoked");
     load();
   };
+  const cancelInvite = async (id: string) => {
+    const { error } = await supabase.from("admin_invitations").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Invitation cancelled");
+    load();
+  };
 
   const addAdminByEmail = async () => {
     const email = newAdminEmail.trim().toLowerCase();
     if (!email) return;
     setAdding(true);
     const match = profiles.find(p => (p.email ?? "").toLowerCase() === email);
-    if (!match) {
-      toast.error("No user found with that email. They must sign up first.");
+    if (match) {
+      if (adminIds.has(match.id)) {
+        toast.info("That user is already an admin.");
+        setAdding(false);
+        return;
+      }
+      await grant(match.id);
+      setNewAdminEmail("");
       setAdding(false);
       return;
     }
-    if (adminIds.has(match.id)) {
-      toast.info("That user is already an admin.");
+    // No existing user — create a pending invitation. They'll be granted admin on signup.
+    if (pendingInvites.some(i => i.email.toLowerCase() === email)) {
+      toast.info("An invitation for that email is already pending.");
       setAdding(false);
       return;
     }
-    await grant(match.id);
+    const { error } = await supabase.from("admin_invitations").insert({
+      email,
+      invited_by: user?.id ?? null,
+      status: "pending",
+    });
+    if (error) { toast.error(error.message); setAdding(false); return; }
+    toast.success("Invitation sent — they'll get admin access when they sign up.");
     setNewAdminEmail("");
     setAdding(false);
+    load();
   };
 
   // Admins shown only in the Administrators section
@@ -95,6 +120,7 @@ export default function UserManagement() {
     displayName(p).toLowerCase().includes(q.toLowerCase()) ||
     (p.email ?? "").toLowerCase().includes(q.toLowerCase()),
   );
+
 
   const isSoleAdmin = adminIds.size <= 1;
 
