@@ -111,11 +111,9 @@ export default function UserManagement() {
     load();
   };
 
-  // Admins shown only in the Administrators section
+  // Admins shown in the Administrators section AND flagged in the all-users list
   const admins = profiles.filter(p => adminIds.has(p.id));
-  // Lower list excludes admins (dedupe) and applies search
-  const nonAdmins = profiles.filter(p => !adminIds.has(p.id));
-  const filtered = nonAdmins.filter(p =>
+  const filtered = profiles.filter(p =>
     !q ||
     displayName(p).toLowerCase().includes(q.toLowerCase()) ||
     (p.email ?? "").toLowerCase().includes(q.toLowerCase()),
