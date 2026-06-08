@@ -1,5 +1,5 @@
 import type { PathwayKey } from "@/lib/pathway";
-import { pathwayRelevance, dimensionToPathway } from "@/lib/pathway";
+import { dimensionToPathway, dimensionRelevanceForPathway, relevantDimensionsForPathway } from "@/lib/pathway";
 import type { WheelScores } from "@/lib/navigator";
 
 export type GapRec = {
@@ -44,7 +44,7 @@ export function rankTopActions(
   for (const r of recs) {
     if (completed.has(r.id)) continue;
     const pk: PathwayKey = (r.pathway as PathwayKey) ?? dimensionToPathway(r.dimension);
-    const rel = pathwayRelevance(pk, primary, secondary);
+    const rel = dimensionRelevanceForPathway(r.dimension, primary, secondary);
     if (rel === 0) continue;
     const score10 = wheel[r.dimension as keyof WheelScores] ?? 5;
     if (score10 > r.trigger_score_max) continue;
