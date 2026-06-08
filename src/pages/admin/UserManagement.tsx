@@ -9,7 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { useAuth } from "@/hooks/useAuth";
-import { Search, ShieldCheck, ShieldOff, UserPlus, Crown } from "lucide-react";
+import { Search, ShieldCheck, ShieldOff, UserPlus, Crown, Menu, Edit, RotateCw } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 type Profile = {
   id: string;
@@ -75,6 +76,15 @@ export default function UserManagement() {
     if (error) { toast.error(error.message); return; }
     toast.success("Invitation cancelled");
     load();
+  };
+
+  const resetPassword = async (email: string | null) => {
+    if (!email) { toast.error("This admin has no email on file."); return; }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Password reset email sent to ${email}`);
   };
 
   const addAdminByEmail = async () => {
@@ -167,29 +177,36 @@ export default function UserManagement() {
                 </div>
                 <Badge className="bg-primary text-[10px]">ADMIN</Badge>
                 {isMe && <Badge variant="outline" className="text-[10px]">You</Badge>}
-                {disableRevoke ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span tabIndex={0}>
-                        <Button variant="outline" size="sm" disabled>
-                          <ShieldOff className="w-4 h-4 mr-1" /> Remove
-                        </Button>
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      You are the only administrator. Promote another admin before removing your own access.
-                    </TooltipContent>
-                  </Tooltip>
-                ) : (
-                  <ConfirmDialog
-                    trigger={<Button variant="outline" size="sm"><ShieldOff className="w-4 h-4 mr-1" /> Remove</Button>}
-                    title="Remove admin role?"
-                    description={`${displayName(a)} will lose access to the admin panel.`}
-                    confirmLabel="Remove"
-                    variant="destructive"
-                    onConfirm={() => revoke(a.id)}
-                  />
-                )}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Menu className="w-4 h-4 mr-1 text-primary" /> Actions
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    {disableRevoke ? (
+                      <DropdownMenuItem disabled>
+                        <Edit className="w-4 h-4 mr-2" /> Change Role
+                      </DropdownMenuItem>
+                    ) : (
+                      <ConfirmDialog
+                        trigger={
+                          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <Edit className="w-4 h-4 mr-2" /> Change Role
+                          </DropdownMenuItem>
+                        }
+                        title="Change role to student?"
+                        description={`${displayName(a)} will lose admin access and become a regular user.`}
+                        confirmLabel="Change Role"
+                        variant="destructive"
+                        onConfirm={() => revoke(a.id)}
+                      />
+                    )}
+                    <DropdownMenuItem onSelect={() => resetPassword(a.email)}>
+                      <RotateCw className="w-4 h-4 mr-2" /> Reset Password
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             );
           })}
