@@ -503,7 +503,7 @@ function ApplicationDetailDialog({
       updated_at: new Date().toISOString(),
     };
     setEssays((cur) => cur.map((x) => (x.id === e.id ? optimistic : x)));
-    const payload: Record<string, unknown> = { ...patch };
+    const payload: { draft?: string; status?: string; version?: number } = { ...patch };
     if (bumpVersion) payload.version = optimistic.version;
     const { error } = await supabase.from("application_essays").update(payload).eq("id", e.id);
     if (error) {
