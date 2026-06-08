@@ -196,7 +196,35 @@ export default function UserManagement() {
             );
           })}
         </div>
+
+        {pendingInvites.length > 0 && (
+          <div className="mt-4">
+            <div className="text-xs font-semibold text-muted-foreground mb-2">
+              Pending invitations ({pendingInvites.length})
+            </div>
+            <div className="divide-y border rounded-lg">
+              {pendingInvites.map(inv => (
+                <div key={inv.id} className="p-3 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center font-semibold text-sm">
+                    {inv.email.slice(0, 1).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-sm truncate">{inv.email}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Invited {new Date(inv.invited_at).toLocaleDateString()} — admin granted on signup
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-[10px]">PENDING</Badge>
+                  <Button variant="outline" size="sm" onClick={() => cancelInvite(inv.id)}>
+                    <ShieldOff className="w-4 h-4 mr-1" /> Cancel
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </Card>
+
 
       {/* All users browser (admins excluded — they appear above) */}
       <Card className="p-4">
