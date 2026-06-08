@@ -179,7 +179,7 @@ const Applications = () => {
           school_name: s.school_name || "Scholarship",
           application_close_date: s.application_close_date || null,
           days_left: s.days_left || null,
-          value_aud: s.value_aud || s.value_type || null,
+          value_aud: s.value_aud || null,
           scholarship_url: s.scholarship_url || s.website_url || null,
         };
         [s.id, legacyKey, bareAcaraKey].forEach((key) => {
