@@ -96,10 +96,21 @@ const Readiness = () => {
   const band = bandForScore(overall);
   const { primary, secondary } = useMemo(() => detectPathways(wheel), [wheel]);
 
-  // Only surface recs whose dimension is below the pathway threshold (= "gap").
+  // Pathway-driven gap surfacing: only consider dimensions the pathway config
+  // marks as relevant (primary + supporting), and only when self score is below threshold.
+  // This is identical for every student on the pathway — no per-user logic.
+  const relevantDims = useMemo(() => {
+    const set = relevantDimensionsForPathway(primary);
+    if (secondary) for (const d of relevantDimensionsForPathway(secondary)) set.add(d);
+    return set;
+  }, [primary, secondary]);
+
   const gapRecs = useMemo(
-    () => recs.filter((r) => (wheel[r.dimension as keyof WheelScores] ?? 5) < PATHWAY_THRESHOLD),
-    [recs, wheel]
+    () => recs.filter((r) =>
+      relevantDims.has(r.dimension) &&
+      (wheel[r.dimension as keyof WheelScores] ?? 5) < PATHWAY_THRESHOLD
+    ),
+    [recs, wheel, relevantDims]
   );
 
   const topActions = useMemo(
