@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { DEFAULT_WHEEL_SCORES, type WheelScores, WHEEL_DIMENSIONS } from "@/lib/navigator";
 import { wheelAverageToScore, bandForScore, BAND_CUTOFFS, type BandKey } from "@/lib/readiness";
-import { detectPathways, PATHWAY_THEME, type PathwayKey } from "@/lib/pathway";
+import { detectPathways, PATHWAY_THEME, relevantDimensionsForPathway, type PathwayKey } from "@/lib/pathway";
 import { rankTopActions, renderWhy, type GapRec, type RankedRec } from "@/lib/gapRanking";
 
 const BAND_COPY: Record<BandKey, { label: string; emoji: string; desc: string }> = {
