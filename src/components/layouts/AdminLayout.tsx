@@ -3,7 +3,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { LayoutDashboard, FileQuestion, BookOpen, Users, Trophy, Wrench, ArrowLeft, ClipboardCheck, LogOut } from "lucide-react";
 import AdminGuard from "@/components/admin/AdminGuard";
 import { cn } from "@/lib/utils";
-import { adminSignOut } from "@/lib/adminAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const adminNav = [
   { label: "Admin Dashboard", path: "/admin", icon: LayoutDashboard, end: true },
@@ -17,8 +17,8 @@ const adminNav = [
 
 const AdminLayout = ({ children, pageTitle }: { children: ReactNode; pageTitle: string }) => {
   const navigate = useNavigate();
-  const handleSignOut = () => {
-    adminSignOut();
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
     navigate("/sign-in", { replace: true });
   };
   return (
