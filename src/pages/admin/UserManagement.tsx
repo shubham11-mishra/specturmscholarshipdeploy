@@ -91,35 +91,35 @@ export default function UserManagement() {
     const email = newAdminEmail.trim().toLowerCase();
     if (!email) return;
     setAdding(true);
-    const match = profiles.find(p => (p.email ?? "").toLowerCase() === email);
-    if (match) {
-      if (adminIds.has(match.id)) {
+    try {
+      const match = profiles.find(p => (p.email ?? "").toLowerCase() === email);
+      if (match && adminIds.has(match.id)) {
         toast.info("That user is already an admin.");
-        setAdding(false);
         return;
       }
-      await grant(match.id);
+      if (!match && pendingInvites.some(i => i.email.toLowerCase() === email)) {
+        toast.info("An invitation for that email is already pending.");
+        return;
+      }
+      const { data, error } = await supabase.functions.invoke("invite-admin", {
+        body: { email, redirectTo: `${window.location.origin}/reset-password` },
+      });
+      if (error || (data as any)?.error) {
+        toast.error((data as any)?.error || error?.message || "Failed to invite admin");
+        return;
+      }
+      if ((data as any).mode === "granted") {
+        toast.success("Admin role granted");
+      } else {
+        toast.success("Invitation email sent — admin role will apply on signup.");
+      }
       setNewAdminEmail("");
+      load();
+    } finally {
       setAdding(false);
-      return;
     }
-    // No existing user — create a pending invitation. They'll be granted admin on signup.
-    if (pendingInvites.some(i => i.email.toLowerCase() === email)) {
-      toast.info("An invitation for that email is already pending.");
-      setAdding(false);
-      return;
-    }
-    const { error } = await supabase.from("admin_invitations").insert({
-      email,
-      invited_by: user?.id ?? null,
-      status: "pending",
-    });
-    if (error) { toast.error(error.message); setAdding(false); return; }
-    toast.success("Invitation sent — they'll get admin access when they sign up.");
-    setNewAdminEmail("");
-    setAdding(false);
-    load();
   };
+
 
   // Admins shown in the Administrators section AND flagged in the all-users list
   const admins = profiles.filter(p => adminIds.has(p.id));
