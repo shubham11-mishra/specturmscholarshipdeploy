@@ -85,6 +85,50 @@ export type Database = {
           },
         ]
       }
+      application_essays: {
+        Row: {
+          application_id: string
+          created_at: string
+          draft: string
+          id: string
+          prompt: string
+          status: string
+          updated_at: string
+          version: number
+          word_limit: number | null
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          draft?: string
+          id?: string
+          prompt: string
+          status?: string
+          updated_at?: string
+          version?: number
+          word_limit?: number | null
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          draft?: string
+          id?: string
+          prompt?: string
+          status?: string
+          updated_at?: string
+          version?: number
+          word_limit?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_essays_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           created_at: string
@@ -740,6 +784,7 @@ export type Database = {
           description: string | null
           eligibility_criteria: string | null
           enrol_hits: string | null
+          essay_prompts: Json | null
           extraction_confidence_score: string | null
           gender: string | null
           gender_eligibility: string | null
@@ -765,6 +810,7 @@ export type Database = {
           prep_product_url: string | null
           program_name: string | null
           program_type: string | null
+          required_documents: string[] | null
           schol_hits: string | null
           scholarship_confidence: string | null
           scholarship_url: string | null
@@ -808,6 +854,7 @@ export type Database = {
           description?: string | null
           eligibility_criteria?: string | null
           enrol_hits?: string | null
+          essay_prompts?: Json | null
           extraction_confidence_score?: string | null
           gender?: string | null
           gender_eligibility?: string | null
@@ -833,6 +880,7 @@ export type Database = {
           prep_product_url?: string | null
           program_name?: string | null
           program_type?: string | null
+          required_documents?: string[] | null
           schol_hits?: string | null
           scholarship_confidence?: string | null
           scholarship_url?: string | null
@@ -876,6 +924,7 @@ export type Database = {
           description?: string | null
           eligibility_criteria?: string | null
           enrol_hits?: string | null
+          essay_prompts?: Json | null
           extraction_confidence_score?: string | null
           gender?: string | null
           gender_eligibility?: string | null
@@ -901,6 +950,7 @@ export type Database = {
           prep_product_url?: string | null
           program_name?: string | null
           program_type?: string | null
+          required_documents?: string[] | null
           schol_hits?: string | null
           scholarship_confidence?: string | null
           scholarship_url?: string | null
