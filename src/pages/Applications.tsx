@@ -106,20 +106,17 @@ const Applications = () => {
 
     const shortlistIds = Array.from(shortlisted);
 
-    // 2) Only create apps for shortlist IDs that map to real scholarships
-    const toMaybeCreate = shortlistIds.filter((sid) => !existingMap.has(sid));
-    if (toMaybeCreate.length) {
-      const { data: valid } = await supabase
-        .from("scholarships")
-        .select("id")
-        .in("id", toMaybeCreate);
-      const validIds = new Set((valid ?? []).map((s: { id: string }) => s.id));
-      const inserts = toMaybeCreate
-        .filter((sid) => validIds.has(sid))
-        .map((sid) => ({ user_id: uid, scholarship_id: sid, status: "not_started" }));
-      if (inserts.length) {
-        await supabase.from("applications").insert(inserts);
-      }
+    // 2) Create an application for every shortlisted id that doesn't already have one.
+    //    No FK on scholarship_id, so orphan/legacy ids are OK — the card will fall back
+    //    to a generic title when the scholarship row can't be resolved.
+    const inserts = shortlistIds
+      .filter((sid) => !existingMap.has(sid))
+      .map((sid) => ({ user_id: uid, scholarship_id: sid, status: "not_started" }));
+    if (inserts.length) {
+      const { error } = await supabase
+        .from("applications")
+        .upsert(inserts, { onConflict: "user_id,scholarship_id", ignoreDuplicates: true });
+      if (error) console.error("application upsert error", error);
     }
 
     // 3) Remove apps for scholarships that are no longer shortlisted
