@@ -148,7 +148,7 @@ const Readiness = () => {
         for (const col of columns) patch[col] = next;
         const { error: updErr } = await supabase
           .from("wheel_scores")
-          .update(patch)
+          .update(patch as never)
           .eq("user_id", user.id);
         if (updErr) {
           toast.error("Saved action, but couldn't update your score");
