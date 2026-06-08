@@ -224,7 +224,7 @@ export default function UserManagement() {
       </Card>
 
 
-      {/* All users browser (admins excluded — they appear above) */}
+      {/* All users browser — admins are flagged with an ADMIN badge */}
       <Card className="p-4">
         <div className="relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -236,19 +236,37 @@ export default function UserManagement() {
         {loading ? Array.from({ length: 5 }).map((_, i) => <div key={i} className="p-4"><Skeleton className="h-10" /></div>) : (
           filtered.length === 0 ? (
             <div className="p-10 text-center text-sm text-muted-foreground">No users match.</div>
-          ) : filtered.map(p => (
-            <div key={p.id} className="p-4 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm">
-                {displayName(p).slice(0, 1).toUpperCase()}
+          ) : filtered.map(p => {
+            const isUserAdmin = adminIds.has(p.id);
+            const isMe = p.id === user?.id;
+            return (
+              <div key={p.id} className="p-4 flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-full ${isUserAdmin ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"} flex items-center justify-center font-semibold text-sm`}>
+                  {displayName(p).slice(0, 1).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-sm truncate">{displayName(p)}</div>
+                  <div className="text-xs text-muted-foreground truncate">{p.email}</div>
+                </div>
+                {p.year_level && <Badge variant="outline" className="text-[10px]">Year {p.year_level}</Badge>}
+                {isUserAdmin ? (
+                  <>
+                    <Badge className="bg-primary text-[10px]">ADMIN</Badge>
+                    {isMe && <Badge variant="outline" className="text-[10px]">You</Badge>}
+                  </>
+                ) : (
+                  <Badge variant="outline" className="text-[10px]">STUDENT</Badge>
+                )}
+                {isUserAdmin ? (
+                  <Button variant="outline" size="sm" disabled={isMe && adminIds.size <= 1} onClick={() => revoke(p.id)}>
+                    <ShieldOff className="w-4 h-4 mr-1" /> Revoke
+                  </Button>
+                ) : (
+                  <Button size="sm" onClick={() => grant(p.id)}><ShieldCheck className="w-4 h-4 mr-1" /> Make admin</Button>
+                )}
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-sm truncate">{displayName(p)}</div>
-                <div className="text-xs text-muted-foreground truncate">{p.email}</div>
-              </div>
-              {p.year_level && <Badge variant="outline" className="text-[10px]">Year {p.year_level}</Badge>}
-              <Button size="sm" onClick={() => grant(p.id)}><ShieldCheck className="w-4 h-4 mr-1" /> Make admin</Button>
-            </div>
-          ))
+            );
+          })
         )}
       </Card>
     </div>
