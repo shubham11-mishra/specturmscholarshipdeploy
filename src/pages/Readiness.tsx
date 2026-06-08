@@ -96,9 +96,15 @@ const Readiness = () => {
   const band = bandForScore(overall);
   const { primary, secondary } = useMemo(() => detectPathways(wheel), [wheel]);
 
+  // Only surface recs whose dimension is below the pathway threshold (= "gap").
+  const gapRecs = useMemo(
+    () => recs.filter((r) => (wheel[r.dimension as keyof WheelScores] ?? 5) < PATHWAY_THRESHOLD),
+    [recs, wheel]
+  );
+
   const topActions = useMemo(
-    () => rankTopActions(recs, wheel, verifiedDims, primary, secondary, showCompleted ? new Set() : done, 3),
-    [recs, wheel, verifiedDims, primary, secondary, done, showCompleted]
+    () => rankTopActions(gapRecs, wheel, verifiedDims, primary, secondary, showCompleted ? new Set() : done, 3),
+    [gapRecs, wheel, verifiedDims, primary, secondary, done, showCompleted]
   );
 
   // Progression: actions away from next band
@@ -120,6 +126,8 @@ const Readiness = () => {
 
   const markDone = async (rec: GapRec) => {
     if (!user) return;
+
+    // 1) Record completion (idempotent)
     const { error } = await supabase
       .from("gap_actions_completed")
       .insert({ user_id: user.id, recommendation_id: rec.id });
@@ -127,6 +135,29 @@ const Readiness = () => {
       toast.error("Couldn't save — try again");
       return;
     }
+
+    // 2) Compute new dimension score and persist to wheel_scores
+    const dimKey = rec.dimension as keyof WheelScores;
+    const columns = DIM_TO_COLUMNS[dimKey];
+    if (columns) {
+      const current = wheel[dimKey] ?? 5;
+      const increment = EFFORT_INCREMENT[rec.effort_level] ?? 1;
+      const next = Math.min(10, current + increment);
+      if (next !== current) {
+        const patch: Record<string, number> = {};
+        for (const col of columns) patch[col] = next;
+        const { error: updErr } = await supabase
+          .from("wheel_scores")
+          .update(patch)
+          .eq("user_id", user.id);
+        if (updErr) {
+          toast.error("Saved action, but couldn't update your score");
+        } else {
+          setWheel((prev) => ({ ...prev, [dimKey]: next }));
+        }
+      }
+    }
+
     setDone((prev) => new Set(prev).add(rec.id));
     toast.success(`Nice — that was a ${rec.effort_level}-effort win.`);
   };
