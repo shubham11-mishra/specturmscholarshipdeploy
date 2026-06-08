@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useShortlist } from "@/hooks/useShortlist";
+import { fetchScholarshipsByIds } from "@/data/csvScholarships";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -70,8 +71,6 @@ const ESSAY_STATUSES = [
   { key: "submitted", label: "Finalised" },
 ];
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 const parseDeadline = (s: string | null | undefined): Date | null => {
   if (!s) return null;
   const d = new Date(s);
@@ -118,6 +117,7 @@ const Applications = () => {
 
     const savedShortlist = new Set((shortlistRows ?? []).map((row) => row.school_id));
     const shortlistIds = Array.from(savedShortlist.size ? savedShortlist : shortlisted);
+    const activeShortlist = new Set(shortlistIds);
 
     // 2) Create an application for every shortlisted id that doesn't already have one.
     //    No FK on scholarship_id, so orphan/legacy ids are OK — the card will fall back
@@ -135,13 +135,9 @@ const Applications = () => {
       }
     }
 
-    // 3) Remove apps for scholarships that are no longer shortlisted
-    //    (preserve any with progress beyond draft or with a recorded outcome)
+    // 3) Remove apps for scholarships that are no longer shortlisted.
     const orphans = (existing ?? []).filter(
-      (a) =>
-        !savedShortlist.has(a.scholarship_id) &&
-        !a.outcome &&
-        (a.status === "not_started" || a.status === "in_progress"),
+      (a) => !activeShortlist.has(a.scholarship_id),
     );
     if (orphans.length) {
       const { error } = await supabase
@@ -169,14 +165,28 @@ const Applications = () => {
       return;
     }
     const rows = (data ?? []) as AppRow[];
-    const ids = [...new Set(rows.map((r) => r.scholarship_id))].filter((id) => UUID_RE.test(id));
+    const ids = [...new Set(rows.map((r) => r.scholarship_id))];
     if (ids.length) {
-      const { data: schs } = await supabase
-        .from("scholarships")
-        .select("id, program_name, school_name, application_close_date, days_left, value_aud, scholarship_url")
-        .in("id", ids);
-      const map = new Map((schs ?? []).map((s: { id: string }) => [s.id, s]));
-      rows.forEach((r) => (r.scholarship = (map.get(r.scholarship_id) as AppRow["scholarship"]) ?? null));
+      const wanted = new Set(ids);
+      const scholarships = await fetchScholarshipsByIds(ids);
+      const map = new Map<string, AppRow["scholarship"]>();
+      scholarships.forEach((s) => {
+        const legacyKey = s.acara_id ? `${s.acara_id}-${s.row}` : "";
+        const bareAcaraKey = s.acara_id ? String(s.acara_id) : "";
+        const summary: AppRow["scholarship"] = {
+          id: s.id || legacyKey || bareAcaraKey,
+          program_name: s.program_name || null,
+          school_name: s.school_name || "Scholarship",
+          application_close_date: s.application_close_date || null,
+          days_left: s.days_left || null,
+          value_aud: s.value_aud || s.value_type || null,
+          scholarship_url: s.scholarship_url || s.website_url || null,
+        };
+        [s.id, legacyKey, bareAcaraKey].forEach((key) => {
+          if (key && wanted.has(key)) map.set(key, summary);
+        });
+      });
+      rows.forEach((r) => (r.scholarship = map.get(r.scholarship_id) ?? null));
     }
     setApps(rows);
   }, []);
