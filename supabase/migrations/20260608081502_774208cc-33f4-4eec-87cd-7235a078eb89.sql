@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.apply_admin_invitation_on_signup() FROM PUBLIC, anon, authenticated;
