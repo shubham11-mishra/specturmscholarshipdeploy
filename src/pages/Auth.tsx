@@ -196,7 +196,7 @@ const Auth = () => {
         .eq("id", user.id)
         .maybeSingle();
       if (profile?.onboarding_completed) {
-        navigate("/");
+        await redirectAfterAuth(user.id);
         return;
       }
       // Prefill what we have, jump into wizard at Wheel step
@@ -264,21 +264,24 @@ const Auth = () => {
     } catch (err: any) { setError(err.message || "Google sign-in failed"); setSubmitting(false); }
   };
 
+  const redirectAfterAuth = async (userId: string) => {
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+    const isAdmin = !!(roles ?? []).find((r: any) => r.role === "admin");
+    navigate(isAdmin ? "/admin" : "/", { replace: true });
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(""); setSubmitting(true);
     try {
-      const { ADMIN_EMAIL, ADMIN_PASSWORD, setAdminLoggedIn } = await import("@/lib/adminAuth");
-      if (email.trim() === ADMIN_EMAIL && password.trim() === ADMIN_PASSWORD) {
-        setAdminLoggedIn(true);
-        toast.success("Welcome back, admin.");
-        navigate("/admin", { replace: true });
-        return;
-      }
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       toast.success("Welcome back!");
-      navigate("/");
+      if (data.user) await redirectAfterAuth(data.user.id);
+      else navigate("/");
     } catch (err: any) { setError(err.message || "Something went wrong"); }
     finally { setSubmitting(false); }
   };
