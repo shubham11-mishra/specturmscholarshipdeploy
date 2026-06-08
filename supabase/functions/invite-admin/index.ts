@@ -62,11 +62,18 @@ Deno.serve(async (req) => {
       return json({ ok: true, mode: "granted", user_id: match.id });
     }
 
-    // Create pending invitation row (idempotent)
-    await admin.from("admin_invitations").upsert(
-      { email, invited_by: caller.id, status: "pending" },
-      { onConflict: "email" },
-    );
+    // Create pending invitation row if none exists
+    const { data: existingInvite } = await admin
+      .from("admin_invitations")
+      .select("id")
+      .eq("email", email)
+      .eq("status", "pending")
+      .maybeSingle();
+    if (!existingInvite) {
+      await admin
+        .from("admin_invitations")
+        .insert({ email, invited_by: caller.id, status: "pending" });
+    }
 
     // Send invite email via Supabase Auth
     const { data: inviteData, error: inviteErr } = await admin.auth.admin.inviteUserByEmail(email, {
