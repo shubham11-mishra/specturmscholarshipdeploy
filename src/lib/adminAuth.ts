@@ -1,26 +1,18 @@
-export const ADMIN_EMAIL = "searcherscholarship@gmail.com";
-export const ADMIN_PASSWORD = "scholarshipsearcher$%12";
-const KEY = "isAdminLoggedIn";
+// Legacy admin bypass has been removed. Admin access is now driven entirely by
+// Supabase auth + the `user_roles` table (see useUserRole / AdminGuard).
+// These stubs remain only to avoid breaking older imports; they are no-ops.
+
+export const ADMIN_EMAIL = "";
+export const ADMIN_PASSWORD = "";
 
 export function isAdminLoggedIn(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    return window.localStorage.getItem(KEY) === "true";
-  } catch {
-    return false;
-  }
+  return false;
 }
 
-export function setAdminLoggedIn(v: boolean) {
-  if (typeof window === "undefined") return;
-  try {
-    if (v) window.localStorage.setItem(KEY, "true");
-    else window.localStorage.removeItem(KEY);
-  } catch {
-    /* ignore */
-  }
+export function setAdminLoggedIn(_v: boolean) {
+  // no-op
 }
 
 export function adminSignOut() {
-  setAdminLoggedIn(false);
+  // no-op — real sign-out goes through supabase.auth.signOut()
 }
