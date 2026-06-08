@@ -31,8 +31,6 @@ import AdminAssessments from "./pages/AdminAssessments.tsx";
 import AdminLayout from "@/components/layouts/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
 import AdminPlaceholder from "./pages/admin/AdminPlaceholder.tsx";
-import QuestionBank from "./pages/admin/QuestionBank.tsx";
-import PassageManager from "./pages/admin/PassageManager.tsx";
 import UserManagement from "./pages/admin/UserManagement.tsx";
 import PendingApprovals from "./pages/admin/PendingApprovals.tsx";
 import AdminLogin from "./pages/admin/AdminLogin.tsx";
