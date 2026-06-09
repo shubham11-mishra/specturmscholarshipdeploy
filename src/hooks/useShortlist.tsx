@@ -89,9 +89,9 @@ export const ShortlistProvider = ({ children }: { children: ReactNode }) => {
           .eq("school_id", id)
         : await supabase
           .from("shortlisted_schools")
-          .upsert({ user_id: user.id, school_id: id }, { onConflict: "user_id,school_id" });
+          .insert({ user_id: user.id, school_id: id });
 
-      if (error) {
+      if (error && error.code !== "23505") {
         console.error("shortlist save error", error);
         setShortlisted(previous);
         toast({
