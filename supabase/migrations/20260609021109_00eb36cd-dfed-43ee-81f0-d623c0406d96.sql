@@ -1,0 +1,1 @@
+ALTER TABLE public.shortlisted_schools ADD CONSTRAINT shortlisted_schools_user_school_unique UNIQUE (user_id, school_id);
